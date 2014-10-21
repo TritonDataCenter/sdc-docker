@@ -40,4 +40,10 @@ for name in smf lib node_modules package.json; do
     fi
 done
 
-ssh $NODE svcadm restart docker
+ssh $NODE '
+    if [[ "$(svcs -Ho state docker)" == "maintenance" ]]; then
+        svcadm clear docker;
+    else
+        svcadm restart docker;
+    fi
+    '
