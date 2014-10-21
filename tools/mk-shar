@@ -48,13 +48,19 @@ function errexit
 #---- mainline
 
 # Process arguments.
-while getopts "o:s:" c; do
+while getopts "o:s:v:c:" c; do
     case "$c" in
     o)
         OUTDIR=$OPTARG
         ;;
     s)
         STAMP=$OPTARG
+        ;;
+    v)
+        VERSION=$OPTARG
+        ;;
+    c)
+        COMMIT=$OPTARG
         ;;
     *)
         usage "illegal option -- $OPTARG"
@@ -93,7 +99,13 @@ rm -rf $PROTO/node/share
 
 # Add a stamp file to know exactly what build we have.
 mkdir -p $PROTO/etc
-echo "$STAMP" >$PROTO/etc/buildstamp
+echo <<EOM >$PROTO/etc/build.json
+{
+    "version": "$VERSION",
+    "commit": "$COMMIT",
+    "stamp": "$STAMP"
+}
+EOM
 
 TMP=/var/tmp/$NAME
 
