@@ -10,28 +10,34 @@
 #
 
 #
-# Rsync the master in this working copy to the install on the given HN.
+# Rsync this the master in this working copy to the install on the given HN.
 #
 
 #set -o xtrace
 set -o errexit
 
 TOP=$(cd $(dirname $0)/../; pwd)
-NODE=coal
-ZONE=$1
-
-if [[ -z "$ZONE" ]]; then
-    echo "usage: rsync-to <coal-build-zone-uuid>"
+NODE=$1
+if [[ -z "$NODE" ]]; then
+    echo 'usage: rsync-to NODE'
     exit 1
 fi
-echo "COAL BUILD ZONE: $ZONE"
+BASEDIR=/opt/smartdc/docker.js
 
-#rsync -av ${TOP}/ \
-#    --delete \
-#    $NODE:/zones/$ZONE/root/root/jocker/ \
-#    --exclude /rsync-jocker
+extraOpts=
+if [[ $(uname -s) != "SunOS" ]]; then
+    extraOpts="--exclude *.node --exclude build"
+else
+    # Clean node_modules everytime.
+    ssh $NODE rm -rf $BASEDIR/node_modules
+fi
 
-rsync -av ${TOP}/ \
-    $NODE:/zones/$ZONE/root/root/docker.js/ \
-    --exclude tmp \
-    --exclude node_modules
+for name in smf lib node_modules package.json; do
+    if [[ -d ${TOP}/$name ]]; then
+        rsync -av ${TOP}/$name/ $NODE:$BASEDIR/$name/ $extraOpts
+    else
+        rsync -av ${TOP}/$name $NODE:$BASEDIR/$name $extraOpts
+    fi
+done
+
+ssh $NODE svcadm restart docker
