@@ -1,4 +1,10 @@
 {
     "name": "docker.js",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "author": "Joyent (joyent.com)",
+    "private": true,
+    "dependencies": {
+        "bunyan": "1.2.0",
+        "restify": "2.8.3"
+    }
 }
