@@ -22,7 +22,6 @@ CLEAN_FILES += ./node_modules
 NODE_PREBUILT_VERSION=v0.10.32
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
-	# Allow building on a SmartOS image other than sdc-smartos@1.6.3.
 	NODE_PREBUILT_IMAGE=de411e86-548d-11e4-a4b7-3bb60478632a
 endif
 
