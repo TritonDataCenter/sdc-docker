@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2014, Joyent, Inc.
+#
+
+#
+# A fake md5sum for gshar to use. Mimicks coreutils' md5sum as much as possible.
+#
+
+num_fails=0
+
+function checkone() {
+    expected=$1
+    path=$2
+    actual=$(openssl dgst -md5 $path | awk '{print $2}')
+    if [[ "$actual" == "$expected" ]]; then
+        echo "$path: OK"
+    else
+        echo "$path: FAILED"
+        num_fails=$(( $num_fails + 1 ))
+    fi
+}
+
+if [[ $1 == "--version" ]]; then
+    echo "md5sum from fakey coreutils"
+    exit 0
+fi
+if [[ $1 == "-c" ]]; then
+    shift;
+    if [[ $# -eq 0 ]]; then
+        while read line; do
+            checkone $line
+        done <&0
+    else
+        while [[ $# -ne 0 ]]; do
+            while read line; do
+                checkone $line
+            done <$1
+            shift
+        done
+    fi
+    if [[ $num_fails -eq 1 ]]; then
+        echo "md5sum: WARNING: $num_failed computed checksum did NOT match"
+    elif [[ $num_fails -ne 0 ]]; then
+        echo "md5sum: WARNING: $num_failed computed checksums did NOT match"
+    fi
+else
+    openssl dgst -md5 "$@" | sed -E -e 's/^MD5\((.+)\)= (.*)$/\2  \1/'
+fi

@@ -1,0 +1,161 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2014, Joyent, Inc.
+#
+
+#
+# Make a shar for installing/upgrading docker.js to a SmartOS GZ.
+#
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
+TOP=$(cd $(dirname $0)/../ >/dev/null; pwd)
+PROTO=$TOP/build/shar-image
+
+NAME=docker.js
+VERSION=$(json -f $TOP/package.json version)
+STAMP=$VERSION-$(date -u "+%Y%m%dT%H%M%SZ")
+
+
+#---- support stuff
+
+function fatal
+{
+    echo "$0: fatal error: $*" >&2
+    exit 1
+}
+
+function errexit
+{
+    [[ $1 -ne 0 ]] || exit 0
+    fatal "error exit status $1"
+}
+
+
+
+#---- mainline
+
+# Process arguments.
+while getopts "o:s:" c; do
+    case "$c" in
+    o)
+        OUTDIR=$OPTARG
+        ;;
+    s)
+        STAMP=$OPTARG
+        ;;
+    *)
+        usage "illegal option -- $OPTARG"
+        exit 1
+        ;;
+    esac
+done
+[[ -n "$OUTDIR" ]] || OUTDIR=$TOP/build
+mkdir -p $OUTDIR
+OUTSHAR=$OUTDIR/$NAME-$STAMP.sh
+
+shift $((OPTIND - 1))
+
+trap 'errexit $?' EXIT
+
+rm -rf $PROTO
+mkdir -p $PROTO
+cp -PR \
+    $TOP/lib \
+    $TOP/smf \
+    $TOP/node_modules \
+    $TOP/tools/install-docker.js.sh \
+    $TOP/package.json \
+    $PROTO
+cp -PR \
+    $TOP/build/node \
+    $PROTO/node
+mkdir -p $PROTO/tools
+
+# Trim out cruft for smaller package.
+rm -rf $PROTO/node/bin/npm
+rm -rf $PROTO/node/lib/node_modules/npm
+rm -rf $PROTO/node/share
+# TODO: more to trim here:
+#   find . -name test | xargs du -sk | awk '{print $1}' |  paste -sd+ | bc  # 1056
+
+# Add a stamp file to know exactly what build we have.
+mkdir -p $PROTO/etc
+echo "$STAMP" >$PROTO/etc/buildstamp
+
+TMP=/var/tmp/$NAME
+
+(cat <<__EOF__
+#!/bin/bash
+#
+# This shar will install/upgrade "docker.js" on a SmartOS GZ.
+#
+function fatal {
+    echo "\$0: error: \$*" >&2
+    exit 3
+}
+[[ "\$(zonename)" == "global" ]] || fatal "not running in global zone"
+[[ "\$(sysinfo | json "Boot Parameters.headnode")" == "true" ]] \
+    || fatal "not running on the headnode"
+
+echo "Extracting docker.js $STAMP to $TMP."
+
+if [ \`pwd\` != '$TMP' ]; then
+    rm -rf $TMP
+    mkdir -p $TMP
+    cd $TMP
+fi
+
+#
+# The GZ where we will be unsharing does not have md5sum that the shar
+# uses to verify contents.
+#
+mkdir -p $TMP/.temp_bin
+export PATH=$TMP/.temp_bin:\$PATH
+cat > $TMP/.temp_bin/md5sum << 'EOFTOOL'
+__EOF__
+)> $OUTSHAR
+
+cat ./tools/md5sum-for-smartos-gz >>$OUTSHAR
+(cat <<__EOF2__
+EOFTOOL
+
+chmod +x $TMP/.temp_bin/md5sum
+
+__EOF2__
+)>>$OUTSHAR
+
+
+(cd $PROTO && shar -Q $(ls) | grep -v '^exit'; cat <<EOF
+
+if [[ -n "\$TRACE" ]]; then
+    export PS4="[\D{%FT%TZ}] \${BASH_SOURCE}:\${LINENO}: \${FUNCNAME[0]:+\${FUNCNAME[0]}(): }"
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+echo "Installing docker.js $STAMP."
+bash ./install-docker.js.sh
+
+cd /var/tmp
+rm -rf $TMP
+
+echo "Installed docker.js successfully."
+exit 0
+EOF
+)>> $OUTSHAR
+
+echo created $OUTSHAR

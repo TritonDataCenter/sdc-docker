@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2014, Joyent, Inc.
+#
+
+#
+# Rsync the master in this working copy to the install on the given HN.
+#
+
+#set -o xtrace
+set -o errexit
+
+TOP=$(cd $(dirname $0)/../; pwd)
+NODE=coal
+ZONE=$1
+
+if [[ -z "$ZONE" ]]; then
+    echo "usage: rsync-to <coal-build-zone-uuid>"
+    exit 1
+fi
+echo "COAL BUILD ZONE: $ZONE"
+
+#rsync -av ${TOP}/ \
+#    --delete \
+#    $NODE:/zones/$ZONE/root/root/jocker/ \
+#    --exclude /rsync-jocker
+
+rsync -av ${TOP}/ \
+    $NODE:/zones/$ZONE/root/root/docker.js/ \
+    --exclude tmp \
+    --exclude node_modules

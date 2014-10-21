@@ -14,7 +14,7 @@
     <exec_method
       type="method"
       name="start"
-      exec="/lib/svc/method/system-docker %m"
+      exec="/opt/smartdc/docker.js/smf/method/docker %m"
       timeout_seconds="60">
       <method_context>
         <method_credential user="root" group="staff"/>
@@ -44,7 +44,7 @@
 
     <template>
       <common_name>
-        <loctext xml:lang="C">Docker Container Management Daemon (Go)</loctext>
+        <loctext xml:lang="C">Docker Container Management Daemon (Node.js)</loctext>
       </common_name>
     </template>
 

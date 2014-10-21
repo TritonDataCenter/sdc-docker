@@ -38,7 +38,7 @@ case "$1" in
         exit $SMF_EXIT_OK
     fi
 
-    /usr/bin/ctrun -l child -o noorphan /usr/sbin/docker -d -D -b none -e lxzone &
+    /usr/bin/ctrun -l child -o noorphan /opt/smartdc/docker.js/node/bin/node /opt/smartdc/docker.js/lib/docker.js &
     ;;
 
 'stop')
