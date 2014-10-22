@@ -68,9 +68,8 @@ while getopts "o:s:v:c:" c; do
         ;;
     esac
 done
-[[ -n "$OUTDIR" ]] || OUTDIR=$TOP/build
-mkdir -p $OUTDIR
-OUTSHAR=$OUTDIR/$NAME-$STAMP.sh
+[[ -n "$OUTSHAR" ]] || OUTSHAR=$TOP/build/$NAME-$VERSION-$STAMP.sh
+mkdir -p $(dirname $OUTSHAR)
 
 shift $((OPTIND - 1))
 
@@ -89,6 +88,16 @@ cp -PR \
     $TOP/build/node \
     $PROTO/node
 mkdir -p $PROTO/tools
+
+# Remove devDependencies from node_modules. However we want to drop
+# symlinks in .bin dir too, which is harder.
+for bin in $(ls node_modules/manta/bin); do   # Warn: hardcoded manta
+    rm -rf $PROTO/node_modules/.bin/$bin
+done
+for pkg in $(json -f package.json devDependencies | json -ka); do
+    rm -rf $PROTO/node_modules/$pkg
+done
+
 
 # Trim out cruft for smaller package.
 rm -rf $PROTO/node/bin/npm

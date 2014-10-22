@@ -38,11 +38,11 @@ include ./tools/mk/Makefile.smf.defs
 
 VERSION=$(shell json -f $(TOP)/package.json version)
 COMMIT=$(shell git describe --all --long  | awk -F'-g' '{print $$NF}')
-RELEASE_PKG=build/docker.js-$(VERSION).sh
+RELEASE_NAME=docker.js-$(VERSION)-$(STAMP).sh
 
 MANTA_URL=https://us-east.manta.joyent.com
-MLN=MANTA_URL=$(MANTA_URL) ./node_modules/.bin/mln
-MPUT=MANTA_URL=$(MANTA_URL) ./node_modules/.bin/mput
+MLN=MANTA_URL=$(MANTA_URL) ./build/node/bin/node ./node_modules/.bin/mln
+MPUT=MANTA_URL=$(MANTA_URL) ./build/node/bin/node ./node_modules/.bin/mput
 
 #
 # Targets
@@ -52,13 +52,15 @@ all: $(SMF_MANIFESTS) | $(NPM_EXEC)
 	$(NPM) install
 
 .PHONY: release
-release $(RELEASE_PKG):
-	./tools/mk-shar -o $(TOP)/build -s $(STAMP) -v $(VERSION) -c $(COMMIT)
+release: build/$(RELEASE_NAME)
+
+build/$(RELEASE_NAME):
+	./tools/mk-shar -o build/$(RELEASE_NAME) -s $(STAMP) -v $(VERSION) -c $(COMMIT)
 
 .PHONY: publish
-publish: $(RELEASE_PKG)
-	$(MPUT) -f $(RELEASE_PKG) /Joyent_Dev/stor/tmp/docker.js-$(VERSION).sh
-	$(MLN) /Joyent_Dev/stor/tmp/docker.js-$(VERSION).sh /Joyent_Dev/stor/tmp/docker.js.sh
+publish: build/$(RELEASE_NAME)
+	$(MPUT) -f build/$(RELEASE_NAME) /Joyent_Dev/stor/tmp/$(RELEASE_NAME)
+	$(MLN) /Joyent_Dev/stor/tmp/$(RELEASE_NAME) /Joyent_Dev/stor/tmp/docker.js.sh
 
 include ./tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
