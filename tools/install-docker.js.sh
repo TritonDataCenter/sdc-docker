@@ -58,7 +58,7 @@ function restore_old_on_error
 [[ "$(zonename)" == "global" ]] || fatal "not running in global zone"
 [[ "$(sysinfo | json "Boot Parameters.headnode")" == "true" ]] \
     || fatal "not running on the headnode"
-[[ -f "./etc/buildstamp" ]] || fatal "missing './etc/buildstamp'"
+[[ -f "./etc/build.json" ]] || fatal "missing './etc/build.json'"
 
 [[ -d $OLDDIR ]] && rm -rf $OLDDIR
 [[ -d $NEWDIR ]] && rm -rf $NEWDIR
@@ -85,5 +85,5 @@ fi
 
 [[ -d $OLDDIR ]] && rm -rf $OLDDIR
 
-echo "Successfully upgraded to docker.js $(cat $DESTDIR/etc/buildstamp)"
+echo "Successfully upgraded to docker.js $(cat $DESTDIR/etc/build.json)"
 exit 0
