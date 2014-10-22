@@ -108,7 +108,7 @@ rm -rf $PROTO/node/share
 
 # Add a stamp file to know exactly what build we have.
 mkdir -p $PROTO/etc
-echo <<EOM >$PROTO/etc/build.json
+cat <<EOM >$PROTO/etc/build.json
 {
     "version": "$VERSION",
     "commit": "$COMMIT",
