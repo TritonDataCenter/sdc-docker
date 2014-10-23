@@ -25,8 +25,6 @@ TOP=$(cd $(dirname $0)/../ >/dev/null; pwd)
 PROTO=$TOP/build/shar-image
 
 NAME=docker.js
-VERSION=$(json -f $TOP/package.json version)
-STAMP=$VERSION-$(date -u "+%Y%m%dT%H%M%SZ")
 
 
 #---- support stuff
