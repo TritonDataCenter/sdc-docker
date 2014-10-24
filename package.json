@@ -8,7 +8,9 @@
     "bunyan": "1.2.0",
     "restify": "2.8.3",
     "libuuid": "0.1.3",
-    "sprintf": "~0.1.4"
+    "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#df5c6fb27ca34f876226784c6ce57aeed52ab6e2",
+    "sprintf": "~0.1.4",
+    "verror": "1.4.0"
   },
   "devDependencies": {
     "manta": "1.4.5",
