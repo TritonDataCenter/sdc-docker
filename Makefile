@@ -8,16 +8,14 @@
 # Copyright (c) 2014, Joyent, Inc.
 #
 
-#
-# Vars, Tools, Files, Flags
-#
+NAME:=docker
 JS_FILES	:= $(shell find lib -name '*.js' | grep -v '/tmp/')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 SMF_MANIFESTS_IN = smf/manifests/docker.xml.in
-CLEAN_FILES += ./node_modules build/docker.js-*.sh
+CLEAN_FILES += ./node_modules
 
 NODE_PREBUILT_VERSION=v0.10.32
 ifeq ($(shell uname -s),SunOS)
@@ -35,31 +33,79 @@ else
 endif
 include ./tools/mk/Makefile.smf.defs
 
+
 VERSION=$(shell json -f $(TOP)/package.json version)
 COMMIT=$(shell git describe --all --long  | awk -F'-g' '{print $$NF}')
-RELEASE_NAME=docker.js-$(VERSION)-$(STAMP).sh
 
-MANTA_URL=https://us-east.manta.joyent.com
-MLN=MANTA_URL=$(MANTA_URL) ./build/node/bin/node ./node_modules/.bin/mln
-MPUT=MANTA_URL=$(MANTA_URL) ./build/node/bin/node ./node_modules/.bin/mput
+RELEASE_TARBALL:=$(NAME)-pkg-$(STAMP).tar.bz2
+RELSTAGEDIR:=/tmp/$(STAMP)
+
 
 #
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) | $(NPM_EXEC)
+all: $(SMF_MANIFESTS) build/build.json | $(NPM_EXEC) sdc-scripts
 	$(NPM) install
 
-.PHONY: release
-release: build/$(RELEASE_NAME)
+build/build.json:
+	echo "{\"version\": \"$(VERSION)\", \"commit\": \"$(COMMIT)\", \"stamp\": \"$(STAMP)\"}" | json >$@
 
-build/$(RELEASE_NAME):
-	./tools/mk-shar -o build/$(RELEASE_NAME) -s $(STAMP) -v $(VERSION) -c $(COMMIT)
+sdc-scripts: deps/sdc-scripts/.git
+
+#XXX sapi_manifests
+#XXX etc/defaults.json ?
+#XXX boot
+
+.PHONY: release
+release: all
+	@echo "Building $(RELEASE_TARBALL)"
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
+	cp -r \
+		$(TOP)/package.json \
+		$(TOP)/lib \
+		$(TOP)/node_modules \
+		$(TOP)/smf \
+		$(TOP)/test \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/etc
+	cp build/build.json $(RELSTAGEDIR)/root/opt/smartdc/etc/
+	#XXX mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
+	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	#XXX cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
+	cp -r \
+		$(TOP)/build/node \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
+	# Trim node
+	rm -rf \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/bin/npm \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/lib/node_modules \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/include \
+		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build/node/share
+	# Trim node_modules (this is death of a 1000 cuts, try for some
+	# easy wins).
+	# XXX these inherited from imgapi, review them
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name test | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name tests | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name examples | xargs -n1 rm -rf
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name "draft-*" | xargs -n1 rm -rf  # draft xml stuff in json-schema
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name libusdt | xargs -n1 rm -rf  # dtrace-provider
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name obj.target | xargs -n1 rm -rf  # dtrace-provider
+	find $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/node_modules -name deps | grep 'extsprintf/deps$$' | xargs -n1 rm -rf  # old extsprintf shipped dev bits
+	# Tar
+	(cd $(RELSTAGEDIR) && $(TAR) -jcf $(TOP)/$(RELEASE_TARBALL) root)
+	@rm -rf $(RELSTAGEDIR)
 
 .PHONY: publish
-publish: build/$(RELEASE_NAME)
-	$(MPUT) -f build/$(RELEASE_NAME) /Joyent_Dev/stor/tmp/$(RELEASE_NAME)
-	$(MLN) /Joyent_Dev/stor/tmp/$(RELEASE_NAME) /Joyent_Dev/stor/tmp/docker.js.sh
+publish: release
+	@if [[ -z "$(BITS_DIR)" ]]; then \
+		@echo "error: 'BITS_DIR' must be set for 'publish' target"; \
+		exit 1; \
+	fi
+	mkdir -p $(BITS_DIR)/$(NAME)
+	cp $(TOP)/$(RELEASE_TARBALL) $(BITS_DIR)/$(NAME)/$(RELEASE_TARBALL)
+
 
 include ./tools/mk/Makefile.deps
 ifeq ($(shell uname -s),SunOS)
