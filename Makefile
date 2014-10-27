@@ -49,6 +49,7 @@ all: $(SMF_MANIFESTS) build/build.json | $(NPM_EXEC) sdc-scripts
 	$(NPM) install
 
 build/build.json:
+	mkdir -p build
 	echo "{\"version\": \"$(VERSION)\", \"commit\": \"$(COMMIT)\", \"stamp\": \"$(STAMP)\"}" | json >$@
 
 sdc-scripts: deps/sdc-scripts/.git
