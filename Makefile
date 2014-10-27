@@ -21,9 +21,8 @@ CLEAN_FILES += ./node_modules build/docker.js-*.sh
 
 NODE_PREBUILT_VERSION=v0.10.32
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=gz
-	# Get a 'gz' build for zone de411e86-548d-11e4-a4b7-3bb60478632a (base).
-	NODE_PREBUILT_IMAGE=fd2cc906-8938-11e3-beab-4359c665ac99
+	NODE_PREBUILT_TAG=zone
+	NODE_PREBUILT_IMAGE=de411e86-548d-11e4-a4b7-3bb60478632a
 endif
 
 
