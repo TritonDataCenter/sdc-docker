@@ -56,12 +56,11 @@ sdc-scripts: deps/sdc-scripts/.git
 
 #XXX sapi_manifests
 #XXX etc/defaults.json ?
-#XXX boot
 
 .PHONY: release
 release: all
 	@echo "Building $(RELEASE_TARBALL)"
-	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/{etc,boot,build}
 	cp -r \
 		$(TOP)/package.json \
 		$(TOP)/lib \
@@ -69,12 +68,9 @@ release: all
 		$(TOP)/smf \
 		$(TOP)/test \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
-	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/etc
 	cp build/build.json $(RELSTAGEDIR)/root/opt/smartdc/etc/
-	#XXX mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/boot
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
-	#XXX cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
-	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
+	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	cp -r \
 		$(TOP)/build/node \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
