@@ -7,3 +7,9 @@
 [submodule "deps/sdc-scripts"]
 	path = deps/sdc-scripts
 	url = git@github.com:joyent/sdc-scripts.git
+[submodule "deps/restdown"]
+	path = deps/restdown
+	url = git://github.com/trentm/restdown.git
+[submodule "deps/restdown-brand-remora"]
+	path = deps/restdown-brand-remora
+	url = git@github.com:joyent/restdown-brand-remora.git
