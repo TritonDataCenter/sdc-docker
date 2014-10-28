@@ -2,6 +2,8 @@
     "// port": "2376 for tls",
     "port": 2375,
     "logLevel": "debug",
+
+    "backend": "sdc",
     "imgapi": {
         "url": "http://imgapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },

@@ -33,7 +33,7 @@ typically written out by config-agent using the
 | var | type | default | description |
 | --- | ---- | ------- | ----------- |
 | port | Number | 2375 | Port number on which the Docker engine listens. |
-| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. This is overridden by the `-d|--debug` switch. |
+| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
 | maxSockets | Number | 100 | Maximum number of sockets for external API calls |
 | backend | String | sdc | One of 'sdc' (all of SDC is a docker host) or 'lxzone' (just the CN is the docker host, this requires running the docker service in the GZ, not currently supported). |
 | imgapi.url | String | - | The IMGAPI URL for this DC. |
