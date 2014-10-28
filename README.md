@@ -1,4 +1,8 @@
-# docker.js
+# sdc-docker
+
+A Docker Engine for SmartDataCenter, where the whole DC is
+exposed as a single docker host. The Docker remote API is
+served from a 'docker' core SDC zone (built from this repo).
 
 TODO: Implement Docker in node.js
 

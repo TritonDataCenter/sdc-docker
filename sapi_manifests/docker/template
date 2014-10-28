@@ -1,0 +1,11 @@
+{
+    "// port": "2376 for tls",
+    "port": 2375,
+    "logLevel": "debug",
+    "imgapi": {
+        "url": "http://imgapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+    "vmapi": {
+        "url": "http://vmapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    }
+}

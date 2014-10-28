@@ -22,6 +22,8 @@ source /opt/smartdc/boot/lib/util.sh
 CONFIG_AGENT_LOCAL_MANIFESTS_DIRS=/opt/smartdc/$role
 sdc_common_setup
 
+/usr/sbin/svccfg import /opt/smartdc/$role/smf/manifests/docker.xml
+
 # Log rotation.
 sdc_log_rotation_add amon-agent /var/svc/log/*amon-agent*.log 1g
 sdc_log_rotation_add config-agent /var/svc/log/*config-agent*.log 1g

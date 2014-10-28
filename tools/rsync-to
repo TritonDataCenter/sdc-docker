@@ -10,7 +10,7 @@
 #
 
 #
-# Rsync this the master in this working copy to the install on the given HN.
+# Rsync the master in this working copy to the install on the given HN.
 #
 
 #set -o xtrace
@@ -18,32 +18,36 @@ set -o errexit
 
 TOP=$(cd $(dirname $0)/../; pwd)
 NODE=$1
-if [[ -z "$NODE" ]]; then
-    echo 'usage: rsync-to NODE'
-    exit 1
+
+if [[ -z "$DOCKER_ZONE" ]]; then
+    DOCKER_ZONE=$(ssh $NODE "/opt/smartdc/bin/sdc-vmapi /vms" 2>/dev/null \
+        | json -H -c 'this.tags && this.tags.smartdc_role === "docker"' \
+            -c 'this.state === "running"' 0.uuid)
 fi
-BASEDIR=/opt/smartdc/docker.js
+echo "DOCKER_ZONE: $DOCKER_ZONE"
 
 extraOpts=
 if [[ $(uname -s) != "SunOS" ]]; then
     extraOpts="--exclude *.node --exclude build"
 else
     # Clean node_modules everytime.
-    ssh $NODE rm -rf $BASEDIR/node_modules
+    ssh $NODE rm -rf /zones/$DOCKER_ZONE/root/opt/smartdc/docker/node_modules
 fi
 
-for name in smf lib node_modules package.json; do
-    if [[ -d ${TOP}/$name ]]; then
-        rsync -av ${TOP}/$name/ $NODE:$BASEDIR/$name/ $extraOpts
-    else
-        rsync -av ${TOP}/$name $NODE:$BASEDIR/$name $extraOpts
-    fi
-done
+rsync -av ${TOP}/ \
+    $NODE:/zones/$DOCKER_ZONE/root/opt/smartdc/docker/ \
+    $extraOpts \
+    --exclude .git/ \
+    --exclude /etc/config.json \
+    --exclude /deps/ \
+    --exclude /doc/ \
+    --exclude /tools/ \
+    --exclude /tmp/
 
-ssh $NODE '
-    if [[ "$(svcs -Ho state docker)" == "maintenance" ]]; then
-        svcadm clear docker;
-    else
-        svcadm restart docker;
-    fi
-    '
+state=$(ssh ${NODE} svcs -z ${DOCKER_ZONE} -H -o state docker)
+if [[ "$state" == "maintenance" ]]; then
+    ssh ${NODE} svcadm -z ${DOCKER_ZONE} clear docker
+else
+    ssh ${NODE} svcadm -z ${DOCKER_ZONE} restart docker
+fi
+ssh ${NODE} svcadm -z ${DOCKER_ZONE} restart config-agent
