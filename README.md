@@ -22,6 +22,13 @@ first instance if necessary) via:
 
     sdcadm experimental update-docker
 
+Then you should be able to run this on your Mac to get `coaldocker` for
+talking to the Docker engine in your COAL, where `docker` here is
+the boot2docker client:
+
+    alias coaldocker="DOCKER_TLS_VERIFY= docker -H tcp://$(ssh coal 'vmadm lookup alias=docker0 | xargs -n1 vmadm get | json nics.0.ip'):2375"
+    coaldocker version
+
 
 # Development
 
