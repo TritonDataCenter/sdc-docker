@@ -59,9 +59,6 @@ build/build.json:
 
 sdc-scripts: deps/sdc-scripts/.git
 
-#XXX sapi_manifests
-#XXX etc/defaults.json ?
-
 .PHONY: release
 release: all
 	@echo "Building $(RELEASE_TARBALL)"
@@ -77,6 +74,7 @@ release: all
 		$(TOP)/node_modules \
 		$(TOP)/smf \
 		$(TOP)/test \
+		$(TOP)/sapi_manifests \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
 	cp build/build.json $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/etc/
 	cp -r \
