@@ -79,15 +79,16 @@ Before commiting be sure to:
 Until we fully support pulling images from a registry I've built 2 images that
 I'm using for testing. To get these you can:
 
-for file in $(mls /Joyent_Dev/stor/stuff/docker/ | grep "\-11e4-"); do
-    mget -O ${file}
-done
+    for file in $(mls /Joyent_Dev/stor/stuff/docker/ | grep "\-11e4-"); do
+        mget -O ${file}
+    done
 
 Copy the resulting files to /var/tmp in your COAL and then run:
 
-cd /var/tmp
-for img in $(ls *.manifest); do
-    sdc-imgadm import -m ${img} -f $(basename ${img} .manifest).zfs.gz
-done
+
+    cd /var/tmp
+    for img in $(ls *.manifest); do
+        sdc-imgadm import -m ${img} -f $(basename ${img} .manifest).zfs.gz
+    done
 
 to get these images imported into your local imgapi.
