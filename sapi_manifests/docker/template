@@ -4,8 +4,15 @@
     "logLevel": "debug",
 
     "backend": "sdc",
+    "defaultPackage": "sdc_512",
     "imgapi": {
         "url": "http://imgapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+    "napi": {
+        "url": "http://napi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+    "papi": {
+        "url": "http://papi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
     "vmapi": {
         "url": "http://vmapi.{{{datacenter_name}}}.{{{dns_domain}}}"
