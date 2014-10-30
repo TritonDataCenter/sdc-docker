@@ -22,19 +22,30 @@ first instance if necessary) via:
 
     sdcadm experimental update-docker
 
-Then you should be able to run this on your Mac to get `coaldocker` for
-talking to the Docker engine in your COAL, where `docker` here is
-the boot2docker client:
+Then set `DOCKER_HOST` (and unset `DOCKER_TLS_VERIFY` for now) on your Mac
+(or whever you have a `docker` client):
 
-    alias coaldocker="DOCKER_TLS_VERIFY= docker -H tcp://$(ssh coal 'vmadm lookup alias=docker0 | xargs -n1 vmadm get | json nics.0.ip'):2375"
-    coaldocker version
+    $ export DOCKER_TLS_VERIFY=
+    $ export DOCKER_HOST=tcp://$(ssh root@10.99.99.7 'vmadm lookup alias=docker0 | xargs -n1 vmadm get | json nics.0.ip'):2375
+    $ docker info
+    Containers: 0
+    Images: 31
+    Storage Driver: sdc
+    Execution Driver: sdc-0.1
+    Kernel Version: 7.x
+    Operating System: Joyent Smart Data Center
+    Debug mode (server): true
+    Debug mode (client): false
+    Fds: 42
+    Goroutines: 42
+    EventsListeners: 0
+    Init Path: /usr/bin/docker
 
 
 # Development
 
-FWIW, here is how Trent is doing it.
-
-1. Add a 'coal' entry to your '~/.ssh/config':
+1. Add a 'coal' entry to your '~/.ssh/config'. Not required, but we'll use this
+   as a shortcut in examples below.
 
         Host coal
             User root
@@ -80,15 +91,22 @@ Until we fully support pulling images from a registry I've built 2 images that
 I'm using for testing. To get these you can:
 
     for file in $(mls /Joyent_Dev/stor/stuff/docker/ | grep "\-11e4-"); do
-        mget -O ${file}
+        mget -O /Joyent_Dev/stor/stuff/docker/${file}
     done
 
-Copy the resulting files to /var/tmp in your COAL and then run:
+Copy the resulting files to /var/tmp in your COAL and import them into IMGAPI:
 
-
+    scp *-11e4-* coal:/var/tmp
+    ssh coal
     cd /var/tmp
     for img in $(ls *.manifest); do
         sdc-imgadm import -m ${img} -f $(basename ${img} .manifest).zfs.gz
     done
 
-to get these images imported into your local imgapi.
+Then (as of a recent sdc-docker) you should be able to do:
+
+    $ docker create --name=ABC123 lx-busybox32:0.007 /bin/sh
+    57651723e32949bc967f2640872bae9651385b4254e64a49a320dc82c3d46bbb
+    $ ssh coal vmadm list uuid=~5765
+    UUID                                  TYPE  RAM      STATE             ALIAS
+    57651723-e329-49bc-967f-2640872bae96  LX    512      stopped           ABC123
