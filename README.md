@@ -5,6 +5,95 @@ exposed as a single docker host. The Docker remote API is
 served from a 'docker' core SDC zone (built from this repo).
 
 
+# Current State
+
+The following shows the state of the various docker commands when talking to
+sdc-docker instead of a regular docker host.
+
+## Working and partially-working commands
+
+ * docker create --name=foo64 lx-busybox:0.002 /bin/sh
+   * does not support -i
+   * async, so doesn't show up immediately
+ * docker images
+   * does not filter, fakes 'latest'
+ * docker info
+ * docker ps
+   * does not filter (and -a is same)
+   * doesn't show actual exit status / time
+ * docker start <id|short-id|name>
+   * does not support -a or -i
+ * docker version
+
+## Non-working commands
+
+ * docker run
+   * broken because create is not synchronous
+ * docker stop
+   * does not work (because no shutdown)
+
+## Non implemented commands
+
+ * docker attach
+   * not implemented
+ * docker build
+   * not implemented
+ * docker commit
+   * not implemented
+ * docker cp
+   * only happens locally?
+ * docker diff
+   * not implemented
+ * docker events
+   * not implemented
+ * docker exec
+   * not implemented
+ * docker export
+   * not implemented
+ * docker history
+   * not implemented
+ * docker import
+   * not implemented
+ * docker inspect
+   * not implemented
+ * docker kill
+   * not implemented
+ * docker load
+   * not implemented
+ * docker login
+   * only happens locally?
+ * docker logout
+   * only happens locally?
+ * docker logs
+   * not implemented
+ * docker port
+   * not implemented
+ * docker pause
+   * not implemented
+ * docker pull
+   * not implemented
+ * docker push
+   * not implemented
+ * docker restart
+   * not implemented
+ * docker rm
+   * not implemented
+ * docker rmi
+   * not implemented
+ * docker save
+   * not implemented
+ * docker search
+   * not implemented
+ * docker tag
+   * not implemented
+ * docker top
+   * not implemented
+ * docker unpause
+   * not implemented
+ * docker wait
+   * not implemented
+
+
 # Installation
 
 Installing sdc-docker means getting a running 'docker' core zone. This
