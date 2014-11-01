@@ -13,22 +13,23 @@ sdc-docker instead of a regular docker host.
 ## Working and partially-working commands
 
  * docker create --name=foo64 lx-busybox:0.002 /bin/sh
-   * does not support -i
-   * async, so doesn't show up immediately
+   * supports -m, -c
+   * does not support any other options (especially interactive modes)
  * docker images
    * does not filter, fakes 'latest'
  * docker info
  * docker ps
    * does not filter (and -a is same)
    * doesn't show actual exit status / time
+ * docker run -d --name=foo lx-busybox:0.002 /bin/sh
+   * supports -m, -c
+   * does not support any other options (especially interactive modes)
  * docker start <id|short-id|name>
    * does not support -a or -i
  * docker version
 
 ## Non-working commands
 
- * docker run
-   * broken because create is not synchronous
  * docker stop
    * does not work (because no shutdown)
 
