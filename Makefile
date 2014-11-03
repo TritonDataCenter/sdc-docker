@@ -10,7 +10,7 @@
 
 NAME:=docker
 
-DOC_FILES	 = index.md
+DOC_FILES	 = index.md images.md
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 
