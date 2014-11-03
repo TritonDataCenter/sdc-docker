@@ -23,6 +23,11 @@ See the [README](https://github.com/joyent/sdc-docker/blob/master/README.md)
 for development details.
 
 
+# Design documents
+
+- [Images](./images.html)
+
+
 # Configuration
 
 Reference docs on configuration vars to sdc-docker. Configuration is loaded
