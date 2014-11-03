@@ -18,6 +18,8 @@ sdc-docker instead of a regular docker host.
  * docker images
    * does not filter, fakes 'latest'
  * docker info
+ * docker kill
+   * only signals supported by node
  * docker ps
    * does not filter (and -a is same)
    * doesn't show actual exit status / time
@@ -56,8 +58,6 @@ sdc-docker instead of a regular docker host.
  * docker import
    * not implemented
  * docker inspect
-   * not implemented
- * docker kill
    * not implemented
  * docker load
    * not implemented
