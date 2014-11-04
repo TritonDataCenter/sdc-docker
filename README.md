@@ -26,14 +26,15 @@ sdc-docker instead of a regular docker host.
  * docker run -d --name=foo lx-busybox:0.002 /bin/sh
    * supports -m, -c
    * does not support any other options (especially interactive modes)
+ * docker stop
+   * supports -t
  * docker start <id|short-id|name>
    * does not support -a or -i
  * docker version
 
 ## Non-working commands
 
- * docker stop
-   * does not work (because no shutdown)
+ * currently none that are implemented but non-working
 
 ## Non implemented commands
 
