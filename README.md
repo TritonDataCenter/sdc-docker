@@ -23,6 +23,11 @@ sdc-docker instead of a regular docker host.
  * docker ps
    * does not filter (and -a is same)
    * doesn't show actual exit status / time
+ * docker restart
+   * supports -t
+ * docker rm
+   * *ALWAYS* behaves as though -f were passed
+   * does not support other options
  * docker run -d --name=foo lx-busybox:0.002 /bin/sh
    * supports -m, -c
    * does not support any other options (especially interactive modes)
@@ -38,7 +43,7 @@ sdc-docker instead of a regular docker host.
 
 ## Non implemented commands
 
- * docker attach
+ * docker attach (DOCKER-4)
    * not implemented
  * docker build
    * not implemented
@@ -50,7 +55,7 @@ sdc-docker instead of a regular docker host.
    * not implemented
  * docker events
    * not implemented
- * docker exec
+ * docker exec (DOCKER-4)
    * not implemented
  * docker export
    * not implemented
@@ -70,15 +75,11 @@ sdc-docker instead of a regular docker host.
    * not implemented
  * docker port
    * not implemented
- * docker pause
+ * docker pause (blocked on OS-3455)
    * not implemented
  * docker pull
    * not implemented
  * docker push
-   * not implemented
- * docker restart
-   * not implemented
- * docker rm
    * not implemented
  * docker rmi
    * not implemented
@@ -90,7 +91,7 @@ sdc-docker instead of a regular docker host.
    * not implemented
  * docker top
    * not implemented
- * docker unpause
+ * docker unpause (blocked on OS-3456)
    * not implemented
  * docker wait
    * not implemented
