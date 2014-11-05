@@ -11,7 +11,7 @@
 -->
 
 <service_bundle type="manifest" name="vmadmd">
-  <service name="system/smartdc/docker" type="service" version="0.0.1">
+    <service name="smartdc/application/docker" type="service" version="0.0.1">
 
     <create_default_instance enabled="true"/>
     <single_instance/>
