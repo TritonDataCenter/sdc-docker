@@ -57,5 +57,6 @@ function testDuration(test) {
 }
 
 module.exports = {
-    testDuration: testDuration
+    "test conversion of elapsed seconds to human-readable duration":
+        testDuration
 }
