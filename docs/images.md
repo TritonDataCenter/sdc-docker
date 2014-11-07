@@ -146,7 +146,7 @@ that perhaps there should be aseparate workflow here. I.e. a
   docker images data in moray. This uses the same semantics as `docker rmi`
   w.r.t.  dependent layers and running containers: i.e. we'll need to hit VMAPI
   to get running containers for the user.
-  
+
 Dev Note: This results in a list of docker image IDs that were removed from
 Bob's view of the world. The trick now is that *at some point* we need to
 actually remove images from the DC's IMGAPI, or we grow to insanity. We *could*
@@ -182,7 +182,8 @@ I like (C).
 
 - user: `docker images ...`
 - sdc-docker: auth as "bob"
-- sdc-docker: lookup set of images to return in per-user image data: tagged images or all pulled images if `docker images -a`
+- sdc-docker: lookup set of images to return in per-user image data: tagged
+  images or all pulled images if `docker images -a`
 - sdc-docker: Gather docker data from IMGAPI.
 
 Dev Note: Likely want a bulk endpoint on IMGAPI to be able to get information
@@ -239,7 +240,7 @@ ordering:
 ## sdc-docker storage of per-user Docker image data
 
 Sdc-docker needs to store (a) the docker image tags per user, and (b) the set
-of pulled docker images per user. 
+of pulled docker images per user.
 
 TODO: describe how those will be stored (presumably in Moray). One
 consideration is the lookups required for reference counting for removing
@@ -262,7 +263,7 @@ Native docker format:
   "docker push".
 - Pro: Docker native format closer to the metal (where metal == imgadm here),
   should help with possible future support for "Docker on vanilla SmartOS".
-  
+
 Zone datasets:
 - Pro: Would only need to do the "aufs to zfs-dataset" translation once,
   instead of independently on each node.
