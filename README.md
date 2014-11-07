@@ -65,7 +65,7 @@ sdc-docker instead of a regular docker host.
  * docker commit
    * not implemented
  * docker cp
-   * only happens locally?
+   * not implemented
  * docker diff
    * not implemented
  * docker events
@@ -83,9 +83,9 @@ sdc-docker instead of a regular docker host.
  * docker load
    * not implemented
  * docker login
-   * only happens locally?
+   * not implemented
  * docker logout
-   * only happens locally?
+   * not implemented
  * docker logs
    * not implemented
  * docker port
