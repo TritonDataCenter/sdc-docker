@@ -51,6 +51,7 @@ sdc-docker instead of a regular docker host.
  * docker start <id|short-id|name>
    * does not support -a or -i
  * docker version
+ * docker wait
 
 ## Non-working commands
 
@@ -107,8 +108,6 @@ sdc-docker instead of a regular docker host.
  * docker top
    * not implemented
  * docker unpause (blocked on OS-3456)
-   * not implemented
- * docker wait
    * not implemented
 
 
