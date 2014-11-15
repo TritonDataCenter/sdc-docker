@@ -16,5 +16,8 @@
     },
     "vmapi": {
         "url": "http://vmapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+    "cnapi": {
+        "url": "http://cnapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     }
 }
