@@ -30,9 +30,15 @@ sdc-docker instead of a regular docker host.
  * docker create --name=foo64 lx-busybox:0.002 /bin/sh
    * supports -m, -c
    * does not support any other options (especially interactive modes)
+ * docker exec
+   * supports -i, -t
+   * does not support -d yet
  * docker images
    * does not filter, fakes 'latest'
  * docker info
+ * docker inspect
+   * supports inspecting a container
+   * does not support inspecting an image yet
  * docker kill
    * only signals supported by node
  * docker ps
@@ -71,15 +77,11 @@ sdc-docker instead of a regular docker host.
    * not implemented
  * docker events
    * not implemented
- * docker exec (DOCKER-4)
-   * not implemented
  * docker export
    * not implemented
  * docker history
    * not implemented
  * docker import
-   * not implemented
- * docker inspect
    * not implemented
  * docker load
    * not implemented
