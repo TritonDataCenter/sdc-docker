@@ -38,7 +38,7 @@ sdc-docker instead of a regular docker host.
  * docker info
  * docker inspect
    * supports inspecting a container
-   * does not support inspecting an image yet
+   * supports inspecting an image
  * docker kill
    * only signals supported by node
  * docker ps
