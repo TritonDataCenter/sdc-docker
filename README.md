@@ -41,8 +41,7 @@ sdc-docker instead of a regular docker host.
  * docker kill
    * only signals supported by node
  * docker ps
-   * does not filter (and -a is same)
-   * doesn't show actual exit status / time
+   * does not filter
  * docker restart
    * supports -t
  * docker rm
