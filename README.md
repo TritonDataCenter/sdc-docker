@@ -31,8 +31,7 @@ sdc-docker instead of a regular docker host.
    * supports -m, -c
    * does not support any other options (especially interactive modes)
  * docker exec
-   * supports -i, -t
-   * does not support -d yet
+   * supports -i, -t, -d
  * docker images
    * does not filter, fakes 'latest'
  * docker info
