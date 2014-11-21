@@ -50,6 +50,7 @@ sdc-docker instead of a regular docker host.
  * docker run -d --name=foo lx-busybox:0.002 /bin/sh
    * supports -m, -c
    * does not support any other options (especially interactive modes)
+ * docker search
  * docker stop
    * supports -t
  * docker start <id|short-id|name>
@@ -100,8 +101,6 @@ sdc-docker instead of a regular docker host.
  * docker rmi
    * not implemented
  * docker save
-   * not implemented
- * docker search
    * not implemented
  * docker tag
    * not implemented

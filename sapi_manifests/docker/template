@@ -19,5 +19,9 @@
     },
     "cnapi": {
         "url": "http://cnapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+    "registry": {
+        "indexUrl": "https://index.docker.io",
+        "registryUrl": "https://registry-1.docker.io"
     }
 }
