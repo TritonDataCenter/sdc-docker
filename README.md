@@ -195,8 +195,8 @@ Before commiting be sure to:
 Until we fully support pulling images from a registry I've built 2 images that
 I'm using for testing. To get these you can:
 
-    for file in $(mls /Joyent_Dev/stor/stuff/docker/ | grep "\-11e4-"); do
-        mget -O /Joyent_Dev/stor/stuff/docker/${file}
+    for file in $(mls /Joyent_Dev/public/docker/ | grep "\-11e4-"); do
+        mget -O /Joyent_Dev/public/docker/${file}
     done
 
 Copy the resulting files to /var/tmp in your COAL and import them into IMGAPI:
