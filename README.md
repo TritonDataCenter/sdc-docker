@@ -210,7 +210,7 @@ Copy the resulting files to /var/tmp in your COAL and import them into IMGAPI:
 
 Then (as of a recent sdc-docker) you should be able to do:
 
-    $ docker create --name=ABC123 lx-busybox32:0.007 /bin/sh
+    $ docker create --name=ABC123 lx-busybox32 /bin/sh
     57651723e32949bc967f2640872bae9651385b4254e64a49a320dc82c3d46bbb
     $ ssh coal vmadm list uuid=~5765
     UUID                                  TYPE  RAM      STATE             ALIAS
