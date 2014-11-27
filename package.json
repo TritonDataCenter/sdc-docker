@@ -6,6 +6,7 @@
   "dependencies": {
     "assert-plus": "0.1.5",
     "bunyan": "1.2.0",
+    "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#c3dbb4d",
     "restify": "2.8.3",
     "libuuid": "0.1.3",
     "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#a341277",
