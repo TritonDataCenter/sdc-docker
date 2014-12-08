@@ -20,6 +20,11 @@
     "cnapi": {
         "url": "http://cnapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
+    "wfapi": {
+        "forceMd5Check": true,
+        "workflows": [],
+        "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
     "registry": {
         "indexUrl": "https://index.docker.io",
         "registryUrl": "https://registry-1.docker.io"
