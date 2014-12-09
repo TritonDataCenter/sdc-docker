@@ -22,6 +22,7 @@ in a 'docker' core SDC zone.
 See the [README](https://github.com/joyent/sdc-docker/blob/master/README.md)
 for development details.
 
+See [the list of Docker issues in which we are involved or interested](./docker-issues.md).
 
 # Design documents
 
