@@ -47,6 +47,12 @@ indicated by the manifest `origin`; file data is the layer in Docker's native
 import` learns how to import `type=docker` format file data to its native ZFS
 filesystems. We'll figure out `docker push|build|commit` later.
 
+Docker images will NOT be exposed to a user's ListImages on cloudapi. Really
+they are only useful with the Docker image tag info, which is maintained
+by sdc-docker. If we intend to change this design point, then beware that
+sdc-docker will be removing unused/abandoned docker images in the background
+(e.g. when last user does a 'docker rmi ID' for a given image ID).
+
 
 # Docker images on vanilla SmartOS
 
@@ -227,7 +233,9 @@ TODO: Integrate these with the full sdc-docker project plan. A potential
 ordering:
 
 - `docker pull|images|history|inspect`
+    - really need the IMGAPI local cache (see img-mgmt plan)
 - `docker rmi`
+    -
 - `docker pull` support for repositories other than the default
 - speed: start tracking time to do all these endpoints
 - plan out `docker commit|build|push` et al
@@ -240,12 +248,29 @@ ordering:
 ## sdc-docker storage of per-user Docker image data
 
 Sdc-docker needs to store (a) the docker image tags per user, and (b) the set
-of pulled docker images per user.
+of pulled docker images per user. These will be in moray. Buckets:
 
-TODO: describe how those will be stored (presumably in Moray). One
-consideration is the lookups required for reference counting for removing
-images from IMGAPI that are no longer in use by any user (see Use Case 3
-above).
+1. `docker_image_tags`: Per-user mapping of docker image tag to docker id (or
+   IMGAPI image uuid?).
+   Columns:  `key` (unused), `owner_uuid`, `tag`, `image_id`.
+
+2. `docker_image_ids`: Per-user set of pulled docker image ids.
+   Columns:  `key` (unused), `owner_uuid`, `image_id`.
+
+3. `docker_tombstone_image_ids`: The set of docker image ids to be removed
+   from IMGAPI *after a period of time* because they are no longer referenced by
+   anyone, i.e. after the last user does `docker rmi ID` on that image.
+   Columns:  `key` (unused), `image_id`, `expires_at`.
+
+   Dev Note: We track the expiry time to allow reviving image layers. This
+   allows IMGAPI to not page docker images in and out if there are, say, two
+   users doing `docker pull foo; ...; docker rmi foo`. The foo image layers
+   will be picked up by the second user, instead of having been dumped and
+   needing to be downloaded from docker.io again.
+
+TODO: Specify indeces. One consideration is the lookups required for reference
+counting for removing images from IMGAPI that are no longer in use by any user
+(see Use Case 3 above).
 
 
 ## Why store docker native format in IMGAPI?
