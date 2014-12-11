@@ -22,7 +22,7 @@
     },
     "wfapi": {
         "forceMd5Check": true,
-        "workflows": [],
+        "workflows": ["pull-image"],
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
     "registry": {
