@@ -18,3 +18,6 @@ https://docs.google.com/spreadsheets/d/1fNrTR25N6t9TEdEs5fHWGc3XQeydNCIvtwWBGMNw
  * [Question about /container/id/top command #7205](https://github.com/docker/docker/issues/7205) (which lead to:)
  * [Proposal: Make API for `/containers/(id)/top` independent of implementation #9232](https://github.com/docker/docker/pull/9232)
 
+## ZFS
+
+ * [Implement Docker on ZFS](https://github.com/docker/docker/pull/7901). Has first functional version in branch.
