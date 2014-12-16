@@ -10,6 +10,7 @@
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#2363f8c",
     "restify": "2.8.3",
     "libuuid": "0.1.3",
+    "moray": "git+ssh://git@github.com:joyent/node-moray.git#441fd44",
     "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#a341277",
     "sprintf": "~0.1.4",
     "vasync": "1.6.1",
