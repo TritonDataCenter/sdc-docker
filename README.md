@@ -40,6 +40,8 @@ sdc-docker instead of a regular docker host.
    * supports inspecting an image
  * docker kill
    * only signals supported by node
+ * docker pull
+   * does not support -a yet
  * docker ps
    * does not filter
  * docker restart
@@ -93,8 +95,6 @@ sdc-docker instead of a regular docker host.
  * docker port
    * not implemented
  * docker pause (blocked on OS-3455)
-   * not implemented
- * docker pull
    * not implemented
  * docker push
    * not implemented
