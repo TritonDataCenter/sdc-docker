@@ -50,6 +50,8 @@ sdc-docker instead of a regular docker host.
  * docker rm
    * *ALWAYS* behaves as though -f were passed
    * does not support other options
+ * docker rmi
+   * does not support -f and --no-prune
  * docker run -d --name=foo lx-busybox:0.002 /bin/sh
    * supports -m, -c
    * does not support any other options (especially interactive modes)
@@ -96,8 +98,6 @@ sdc-docker instead of a regular docker host.
  * docker pause (blocked on OS-3455)
    * not implemented
  * docker push
-   * not implemented
- * docker rmi
    * not implemented
  * docker save
    * not implemented
