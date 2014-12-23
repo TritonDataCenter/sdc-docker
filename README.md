@@ -32,6 +32,7 @@ sdc-docker instead of a regular docker host.
    * does not support any other options (especially interactive modes)
  * docker exec
    * supports -i, -t, -d
+ * docker history
  * docker images
    * does not filter, fakes 'latest'
  * docker info
@@ -79,8 +80,6 @@ sdc-docker instead of a regular docker host.
  * docker events
    * not implemented
  * docker export
-   * not implemented
- * docker history
    * not implemented
  * docker import
    * not implemented
