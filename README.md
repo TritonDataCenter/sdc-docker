@@ -60,6 +60,9 @@ sdc-docker instead of a regular docker host.
    * supports -t
  * docker start <id|short-id|name>
    * does not support -a or -i
+ * docker top
+   * does not honor ps_args
+   * non-standard format for some fields
  * docker version
  * docker wait
 
@@ -102,8 +105,6 @@ sdc-docker instead of a regular docker host.
  * docker save
    * not implemented
  * docker tag
-   * not implemented
- * docker top
    * not implemented
  * docker unpause (blocked on OS-3456)
    * not implemented
