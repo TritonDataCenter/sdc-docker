@@ -22,92 +22,9 @@ This is still very much alpha. Use at your own risk!
 
 # Current State
 
-The following shows the state of the various docker commands when talking to
-sdc-docker instead of a regular docker host.
-
-## Working and partially-working commands
-
- * docker create --name=foo64 lx-busybox:0.002 /bin/sh
-   * supports -m, -c
-   * does not support any other options (especially interactive modes)
- * docker exec
-   * supports -i, -t, -d
- * docker history
- * docker images
-   * does not filter, fakes 'latest'
- * docker info
- * docker inspect
-   * supports inspecting a container
-   * supports inspecting an image
- * docker kill
-   * only signals supported by node
- * docker pull
-   * does not support -a yet
- * docker ps
-   * does not filter
- * docker restart
-   * supports -t
- * docker rm
-   * *ALWAYS* behaves as though -f were passed
-   * does not support other options
- * docker rmi
-   * does not support -f and --no-prune
- * docker run -d --name=foo lx-busybox:0.002 /bin/sh
-   * supports -m, -c
-   * does not support any other options (especially interactive modes)
- * docker search
- * docker stop
-   * supports -t
- * docker start <id|short-id|name>
-   * does not support -a or -i
- * docker top
-   * does not honor ps_args
-   * non-standard format for some fields
- * docker version
- * docker wait
-
-## Non-working commands
-
- * currently none that are implemented but non-working
-
-## Non implemented commands
-
- * docker attach (DOCKER-4)
-   * not implemented
- * docker build
-   * not implemented
- * docker commit
-   * not implemented
- * docker cp
-   * not implemented
- * docker diff
-   * not implemented
- * docker events
-   * not implemented
- * docker export
-   * not implemented
- * docker import
-   * not implemented
- * docker load
-   * not implemented
- * docker login
-   * not implemented
- * docker logout
-   * not implemented
- * docker logs
-   * not implemented
- * docker port
-   * not implemented
- * docker pause (blocked on OS-3455)
-   * not implemented
- * docker push
-   * not implemented
- * docker save
-   * not implemented
- * docker tag
-   * not implemented
- * docker unpause (blocked on OS-3456)
-   * not implemented
+Many commands are currently at least partially implemented. See
+docs/divergence.md for details on where sdc-docker diverges from Docker Inc's
+docker.
 
 
 # Installation
