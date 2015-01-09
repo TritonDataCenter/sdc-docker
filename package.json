@@ -11,7 +11,7 @@
     "restify": "2.8.3",
     "libuuid": "0.1.3",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#441fd44",
-    "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#a341277",
+    "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#29dea8e",
     "sprintf": "~0.1.4",
     "vasync": "1.6.1",
     "verror": "1.4.0",
