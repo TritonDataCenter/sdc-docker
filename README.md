@@ -42,13 +42,19 @@ If you don't yet have a sufficient version, then update:
 Then you can update your 'docker' instance (creating an SAPI service and
 first instance if necessary) via:
 
+    sdcadm post-setup common-external-nics  # imgapi needs external
     sdcadm experimental update-docker
 
-Then set `DOCKER_HOST` (and unset `DOCKER_TLS_VERIFY` for now) on your Mac
-(or whever you have a `docker` client):
+Then setup `DOCKER_*` envvars on your Mac (or whever you have a `docker`
+client):
 
-    $ export DOCKER_TLS_VERIFY=
-    $ export DOCKER_HOST=tcp://$(ssh root@10.99.99.7 'vmadm lookup alias=docker0 | xargs -n1 vmadm get | json nics.0.ip'):2375
+    # Sets DOCKER_HOST and, for now, unsets DOCKER_TLS_VERIFY.
+    # This example is the COAL GZ ssh info. Alternatively you could use
+    # "root@172.26.1.4" for the sdc-docker setup on nightly-1.
+    $ `./tools/docker-client-env root@10.99.99.7`
+
+Now you should be able to run the docker client:
+
     $ docker info
     Containers: 0
     Images: 31

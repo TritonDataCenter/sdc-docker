@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2014, Joyent, Inc.
+#
+
+# Dump the environment necessary to setup your docker client to use
+# Docker running in a given SDC.
+
+if [[ -n "$TRACE" ]]; then
+    export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+HN=$1
+if [[ -z "$HN" ]]; then
+    echo 'docker-client-env: error: no HN argument given' >&2
+    echo '' >&2
+    echo 'Usage (include the backticks to update your env):' >&2
+    echo '    `./tools/docker-client-env HN`' >&2
+    echo '' >&2
+    echo 'Examples:' >&2
+    echo '    $ `./tools/docker-client-env root@10.99.99.7` # COAL' >&2
+    echo '    $ `./tools/docker-client-env root@172.26.1.4` # nightly-1' >&2
+    exit 1
+fi
+
+
+# Get docker0 IP: the external if it has one, else the first one.
+IP=$(ssh $HN "vmadm lookup -j alias=docker0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
+DOCKER_HOST=tcp://$IP:2375
+
+echo "export DOCKER_HOST=$DOCKER_HOST"
+echo "export DOCKER_TLS_VERIFY="

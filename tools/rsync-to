@@ -41,7 +41,6 @@ rsync -av ${TOP}/ \
     --exclude /etc/config.json \
     --exclude /deps/ \
     --exclude /doc/ \
-    --exclude /tools/ \
     --exclude /tmp/
 
 state=$(ssh ${NODE} svcs -z ${DOCKER_ZONE} -H -o state docker)
