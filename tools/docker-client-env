@@ -37,5 +37,7 @@ fi
 IP=$(ssh $HN "vmadm lookup -j alias=docker0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
 DOCKER_HOST=tcp://$IP:2375
 
+echo "Setting DOCKER_HOST=$DOCKER_HOST" >&2
 echo "export DOCKER_HOST=$DOCKER_HOST"
+echo "Unsetting DOCKER_TLS_VERIFY" >&2
 echo "export DOCKER_TLS_VERIFY="
