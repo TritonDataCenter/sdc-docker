@@ -5,17 +5,17 @@
   "private": true,
   "dependencies": {
     "assert-plus": "0.1.5",
-    "async": "0.7.0",
-    "bunyan": "1.2.0",
+    "async": "0.9.0",
+    "bunyan": "1.3.2",
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#2363f8c",
     "libuuid": "0.1.3",
-    "moray": "git+ssh://git@github.com:joyent/node-moray.git#441fd44",
-    "restify": "2.8.3",
+    "moray": "git+ssh://git@github.com:joyent/node-moray.git#b4730b6",
+    "restify": "2.8.4",
     "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#29dea8e",
     "sprintf": "~0.1.4",
     "vasync": "1.6.1",
     "verror": "1.4.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#8e5323a"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#e1de4ae"
   },
   "devDependencies": {
     "manta": "1.4.5",
