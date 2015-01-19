@@ -5,9 +5,6 @@ clone (see "test/unit/") and *integration* tests which are run in an SDC
 standup. Eventually the latter will include running Docker's own
 "integration-cli" tests.
 
-TODO: add the docker integration CLI tests.
-TODO: get running in nightly
-
 
 # Usage
 

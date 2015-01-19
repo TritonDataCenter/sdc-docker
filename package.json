@@ -15,7 +15,7 @@
     "sprintf": "~0.1.4",
     "vasync": "1.6.1",
     "verror": "1.4.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#e1de4ae"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b"
   },
   "devDependencies": {
     "manta": "1.4.5",
