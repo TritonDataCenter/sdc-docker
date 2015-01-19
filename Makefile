@@ -74,6 +74,10 @@ test: $(TAPE)
 		[[ $$? == "0" ]] || exit 1; \
 	done)
 
+.PHONY: git-hooks
+git-hooks:
+	[[ -e .git/hooks/pre-commit ]] || ln -s ../../tools/pre-commit.sh .git/hooks/pre-commit
+
 
 #
 # Packaging targets

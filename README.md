@@ -70,7 +70,20 @@ Now you should be able to run the docker client:
     Init Path: /usr/bin/docker
 
 
-# Development
+# Development hooks
+
+Before commiting be sure to:
+
+    make check      # lint and style checks
+    make test       # run unit tests
+
+A good way to do that is to install the stock pre-commit hook in your
+clone via:
+
+    make git-hooks
+
+
+# Development from your Mac
 
 1. Add a 'coal' entry to your '~/.ssh/config'. Not required, but we'll use this
    as a shortcut in examples below.
@@ -107,10 +120,6 @@ For testing I tend to have a shell open tailing the docker
     ssh coal
     sdc-login docker
     tail -f `svcs -L docker` | bunyan
-
-Before commiting be sure to:
-
-    make check
 
 
 # Images for hacking
