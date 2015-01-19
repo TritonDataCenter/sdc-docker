@@ -1,0 +1,49 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/*
+ * Copyright (c) 2015, Joyent, Inc.
+ */
+
+/*
+ * Integration tests for TODO
+ */
+
+var h = require('./helpers');
+var test = require('tape');
+var util = require('util');
+
+
+
+// --- Globals
+
+
+
+// --- Helpers
+
+
+
+// --- Setup
+
+test('setup', function (t) {
+    // ...
+});
+
+
+
+// --- Tests
+
+test('blah', function (t) {
+    // ...
+});
+
+
+
+// --- Teardown
+
+test('teardown', function (t) {
+    // ...
+});

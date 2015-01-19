@@ -14,7 +14,9 @@ DOC_FILES	 = index.md images.md
 EXTRA_DOC_DEPS += deps/restdown-brand-remora/.git
 RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 
-JS_FILES	:= $(shell find lib -name '*.js' | grep -v '/tmp/')
+TAPE	:= ./node_modules/.bin/tape
+
+JS_FILES	:= $(shell find lib test -name '*.js' | grep -v '/tmp/')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
@@ -50,7 +52,7 @@ RELSTAGEDIR:=/tmp/$(STAMP)
 # Targets
 #
 .PHONY: all
-all: $(SMF_MANIFESTS) build/build.json | $(NPM_EXEC) sdc-scripts
+all: $(SMF_MANIFESTS) build/build.json | $(TAPE) $(NPM_EXEC) sdc-scripts
 	$(NPM) install
 
 build/build.json:
@@ -58,6 +60,24 @@ build/build.json:
 	echo "{\"version\": \"$(VERSION)\", \"commit\": \"$(COMMIT)\", \"stamp\": \"$(STAMP)\"}" | json >$@
 
 sdc-scripts: deps/sdc-scripts/.git
+
+$(TAPE): | $(NPM_EXEC)
+	$(NPM) install
+
+CLEAN_FILES += $(TAPE) ./node_modules/tape
+
+.PHONY: test
+test: $(TAPE)
+	@(for F in test/unit/*.test.js; do \
+		echo "# $$F" ;\
+		$(NODE_EXEC) $(TAPE) $$F ;\
+		[[ $$? == "0" ]] || exit 1; \
+	done)
+
+
+#
+# Packaging targets
+#
 
 .PHONY: release
 release: all

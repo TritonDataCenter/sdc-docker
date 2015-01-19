@@ -8,9 +8,9 @@
     "async": "0.7.0",
     "bunyan": "1.2.0",
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#2363f8c",
-    "restify": "2.8.3",
     "libuuid": "0.1.3",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#441fd44",
+    "restify": "2.8.3",
     "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#29dea8e",
     "sprintf": "~0.1.4",
     "vasync": "1.6.1",
@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "manta": "1.4.5",
-    "nodeunit": "~0.9.0"
+    "tape": "^3.2.0"
   },
   "license": "MPL-2.0"
 }
