@@ -12,6 +12,7 @@ docker.
 
 In all containers you will see a `zsched` process in addition to your other
 processes. It owns the kernel threads that do work on behalf of your zone.
+The PID of this process should always show up as 0.
 
 #### ipmgmtd
 
@@ -34,7 +35,7 @@ daemon. DOCKER-79 was created to try to address this.
 
 ### `docker attach`
 
-This command is currently unimplemented (DOCKER-64)
+This command is currently only partially implemented. (DOCKER-64)
 
 ### `docker build`
 
@@ -46,7 +47,7 @@ This command is currently unimplemented (DOCKER-73)
 
 ### `docker cp`
 
-This command is currently unimplemented (DOCKER-42)
+No known divergence. Any divergence can be considered a bug.
 
 ### `docker create`
 
