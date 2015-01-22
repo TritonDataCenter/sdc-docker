@@ -51,6 +51,7 @@ client):
     # Sets DOCKER_HOST and, for now, unsets DOCKER_TLS_VERIFY.
     # This example is the COAL GZ ssh info. Alternatively you could use
     # "root@172.26.1.4" for the sdc-docker setup on nightly-1.
+    $ cd .../sdc-docker   # your clone of this repo
     $ `./tools/docker-client-env root@10.99.99.7`
 
 Now you should be able to run the docker client:
