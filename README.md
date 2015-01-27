@@ -67,16 +67,51 @@ instructions](https://docs.docker.com/installation/).
 
 Let's create your first docker container:
 
-    $ docker run -ti busybox
-    Unable to find image 'busybox:latest' locally
-    Pulling repository busybox
-    4986bf8c1536: Download complete.
+    $ docker run -d nginx
+    Unable to find image 'nginx:latest' locally
+    Pulling repository nginx
+    90081fa15a0c: Download complete.
     511136ea3c5a: Download complete.
-    df7546f9f060: Download complete.
-    ea13149945cb: Download complete.
-    4986bf8c1536: Download complete.
-    4986bf8c1536: Status: Downloaded newer image for busybox:latest
-    ... TODO: fill this in
+    d0a18d3b84de: Download complete.
+    4d6ce913b130: Download complete.
+    b8b06bfad66f: Download complete.
+    344f86171557: Download complete.
+    c06c31cde4f4: Download complete.
+    78bb52b79c8e: Download complete.
+    402a3573fdf5: Download complete.
+    7ed80e9ad494: Download complete.
+    1b436f7d2f5c: Download complete.
+    1e9db8768b4c: Download complete.
+    9270c8b178a6: Download complete.
+    90081fa15a0c: Download complete.
+    90081fa15a0c: Status: Downloaded newer image for nginx:latest
+    c6c0c650aa41463294000ba997c049c2aafe75b61f124de5a55c46d4a5b04d38
+
+    $ docker ps
+    CONTAINER ID        IMAGE               COMMAND                CREATED             STATUS              PORTS               NAMES
+    c6c0c650aa41        nginx:latest        "nginx -g daemon off   4 minutes ago       Up 4 minutes                            backstabbing_curie
+
+    # Let's get its IP.
+    $ docker inspect --format '{{ .NetworkSettings.IPAddress }}' c6c0c650aa41
+    10.88.88.15
+
+    # The see if nginx is serving:
+    $ curl -i http://10.88.88.15
+    HTTP/1.1 200 OK
+    Server: nginx/1.7.9
+    Date: Tue, 27 Jan 2015 23:55:35 GMT
+    Content-Type: text/html
+    Content-Length: 612
+    Last-Modified: Tue, 23 Dec 2014 16:25:09 GMT
+    Connection: keep-alive
+    ETag: "54999765-264"
+    Accept-Ranges: bytes
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Welcome to nginx!</title>
+    ...
 
 
 # Development hooks
