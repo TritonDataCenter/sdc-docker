@@ -10,65 +10,73 @@
 
 # sdc-docker
 
-A Docker Engine for SmartDataCenter, where the whole DC is
-exposed as a single docker host. The Docker remote API is
-served from a 'docker' core SDC zone (built from this repo).
-
-
-# Disclaimer
-
-This is still very much alpha. Use at your own risk!
+A Docker Engine for SmartDataCenter, where the whole DC is exposed as a single
+docker host. The Docker remote API is served from a 'docker' core SDC zone
+(built from this repo).
 
 
 # Current State
 
+Disclaimer: This is still very much alpha. Use at your own risk!
+
 Many commands are currently at least partially implemented. See
-docs/divergence.md for details on where sdc-docker diverges from Docker Inc's
-docker.
+[docs/divergence.md](./docs/divergence.md) for details on where sdc-docker
+diverges from Docker Inc's docker.
 
 
 # Installation
 
-Installing sdc-docker means getting a running 'docker' core zone. This
-has been coded into sdcadm as of version 1.3.9:
+Note: Examples in this section are for
+[CoaL](https://github.com/joyent/sdc#cloud-on-a-laptop-coal). However the
+only thing CoaL-specific is the IP for the headnode (root@10.99.99.7).
+For example, you could do the same on Joyent Engineering's internal
+"nightly-1" DC with "root@172.26.1.4".
 
-    [root@headnode (coal) ~]# sdcadm --version
-    sdcadm 1.3.9 (master-20141027T114237Z-ge4f2eed)
+Installing sdc-docker means getting a running 'docker' SDC core zone.
 
-If you don't yet have a sufficient version, then update:
-
+    ssh root@10.99.99.7                     # ssh to the CoaL GZ
     sdcadm self-update
-
-Then you can update your 'docker' instance (creating an SAPI service and
-first instance if necessary) via:
-
     sdcadm post-setup common-external-nics  # imgapi needs external
     sdcadm experimental update-docker
 
 Then setup `DOCKER_*` envvars on your Mac (or whever you have a `docker`
-client):
+client). **The backticks are required to modify your shell environment.**
 
-    # Sets DOCKER_HOST and, for now, unsets DOCKER_TLS_VERIFY.
-    # This example is the COAL GZ ssh info. Alternatively you could use
-    # "root@172.26.1.4" for the sdc-docker setup on nightly-1.
-    $ cd .../sdc-docker   # your clone of this repo
-    $ `./tools/docker-client-env root@10.99.99.7`
+    cd .../sdc-docker     # your clone of this repo
+    `./tools/docker-client-env root@10.99.99.7`
 
 Now you should be able to run the docker client:
 
     $ docker info
     Containers: 0
-    Images: 31
+    Images: 0
     Storage Driver: sdc
     Execution Driver: sdc-0.1
     Kernel Version: 7.x
-    Operating System: Joyent Smart Data Center
+    Operating System: SmartDataCenter
     Debug mode (server): true
     Debug mode (client): false
     Fds: 42
     Goroutines: 42
     EventsListeners: 0
     Init Path: /usr/bin/docker
+
+If you don't have a `docker` client, see [Docker's installation
+instructions](https://docs.docker.com/installation/).
+
+
+Let's create your first docker container:
+
+    $ docker run -ti busybox
+    Unable to find image 'busybox:latest' locally
+    Pulling repository busybox
+    4986bf8c1536: Download complete.
+    511136ea3c5a: Download complete.
+    df7546f9f060: Download complete.
+    ea13149945cb: Download complete.
+    4986bf8c1536: Download complete.
+    4986bf8c1536: Status: Downloaded newer image for busybox:latest
+    ... TODO: fill this in
 
 
 # Development hooks
@@ -121,30 +129,3 @@ For testing I tend to have a shell open tailing the docker
     ssh coal
     sdc-login docker
     tail -f `svcs -L docker` | bunyan
-
-
-# Images for hacking
-
-Until we fully support pulling images from a registry I've built 2 images that
-I'm using for testing. To get these you can:
-
-    for file in $(mls /Joyent_Dev/public/docker/ | grep "\-11e4-"); do
-        mget -O /Joyent_Dev/public/docker/${file}
-    done
-
-Copy the resulting files to /var/tmp in your COAL and import them into IMGAPI:
-
-    scp *-11e4-* coal:/var/tmp
-    ssh coal
-    cd /var/tmp
-    for img in $(ls *.manifest); do
-        sdc-imgadm import -m ${img} -f $(basename ${img} .manifest).zfs.gz
-    done
-
-Then (as of a recent sdc-docker) you should be able to do:
-
-    $ docker create --name=ABC123 lx-busybox32 /bin/sh
-    57651723e32949bc967f2640872bae9651385b4254e64a49a320dc82c3d46bbb
-    $ ssh coal vmadm list uuid=~5765
-    UUID                                  TYPE  RAM      STATE             ALIAS
-    57651723-e329-49bc-967f-2640872bae96  LX    512      stopped           ABC123
