@@ -2,6 +2,7 @@
     "// port": "2376 for tls",
     "port": 2375,
     "logLevel": "debug",
+    "datacenterName": "{{{datacenter_name}}}",
 
     "backend": "sdc",
     "defaultPackage": "sdc_512",
