@@ -113,6 +113,11 @@ Let's create your first docker container:
     <title>Welcome to nginx!</title>
     ...
 
+    # Inspect its logs
+    $ docker logs backstabbing_curie
+    10.88.88.1 - - [27/Jan/2015:23:43:58 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.24.0 (x86_64-apple-darwin12.0) libcurl/7.24.0 OpenSSL/0.9.8z zlib/1.2.5" "-"
+    10.88.88.1 - - [27/Jan/2015:23:44:17 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.24.0 (x86_64-apple-darwin12.0) libcurl/7.24.0 OpenSSL/0.9.8z zlib/1.2.5" "-"
+
 
 # Development hooks
 
