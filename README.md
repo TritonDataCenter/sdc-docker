@@ -36,7 +36,7 @@ Installing sdc-docker means getting a running 'docker' SDC core zone.
 
     ssh root@10.99.99.7                     # ssh to the CoaL GZ
     sdcadm self-update
-    sdcadm post-setup common-external-nics  # imgapi needs external
+    sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
     sdcadm experimental update-docker
 
 Then setup `DOCKER_*` envvars on your Mac (or whever you have a `docker`
