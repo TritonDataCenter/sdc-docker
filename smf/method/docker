@@ -17,7 +17,10 @@ PATH=/usr/sbin:/usr/bin; export PATH
 
 case "$1" in
 'start')
-    /usr/bin/ctrun -l child -o noorphan /opt/smartdc/docker/build/node/bin/node /opt/smartdc/docker/lib/docker.js &
+    /usr/bin/ctrun -l child -o noorphan \
+        /opt/smartdc/docker/build/node/bin/node \
+        --abort_on_uncaught_exception \
+        /opt/smartdc/docker/lib/docker.js &
     ;;
 
 'stop')
