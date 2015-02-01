@@ -35,7 +35,7 @@ daemon. DOCKER-79 was created to try to address this.
 
 ### `docker attach`
 
-This command is currently only partially implemented. (DOCKER-64)
+No intentional divergence. Any divergence can be considered a bug.
 
 ### `docker build`
 
@@ -61,8 +61,6 @@ implemented. Differences include:
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * DOCKER-76
- * --hostname which is unimplemented (sets hostname)
-     * DOCKER-77
  * --link which is unimplemented (links to another container)
      * DOCKER-75
  * --lxc-conf which is unsupported (LXC specific)
@@ -72,7 +70,9 @@ implemented. Differences include:
  * --restart which is unimplimented (restart policies)
      * OS-3546
  * --security-opt which is unsupported (Security Options)
- * --volume and --volumes-from which are unimplemented (mount volumes)
+ * `--volumes /volname` has a limit of 8 volumes per VM
+ * `--volumes /hostpath:/volname` is not yet fully supported
+ * --volumes-from is not implemented
      * DOCKER-69
 
 ### `docker diff`
@@ -174,7 +174,7 @@ This command is currently unimplemented (DOCKER-73)
 
 ### `docker logs`
 
-This command is currently unimplemented (DOCKER-70)
+No known divergence.
 
 ### `docker port`
 
@@ -190,7 +190,7 @@ No known divergence.
 
 ### `docker pull`
 
-Docker pull is still somewhat unstable. See DOCKER-50 and related tickets.
+No known divergence.
 
 ### `docker push`
 
@@ -226,13 +226,9 @@ implemented. Differences include:
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * DOCKER-76
- * --hostname which is unimplemented (sets hostname)
-     * DOCKER-77
  * --link which is unimplemented (links to another container)
      * DOCKER-75
  * --lxc-conf which is unsupported (LXC specific)
- * --rm which is unsupported (remove the container on exit)
-     * DOCKER-81
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
@@ -241,7 +237,9 @@ implemented. Differences include:
  * --security-opt which is unsupported (Security Options)
  * --sig-proxy which is unimplemented
      * DOCKER-82
- * --volume and --volumes-from which are unimplemented (mount volumes)
+ * `--volumes /volname` has a limit of 8 volumes per VM
+ * `--volumes /hostpath:/volname` is not yet fully supported
+ * --volumes-from is not implemented
      * DOCKER-69
 
 ### `docker save`

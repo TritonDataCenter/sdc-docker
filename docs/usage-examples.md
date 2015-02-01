@@ -33,3 +33,10 @@ docker logs <containerId>
 docker exec -it <containerId> bash
 ```
 
+## Run a shell in a SmartOS container (non-LX):
+
+ * on headnode:
+     * ```sdc-imgadm import 00aec452-6e81-11e4-8474-ebfec9a1a911 -S https://images.joyent.com```
+ * on client:
+     * ```docker run -it 00aec452-6e81-11e4-8474-ebfec9a1a911 /usr/bin/bash```
+
