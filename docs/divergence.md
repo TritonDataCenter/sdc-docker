@@ -20,6 +20,20 @@ If you don't have `docker:noipmgmtd` set in your internal_metadata, you will
 have an additional process `ipmgmtd`. This is the SmartOS daemon that manages
 network interfaces and TCP/IP tunables.
 
+### Extra Files
+
+#### /var/log/sdc-dockerinit.log
+
+This is the log from the dockerinit process which sets up the container for
+your initial process and then exec()s it. This log exists only for debugging
+problems with the way the initial process has been setup.
+
+#### /var/log/sdc-dockerexec.log
+
+This is the log from the dockerexec process which sets up the container for
+your `docker exec ...` process and then exec()s it. This log exists only for
+debugging problems with the way the exec()'d process has been setup.
+
 ### Exit Statuses
 
 When a container exits the exit status as returned by sdc-docker will currently
@@ -287,3 +301,13 @@ No known divergence in command behavior.
 
 (See also note about exit status differences in 'Differences in Container
 Behavior' section)
+
+## Differences in Container Behavior
+
+### Support for SmartOS containers
+
+Unlike Docker Inc's docker, sdc-docker supports running containers that are
+SmartOS-native. Currently this functionality is limited but it is a divergence
+from docker. If you specify a UUID of an image that has been imported into
+the local imgapi and has the os set to 'smartos', the container will be started
+with a joyent-minimal brand instead of lx and will use that image.
