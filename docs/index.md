@@ -38,9 +38,20 @@ typically written out by config-agent using the
 
 | var | type | default | description |
 | --- | ---- | ------- | ----------- |
+| datacenterName | String | coal | Data center name to use as the Docker engine name. |
+| defaultPackage | String | sdc_512 | The default PAPI package to use when creating new containers. |
 | port | Number | 2375 | Port number on which the Docker engine listens. |
 | logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
 | maxSockets | Number | 100 | Maximum number of sockets for external API calls |
 | backend | String | sdc | One of 'sdc' (all of SDC is a docker host) or 'lxzone' (just the CN is the docker host, this requires running the docker service in the GZ, not currently supported). |
+| moray.host | String | - | The Moray server hostname for this DC. |
+| moray.port | Number | 2020 | Port number on which the Moray server listens. |
+| moray.logLevel | String/Number | info | Level at which the Moray client should log. One of the supported Bunyan log levels. |
+| registry.indexUrl | String | - | The Docker Registry Index URL |
+| registry.registryUrl | String | - | The Docker Registry Hub URL |
+| cnapi.url | String | - | The CNAPI URL for this DC. |
 | imgapi.url | String | - | The IMGAPI URL for this DC. |
+| napi.url | String | - | The NAPI URL for this DC. |
+| papi.url | String | - | The PAPI URL for this DC. |
 | vmapi.url | String | - | The VMAPI URL for this DC. |
+| wfapi.url | String | - | The WFAPI URL for this DC. |
