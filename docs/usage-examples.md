@@ -40,3 +40,8 @@ docker exec -it <containerId> bash
  * on client:
      * ```docker run -it 00aec452-6e81-11e4-8474-ebfec9a1a911 /usr/bin/bash```
 
+## Run a shell in a container (destroying when done) with a /data volume
+
+```
+docker run -it --rm -v /data ubuntu bash
+```
