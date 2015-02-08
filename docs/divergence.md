@@ -41,6 +41,35 @@ be different from that which would be returned by Docker Inc's docker. This is
 due to differences in the way we handle processes within zones. This is
 currently considered to be a deficiency and should be improved by DOCKER-41.
 
+### Volumes
+
+With sdc-docker, host volumes work differently than on Docker Inc's docker.
+
+ * there is a limit of 8 'data' volumes per container
+ * there is a limit of 1 'host' volume per container
+ * 'host' volumes must be http[s] URLs, not paths in the docker host
+ * the 'host' volume URL's must each refer to a single file
+ * all 'host' volumes are read-only
+ * the container path of a 'host' volume must not contain any symlinks
+ * you cannot delete a container which has a volume that another container is
+   sharing (via --volumes-from), you must first delete all containers using that
+   volume.
+ * 'host' volumes are not shared through --volumes-from
+ * When you use --volumes-from you are necessarily coprovisioned with the
+   container you are sharing the volumes from. If the physical host on which
+   the source container exists does not have capacity for the new container,
+   provisioning a new container using --volumes-from will fail.
+ * When you use --volumes-from, volumes that don't belong to the container
+   specified (including those that this container is sharing from others) are
+   ignored. Only volumes belonging to the specified container will be
+   considered.
+
+In general, `-v <URL>:/container/path` is intended to be used for things like
+configuration files in order to seed data into containers. Any use-case where
+data is intended to be read-write or when more than one file is required it is
+preferable to create a container with a volume and --volumes-from that container
+if you need the data stored independently of the container.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
@@ -84,10 +113,8 @@ implemented. Differences include:
  * --restart which is unimplimented (restart policies)
      * OS-3546
  * --security-opt which is unsupported (Security Options)
- * `--volumes /volname` has a limit of 8 volumes per VM
- * `--volumes /hostpath:/volname` is not yet fully supported
- * --volumes-from is not implemented
-     * DOCKER-69
+ * --volume: see 'Volumes' section above
+ * --volumes-from: see 'Volumes' section above
 
 ### `docker diff`
 
@@ -251,10 +278,8 @@ implemented. Differences include:
  * --security-opt which is unsupported (Security Options)
  * --sig-proxy which is unimplemented
      * DOCKER-82
- * `--volumes /volname` has a limit of 8 volumes per VM
- * `--volumes /hostpath:/volname` is not yet fully supported
- * --volumes-from is not implemented
-     * DOCKER-69
+ * --volume: see 'Volumes' section above
+ * --volumes-from: see 'Volumes' section above
 
 ### `docker save`
 
@@ -268,7 +293,7 @@ No known divergence.
 
 Should mostly match upstream except:
 
- * -a is unsupported
+ * -a is currently broken (DOCKER-138)
 
 ### `docker stop`
 
