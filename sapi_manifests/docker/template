@@ -39,5 +39,26 @@
     "registry": {
         "indexUrl": "https://index.docker.io",
         "registryUrl": "https://registry-1.docker.io"
+    },
+    "useTls": false,
+    "tls": {
+        "key": "/opt/smartdc/docker/tls/server-key.pem",
+        "cert": "/opt/smartdc/docker/tls/server-cert.pem",
+        "requestCert": true,
+        "rejectUnauthorized": false
+    },
+    "ufds": {
+        "url": "ldaps://{{{ufds_domain}}}",
+        "bindDN": "{{{ufds_ldap_root_dn}}}",
+        "bindPassword": "{{{ufds_ldap_root_pw}}}",
+        "cache": {
+            "size": 5000,
+            "age": 60
+        },
+        "maxConnections": 1,
+        "retry": {
+            "initialDelay": 1000
+        },
+        "clientTimeout": 120000
     }
 }
