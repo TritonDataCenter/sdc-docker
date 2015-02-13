@@ -133,7 +133,7 @@ on sdc-docker we must complete four steps:
 3. Generate a client TLS certificate
 4. Set docker client to --tls mode
 
-1. In order to allow multiple SDC users to interact with sdc-docker, TLS
+In order to allow multiple SDC users to interact with sdc-docker, TLS
 support must be activated first. The sdc-docker install contains a sample self-signed certificate that should only be used for development/testing.
 The sample key and certificate are located at:
 
@@ -156,7 +156,7 @@ Switch to TLS support by running the following commands:
     netstat -f inet -an | grep 2376
     exit
 
-2. For development purposes, we are going to add our own SSH private key to
+For development purposes, we are going to add our own SSH private key to
 the local SDC admin user. This step is optional for existing SDC users that
 already have their SSH keys added to UFDS:
 
@@ -164,7 +164,7 @@ already have their SSH keys added to UFDS:
     ssh root@10.99.99.7                     # ssh to the COAL GZ
     sdc-useradm add-key admin /var/tmp/id_rsa.pub
 
-3. Now, the docker client must be configured to use TLS by running the
+Now, the docker client must be configured to use TLS by running the
 following command on your sdc-docker development install:
 
     ./tools/gen-client-certificate root@10.99.99.7 ~/.ssh/id_rsa
@@ -173,7 +173,7 @@ After following the steps, there is going to be a new client certificate at
 
     ~/.sdc_docker/cert.pem
 
-4. The 'gen-client-certificate' should print instructions to configure the
+The 'gen-client-certificate' should print instructions to configure the
 docker client to work on TLS mode. After exporting the two environment
 variables specified, docker can now be used with the --tls option:
 
