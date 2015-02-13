@@ -120,6 +120,69 @@ Let's create your first docker container:
     10.88.88.1 - - [27/Jan/2015:23:44:17 +0000] "GET / HTTP/1.1" 200 612 "-" "curl/7.24.0 (x86_64-apple-darwin12.0) libcurl/7.24.0 OpenSSL/0.9.8z zlib/1.2.5" "-"
 
 
+# Running sdc-docker with TLS support
+
+By default, sdc-docker will run in a non-secure mode with no user
+authentication. In this mode, there is no notion of users so every single
+client call will be assumed to belong to the default SDC local admin user
+(UUID 00000000-0000-0000-0000-000000000000). To enable user authentication
+on sdc-docker we must complete four steps:
+
+1) Enable TLS support on sdc-docker
+2) Ensure the docker client user has added SSH keys to their account
+3) Generate a client TLS certificate
+3) Set docker client to --tls mode
+
+1) In order to allow multiple SDC users to interact with sdc-docker, TLS
+support must be activated first. The sdc-docker install contains a sample self-signed certificate that should only be used for development/testing.
+The sample key and certificate are located at:
+
+    /opt/smartdc/docker/tls/server-key.pem
+    /opt/smartdc/docker/tls/server-cert.pem
+
+Switch to TLS support by running the following commands:
+
+    ssh root@10.99.99.7                     # ssh to the COAL GZ
+    sdcadm self-update
+    sdcadm experimental update-docker       # ensure the latest sdc-docker
+
+    docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
+    sapiadm update $docker_svc metadata.USE_TLS=true
+
+    # make sure service picks up new configuration
+    sdc-login docker
+    svcadm restart config-agent && sleep 1
+    svcadm restart docker
+    netstat -f inet -an | grep 2376
+    exit
+
+2) For development purposes, we are going to add our own SSH private key to
+the local SDC admin user. This step is optional for existing SDC users that
+already have their SSH keys added to UFDS:
+
+    scp ~/.ssh/id_rsa.pub root@10.99.99.7:/var/tmp/id_rsa.pub
+    ssh root@10.99.99.7                     # ssh to the COAL GZ
+    sdc-useradm add-key admin /var/tmp/id_rsa.pub
+
+3) Now, the docker client must be configured to use TLS by running the
+following command on your sdc-docker development install:
+
+    ./tools/gen-client-certificate root@10.99.99.7 ~/.ssh/id_rsa
+
+After following the steps, there is going to be a new client certificate at
+
+    ~/.sdc_docker/cert.pem
+
+4) The 'gen-client-certificate' should print instructions to configure the
+docker client to work on TLS mode. After exporting the two environment
+variables specified, docker can now be used with the --tls option:
+
+    export DOCKER_CERT_PATH=~/.sdc_docker/
+    export DOCKER_HOST=tcp://10.88.88.5:2376
+
+    docker --tls info
+
+
 # Development hooks
 
 Before commiting be sure to:

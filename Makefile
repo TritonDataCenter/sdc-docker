@@ -97,6 +97,7 @@ release: all
 		$(TOP)/lib \
 		$(TOP)/node_modules \
 		$(TOP)/smf \
+		$(TOP)/tls \
 		$(TOP)/test \
 		$(TOP)/sapi_manifests \
 		$(RELSTAGEDIR)/root/opt/smartdc/$(NAME)
