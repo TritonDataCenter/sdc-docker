@@ -1,4 +1,5 @@
 {
+    "adminUuid": "{{{ufds_admin_uuid}}}",
     "// port": "2376 for tls",
     "port": 2375,
     "logLevel": "debug",
