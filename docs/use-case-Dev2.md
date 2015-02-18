@@ -1,4 +1,4 @@
-#Demoing an new application environments
+#Demoing an new application and setting up a node.js development container 
 ##Docker Use case Dev2 
 ###Persona : Donna (Senior Developer/Application architect)
 
