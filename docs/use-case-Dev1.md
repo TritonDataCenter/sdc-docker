@@ -17,7 +17,6 @@ She has the desired configuration working without the HAproxy layers on her lapt
 * At a later phase the QA team is also going to use the environment for stress testing so it will need to include the HAproxy layers.
 * When new code is committed to Github it will be deployed to the QA environment. 
 
-
  3 Environments for Product Management to provide internal demos. 
 
 * The 3 environments need different seed data and application configuration depending on who the audience is for the demo.
@@ -37,159 +36,97 @@ General goals for her QA and Demo environments:
 
 Donna goes to hub.docker and locates the following official images for the components in the stack. She is going to use all the latest images.
 
-<table border bgcolor=eeeeee>
-  <tr>
-    <td>**Component**</td>
-    <td>**image (pull command)**</td>
-  </tr>
-  <tr>
-    <td>MongoDB</td>
-    <td>
+```
 $ docker pull mongo
-</td>
-  </tr>
-  <tr>
-    <td>Redis</td>
-    <td>
 $ docker pull redis
-</td>
-  </tr>
-</table>
-
+```
 
 ### S2 Starting MongoDB
 
 #### Starting the mongo container
-<BR>
-<table bgcolor=eeeeee>
-  <tr>
-    <td>$ docker run --name qa-db-1 -d -p 27017:27017 mongo</td>
-  </tr>
-</table>
-
+```
+$ docker run --name qa-db-1 -d -p 27017:27017 mongo
+```
 
 ##### A quick test to ensure the database is up and running correctly 
-<BR>
-<table  bgcolor=eeeeee>
-  <tr>
-    <td>$ docker exec qa-db-1 mongo  test --eval "printjson(db.serverStatus())"</td>
-  </tr>
-</table>
+```
+$ docker exec qa-db-1 mongo  test --eval "printjson(db.serverStatus())"
+```
 
 ##### To ensure mongo can be accessed outside of the mongo container Donna "curls" to the port she expects mongo is listening to
-<BR>
-<table  bgcolor=eeeeee>
-  <tr>
-    <td>$ curl \`docker inspect  --format '{{ .NetworkSettings.IPAddress }}' qa-db-1\`:27017</td>
-  </tr>
-</table>
+```
+$ curl `docker inspect  --format '{{ .NetworkSettings.IPAddress }}' qa-db-1`:27017
+```
 
 ######The result she expected looks like this. 
-<BR>
-<table  bgcolor=ffffee>
-  <tr>
-    <td>It looks like you are trying to access MongoDB over HTTP on the native driver port.</td>
-  </tr>
-</table>
-
+```
+It looks like you are trying to access MongoDB over HTTP on the native driver port.
+```
 
 ### S3 Starting Redis
 
 ####Starting the Redis container
-<BR>
-<table  bgcolor=eeeeee>
-  <tr>
-    <td>$ docker run --name qa-redis-1 -d redis</td>
-  </tr>
-</table>
+
+```
+$ docker run --name qa-redis-1 -d redis
+```
 
 ######A quick test to ensure redis is up and running correctly 
-<BR>
-<table bgcolor=eeeeee>
-  <tr>
-    <td>$ docker exec qa-redis-1  /usr/local/bin/redis-cli info</td>
-  </tr>
-</table>
+```
+$ docker exec qa-redis-1  /usr/local/bin/redis-cli info
+```
 
 #####To ensure Redis can be accessed outside of the Redis container Donna "curls" to the port she expects Redis is listening to
-<BR>
-<table  bgcolor=eeeeee>
-  <tr>
-    <td>$ curl \`docker inspect  --format '{{ .NetworkSettings.IPAddress }}' 
- qa-redis-1\`:6379`</td>
-  </tr>
-</table>
+```
+$ curl `docker inspect  --format '{{ .NetworkSettings.IPAddress }}' 
+ qa-redis-1`:6379`
+```
 
 ######The expected result is not formatted well, but it is clear that the port is responding 
-<BR>
-<table bgcolor=ffffee>
-  <tr>
-    <td>-ERR wrong number of arguments for 'get' command<BR>
--ERR unknown command 'User-Agent:'<BR>
--ERR unknown command 'Host:'<BR>
--ERR unknown command 'Accept:'<BR>
-^C</td>
-  </tr>
-</table>
+```
+-ERR wrong number of arguments for 'get' command
+-ERR unknown command 'User-Agent:'
+-ERR unknown command 'Host:'
+-ERR unknown command 'Accept:'
+^C
+```
 
 ##### Donna wants to use Redis as a caching services so she needs to make configuration changes 
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ echo "maxmemory 2mb" > /home/donna/app/redis/redis.cfg<BR>
-$ echo "maxmemory-policy allkeys-lru" >> /home/donna/app/redis/redis.cfg</td>
-  </tr>
-</table>
-
+```
+$ echo "maxmemory 2mb" > /home/donna/app/redis/redis.cfg<BR>
+$ echo "maxmemory-policy allkeys-lru" >> /home/donna/app/redis/redis.cfg
+```
 #####Donna removes the current Redis container 
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker rm -f qa-redis-1</td>
-  </tr>
-</table>
+```
+$ docker rm -f qa-redis-1
+```
 
 #####She launches a new Redis container that uses the customized configuration file
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker run --name qa-redis-1 
+```
+$ docker run --name qa-redis-1 
 -v /home/donna/app/redis/redis.cfg:/usr/local/etc/redis/redis.conf 
--d redis redis-server /usr/local/etc/redis/redis.conf</td>
-  </tr>
-</table>
+-d redis redis-server /usr/local/etc/redis/redis.conf
+```
 
 #####She then reconfirms that Redis is running and with the correct configuration
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker exec qa-redis-1  /usr/local/bin/redis-cli info</td>
-  </tr>
-</table>
+```
+$ docker exec qa-redis-1  /usr/local/bin/redis-cli info
+```
 
 #####Donna want to make sure she can connect to Redis from inside a container so she runs the following command
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker run -it redis  /usr/local/bin/redis-cli -h \`docker inspect  --format '{{ .NetworkSettings.IPAddress }}'  qa-redis-1\` info</td>
-  </tr>
-</table>
+```
+$ docker run -it redis  /usr/local/bin/redis-cli -h `docker inspect  --format '{{ .NetworkSettings.IPAddress }}'  qa-redis-1` info
+```
 
 #####Donna tries the same for Mongo
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker run -it mongo mongo --host \`docker inspect  --format '{{ .NetworkSettings.IPAddress }}'
- qa-db-1\` --eval "printjson(db.serverStatus())"</td>
-  </tr>
-</table>
+```
+$ docker run -it mongo mongo --host `docker inspect  --format '{{ .NetworkSettings.IPAddress }}'
+ qa-db-1` --eval "printjson(db.serverStatus())"
+ ```
 
 #####Before continuing Donna cleans up all the stopped containers
-<BR>
-<table bgcolor=eeeeee border>
-  <tr>
-    <td>$ docker ps -a<BR>
-$ docker rm \`docker ps -a | grep Exited | awk '{print $1}' \`<BR>
-$ docker ps -a</td>
-  </tr>
-</table>
+```
+$ docker ps -a
+$ docker rm `docker ps -a | grep Exited | awk '{print $1}' `
+$ docker ps -a
+```
