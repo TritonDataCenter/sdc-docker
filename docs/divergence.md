@@ -110,6 +110,14 @@ data is intended to be read-write or when more than one file is required it is
 preferable to create a container with a volume and --volumes-from that container
 if you need the data stored independently of the container.
 
+### Support for SmartOS containers
+
+Unlike Docker Inc's docker, sdc-docker supports running containers that are
+SmartOS-native. Currently this functionality is limited but it is a divergence
+from docker. If you specify a UUID of an image that has been imported into
+the local imgapi and has the os set to 'smartos', the container will be started
+with a joyent-minimal brand instead of lx and will use that image.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
@@ -378,13 +386,3 @@ No known divergence in command behavior.
 
 (See also note about exit status differences in 'Differences in Container
 Behavior' section)
-
-## Differences in Container Behavior
-
-### Support for SmartOS containers
-
-Unlike Docker Inc's docker, sdc-docker supports running containers that are
-SmartOS-native. Currently this functionality is limited but it is a divergence
-from docker. If you specify a UUID of an image that has been imported into
-the local imgapi and has the os set to 'smartos', the container will be started
-with a joyent-minimal brand instead of lx and will use that image.
