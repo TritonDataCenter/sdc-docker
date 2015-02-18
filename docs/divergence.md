@@ -41,6 +41,46 @@ be different from that which would be returned by Docker Inc's docker. This is
 due to differences in the way we handle processes within zones. This is
 currently considered to be a deficiency and should be improved by DOCKER-41.
 
+### Restart Policies
+
+The way containers are restarted with sdc-docker:
+
+ * if you specify --restart=no (the default):
+     * if the node your container is on is rebooted, your container will be off
+     * if your container process exits (regardless of exit status) your
+       container will remain off unless you start it.
+ * if you specify --restart=always:
+     * if the node your container is on is rebooted, and your container was
+       running at the time of the reboot, your container will be started when
+       the node boots.
+     * if your container process exits (regardless of exit status), the
+       container will be restarted and the RestartCount will be incremented
+       (see below on delays between restarts).
+ * if you specify --restart=on-failure[:maxretries]:
+     * if the node your container is on is rebooted, and your container was
+       running at the time of the reboot, your container will be started when
+       the node boots.
+     * if your container process exits with a non-zero exit status, the
+       container will be restarted and the RestartCount will be incremented.
+       If you specified a maxretries and this is reached, the container will
+       be stopped and not restarted again automatically.
+     * if your container process exits with a zero status, the container will
+       not be restarted again automatically.
+
+When restarting your container automatically (the cases mentioned above) there
+is a delay between restarts in order to prevent things from going haywire.
+sdc-docker uses the same delay frequency as Docker Inc's docker. This means that
+after exiting but before starting again we delay ((2 ^ RestartCount) * 100) ms.
+So on the first restart (with RestartCount = 0) we will delay 100ms, then 200,
+then 400, etc. The amount of delay is not guaranteed. In the case of a CN reboot
+or in other operational situations a retry may occur sooner.
+
+The main way that this is different from Docker Inc's docker is that with Docker
+Inc's docker, if you restart the docker daemon all containers will be stopped
+and those with --restart=always will be started again. With sdc-docker
+restarting the management systems will not touch your container but restarting
+the compute node the container lives on will.
+
 ### Volumes
 
 With sdc-docker, host volumes work differently than on Docker Inc's docker.
@@ -69,6 +109,14 @@ configuration files in order to seed data into containers. Any use-case where
 data is intended to be read-write or when more than one file is required it is
 preferable to create a container with a volume and --volumes-from that container
 if you need the data stored independently of the container.
+
+### Support for SmartOS containers
+
+Unlike Docker Inc's docker, sdc-docker supports running containers that are
+SmartOS-native. Currently this functionality is limited but it is a divergence
+from docker. If you specify a UUID of an image that has been imported into
+the local imgapi and has the os set to 'smartos', the container will be started
+with a joyent-minimal brand instead of lx and will use that image.
 
 ## Current Differences as Experienced by cmdline Clients
 
@@ -104,12 +152,14 @@ implemented. Differences include:
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * DOCKER-76
+ * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
      * DOCKER-75
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
+ * --read-only which is unimplemented (DOCKER-158)
  * --restart which is unimplimented (restart policies)
      * OS-3546
  * --security-opt which is unsupported (Security Options)
@@ -241,6 +291,10 @@ This command is currently unimplemented (DOCKER-73)
 
 No known divergence.
 
+### `docker rename`
+
+This command is currently unimplemented (DOCKER-157)
+
 ### `docker rm`
 
 This works the same as upstream except:
@@ -267,12 +321,14 @@ implemented. Differences include:
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * DOCKER-76
+ * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
      * DOCKER-75
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
+ * --read-only which is unimplemented (DOCKER-158)
  * --restart which is unimplimented (restart policies)
      * OS-3546
  * --security-opt which is unsupported (Security Options)
@@ -288,6 +344,10 @@ This command is currently unimplemented (DOCKER-73)
 ### `docker search`
 
 No known divergence.
+
+### `docker stats`
+
+This command is currently unimplemented (DOCKER-156)
 
 ### `docker start`
 
@@ -326,13 +386,3 @@ No known divergence in command behavior.
 
 (See also note about exit status differences in 'Differences in Container
 Behavior' section)
-
-## Differences in Container Behavior
-
-### Support for SmartOS containers
-
-Unlike Docker Inc's docker, sdc-docker supports running containers that are
-SmartOS-native. Currently this functionality is limited but it is a divergence
-from docker. If you specify a UUID of an image that has been imported into
-the local imgapi and has the os set to 'smartos', the container will be started
-with a joyent-minimal brand instead of lx and will use that image.
