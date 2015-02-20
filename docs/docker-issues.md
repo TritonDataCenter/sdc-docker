@@ -21,3 +21,13 @@ https://docs.google.com/spreadsheets/d/1fNrTR25N6t9TEdEs5fHWGc3XQeydNCIvtwWBGMNw
 ## ZFS
 
  * [Implement Docker on ZFS](https://github.com/docker/docker/pull/7901). Has first functional version in branch.
+
+
+## Related to `docker stats`
+
+ * [Problems with implementation / doc mismatch on /stats](https://github.com/docker/docker/issues/10711).
+
+
+## Problem with --restart
+
+ * [Issue with --restart=no not being passed by client](https://github.com/docker/docker/issues/10874).
