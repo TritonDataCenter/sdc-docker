@@ -21,7 +21,8 @@
     "trace-event": "1.2.0",
     "vasync": "1.6.1",
     "verror": "1.4.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b",
+    "keyapi": "git+ssh://git@github.com:joyent/keyapi.git#708745c"
   },
   "devDependencies": {
     "manta": "1.4.5",
