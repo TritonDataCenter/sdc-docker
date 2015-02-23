@@ -18,7 +18,9 @@ The PID of this process should always show up as 0.
 
 If you don't have `docker:noipmgmtd` set in your internal_metadata, you will
 have an additional process `ipmgmtd`. This is the SmartOS daemon that manages
-network interfaces and TCP/IP tunables.
+network interfaces and TCP/IP tunables. The default if you use sdc-docker is
+that docker:noipmgmtd will be true when you're provisioning a regular LX docker
+container, and false if you're provisioning a SmartOS container.
 
 ### Extra Files
 
@@ -27,12 +29,6 @@ network interfaces and TCP/IP tunables.
 This is the log from the dockerinit process which sets up the container for
 your initial process and then exec()s it. This log exists only for debugging
 problems with the way the initial process has been setup.
-
-#### /var/log/sdc-dockerexec.log
-
-This is the log from the dockerexec process which sets up the container for
-your `docker exec ...` process and then exec()s it. This log exists only for
-debugging problems with the way the exec()'d process has been setup.
 
 ### Exit Statuses
 
