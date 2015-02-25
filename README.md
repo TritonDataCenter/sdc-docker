@@ -196,6 +196,17 @@ clone via:
     make git-hooks
 
 
+# Testing
+
+As shown above, `make test` will run unit tests locally. To run
+*integration* tests, you need to call the "test/runtests" driver from
+the *global zone* (GZ) of a SmartDataCenter setup with sdc-docker,
+e.g. with COAL that would be:
+
+    ssh root@10.99.99.7
+    /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests
+
+
 # Development from your Mac
 
 1. Add a 'coal' entry to your '~/.ssh/config'. Not required, but we'll use this

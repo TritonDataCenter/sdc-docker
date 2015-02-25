@@ -68,6 +68,11 @@ CLEAN_FILES += $(TAPE) ./node_modules/tape
 
 .PHONY: test
 test: $(TAPE)
+	@echo '# Running sdc-docker unit tests.'
+	@echo '#'
+	@echo '# Note: to run *integration tests*, run this from the *GZ* of an SDC with Docker setup:'
+	@echo '#    /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests'
+	@echo
 	@(for F in test/unit/*.test.js; do \
 		echo "# $$F" ;\
 		$(NODE) $(TAPE) $$F ;\
