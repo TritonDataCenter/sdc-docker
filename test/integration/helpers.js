@@ -16,6 +16,7 @@ var p = console.log;
 var assert = require('assert-plus');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
+var VMAPI = require('sdc-clients').VMAPI;
 var restify = require('restify');
 
 var common = require('../lib/common');
@@ -65,6 +66,26 @@ function createDockerRemoteClient(callback) {
 
 
 /**
+ * Get a simple restify JSON client to the SDC Docker Remote API.
+ */
+function createVmapiClient(callback) {
+    loadConfig(function (err, config) {
+        if (err) {
+            return callback(err);
+        }
+        var url = fmt('http://vmapi.%s.%s',
+            config.datacenter_name,
+            config.dns_domain);
+        var client = new VMAPI({
+            url: url,
+            agent: false
+        });
+        callback(err, client);
+    });
+}
+
+
+/**
  * Test the given Docker 'info' API response.
  */
 function assertInfo(t, info) {
@@ -76,6 +97,7 @@ function assertInfo(t, info) {
 module.exports = {
     loadConfig: loadConfig,
     createDockerRemoteClient: createDockerRemoteClient,
+    createVmapiClient: createVmapiClient,
 
     ifErr: common.ifErr,
     assertInfo: assertInfo
