@@ -148,8 +148,7 @@ function cloudapiVerifyAccount() {
 
 optForce=
 optInsecure=
-optSkipLink=
-while getopts "hVfkL" opt; do
+while getopts "hVfk" opt; do
     case "$opt" in
         h)
             usage
@@ -161,9 +160,6 @@ while getopts "hVfkL" opt; do
             ;;
         f)
             optForce=true
-            ;;
-        L)
-            optSkipLink=true
             ;;
         k)
             optInsecure=true
@@ -292,21 +288,6 @@ openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/
 echo "Wrote certificate files to $certDir"
 
 
-linked=
-if [[ "$optSkipLink" != "true" && (! -e "$HOME/.docker" || -L "$HOME/.docker") ]]; then
-    echo ""
-    echo "* * *"
-    printf "Would you like to link '~/.docker' to\n"
-    printf "'$certDir' to simplify Docker config? [Y/n] "
-    read answer
-    if [[ -z "$answer" || "${answer:0:1}" == "y" || "${answer:0:1}" == "Y" ]]; then
-        rm -f $HOME/.docker
-        ln -s $certDir $HOME/.docker
-        linked=true
-    fi
-fi
-
-
 echo ""
 echo "* * *"
 echo "Successfully setup for SDC Docker. When running 'docker' you must:"
@@ -318,10 +299,6 @@ echo "       alias docker='docker --tls'"
 echo ""
 echo "2. Tell it where your client certificate is via one of the following:"
 echo "       export DOCKER_CERT_PATH=$certDir"
-echo "   or (cli options):"
-echo "       alias docker='docker --tls --tlscert=$certPath --tlskey=$keyPath'"
-if [[ "$linked" == "true" ]]; then
-    echo "   or (because you linked '~/.docker'):"
-    echo "       alias docker='docker --tls'"
-fi
+echo "   or via something like:"
+echo "       alias docker-$account='docker --tls --tlscert=$certPath --tlskey=$keyPath'"
 
