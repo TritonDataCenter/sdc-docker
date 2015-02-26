@@ -28,6 +28,13 @@ See [the list of Docker issues in which we are involved or interested](./docker-
 
 - [Images](./images.html)
 
+# Package Selection
+
+If the docker client specifies either -m (memory) or -c (cpu_shares), we'll look
+through the list of packages with packagePrefix* as their name, and find the
+smallest package which has values larger than both provided. If no value is
+provided for cpu_shares, this parameter is ignored. If no value is provided for
+memory, the defaultMemory value is used as though the user had passed that.
 
 # Configuration
 
@@ -39,7 +46,8 @@ typically written out by config-agent using the
 | var | type | default | description |
 | --- | ---- | ------- | ----------- |
 | datacenterName | String | coal | Data center name to use as the Docker engine name. |
-| defaultPackage | String | sdc_512 | The default PAPI package to use when creating new containers. |
+| defaultMemory | Number | 1024 | The amount of memory to choose if no -m is provided. |
+| packagePrefix | String | sdc_ | PAPI will be consulted with a request PREFIX* when looking for packages |
 | port | Number | 2375 | Port number on which the Docker engine listens. |
 | logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
 | maxSockets | Number | 100 | Maximum number of sockets for external API calls |
