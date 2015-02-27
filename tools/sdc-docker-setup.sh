@@ -95,7 +95,7 @@ function cloudapiVerifyAccount() {
     signature=$(echo ${now} | tr -d '\n' | openssl dgst -sha256 -sign $sshPrivKeyPath | openssl enc -e -a | tr -d '\n')
 
     local curlOpts
-    if [[ $optInsecure == "true" ]]; then
+    if [[ $coal == "true" || $optInsecure == "true" ]]; then
         curlOpts=" -k"
     fi
 
@@ -247,6 +247,10 @@ fi
 if [[ -z "$sshPrivKeyPath" && -n "$defaultSSHPrivKeyPath" ]]; then
     sshPrivKeyPath=$defaultSSHPrivKeyPath
 fi
+sshPrivKeyPath=$(bash -c "echo $sshPrivKeyPath")    # resolve '~'
+if [[ ! -f $sshPrivKeyPath ]]; then
+    fatal "'$sshPrivKeyPath' does not exist"
+fi
 debug "sshPrivKeyPath: $sshPrivKeyPath"
 if [[ -z "$sshPrivKeyPath" ]]; then
     fatal "no SSH private key path was given"
@@ -275,14 +279,14 @@ fi
 
 
 echo "Generating client certificate from SSH private key."
-certDir=$CERT_BASE_DIR/$account
+certDir="$CERT_BASE_DIR/$account"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
 
 mkdir -p $(dirname $keyPath)
 openssl rsa -in $sshPrivKeyPath -outform pem > $keyPath
-openssl req -new -key $keyPath -out $csrPath -subj "/CN=alice" >/dev/null 2>/dev/null
+openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
 # TODO: expiry?
 openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/null 2>/dev/null
 echo "Wrote certificate files to $certDir"
