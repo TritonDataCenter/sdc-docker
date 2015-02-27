@@ -5,7 +5,7 @@
 -->
 
 <!--
-    Copyright (c) 2014, Joyent, Inc.
+    Copyright (c) 2015, Joyent, Inc.
 -->
 
 # sdc-docker
@@ -122,11 +122,11 @@ Let's create your first docker container:
 
 # Running sdc-docker with TLS support
 
-By default, sdc-docker will run in a non-secure mode with no user
+By default *for now*, sdc-docker will run in a non-secure mode with no user
 authentication. In this mode, there is no notion of users so every single
 client call will be assumed to belong to the default SDC local admin user
-(UUID 00000000-0000-0000-0000-000000000000). To enable user authentication
-on sdc-docker we must complete four steps:
+(`ufds_admin_uuid`). To enable user authentication on sdc-docker we must
+complete four steps:
 
 1. Enable TLS support on sdc-docker
 2. Ensure the docker client user has added SSH keys to their account
@@ -134,8 +134,9 @@ on sdc-docker we must complete four steps:
 4. Set docker client to --tls mode
 
 In order to allow multiple SDC users to interact with sdc-docker, TLS
-support must be activated first. The sdc-docker install contains a sample self-signed certificate that should only be used for development/testing.
-The sample key and certificate are located at:
+support must be activated first. The sdc-docker install contains a sample
+self-signed certificate that should only be used for development/testing. The
+sample key and certificate are located at:
 
     /opt/smartdc/docker/tls/server-key.pem
     /opt/smartdc/docker/tls/server-cert.pem
@@ -151,8 +152,7 @@ Switch to TLS support by running the following commands:
 
     # make sure service picks up new configuration
     sdc-login docker
-    svcadm restart config-agent && sleep 1
-    svcadm restart docker
+    svcadm restart config-agent && sleep 3
     netstat -f inet -an | grep 2376
     exit
 

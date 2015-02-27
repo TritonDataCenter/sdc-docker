@@ -1,5 +1,5 @@
 {
     "name": "docker",
     "path": "/opt/smartdc/docker/etc/config.json",
-    "post_cmd": "/usr/sbin/svcadm refresh docker"
+    "post_cmd": "/usr/sbin/svcadm restart docker"
 }
