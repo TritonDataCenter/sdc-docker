@@ -16,8 +16,9 @@ var p = console.log;
 
 var test = require('tape');
 var util = require('util');
-var exec = require('child_process').exec;
 var vasync = require('vasync');
+var exec = require('child_process').exec;
+var sdcutils = require('../../lib/backends/sdc/utils');
 
 var h = require('./helpers');
 
@@ -31,10 +32,10 @@ var vmapi;
 
 // --- Tests
 
-test('docker create', function (t) {
-    t.plan(9);
+test('docker rm', function (t) {
+    t.plan(12);
 
-    var uuid;
+    var created;
 
     vasync.waterfall([
         function (next) {
@@ -61,14 +62,24 @@ test('docker create', function (t) {
 
             function oncreate(err, result) {
                 t.error(err);
-                uuid = result.vm.uuid;
+                created = result;
+                t.ok(created.uuid);
+                t.ok(created.id);
                 next();
             }
         },
         function (next) {
-            // Cheat
-            exec('vmadm destroy ' + uuid, function (err, stdout, stderr) {
-                t.error(err, 'vmadm destroy should succeed');
+            docker.del('/v1.15/containers/' + created.id, ondel);
+            function ondel(err, res, req, body) {
+                console.log(body);
+                console.log('deleted');
+                next(err);
+            }
+        },
+        function (next) {
+            vmapi.getVm({ uuid: created.uuid }, function (err, vm) {
+                t.error(err);
+                t.equal(vm.state, 'destroyed', 'should show up as destroyed');
                 next(err);
             });
         }

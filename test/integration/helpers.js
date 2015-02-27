@@ -16,8 +16,10 @@ var p = console.log;
 var assert = require('assert-plus');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
+var vasync = require('vasync');
 var VMAPI = require('sdc-clients').VMAPI;
 var restify = require('restify');
+var sdcutils = require('../../lib/backends/sdc/utils');
 
 var common = require('../lib/common');
 
@@ -94,10 +96,106 @@ function assertInfo(t, info) {
     t.equal(info.NGoroutines, 42, 'Totally have 42 goroutines');
 }
 
+/**
+ * Create a nginx VM fixture
+ */
+
+function createDockerContainer(opts, callback) {
+    var payload = {
+        'Hostname': '',
+        'Domainname': '',
+        'User': '',
+        'Memory': 0,
+        'MemorySwap': 0,
+        'CpuShares': 0,
+        'Cpuset': '',
+        'AttachStdin': false,
+        'AttachStdout': false,
+        'AttachStderr': false,
+        'PortSpecs': null,
+        'ExposedPorts': {},
+        'Tty': false,
+        'OpenStdin': false,
+        'StdinOnce': false,
+        'Env': [],
+        'Cmd': null,
+        'Image': 'nginx',
+        'Volumes': {},
+        'WorkingDir': '',
+        'Entrypoint': null,
+        'NetworkDisabled': false,
+        'OnBuild': null,
+        'SecurityOpt': null,
+        'HostConfig': {
+            'Binds': null,
+            'ContainerIDFile': '',
+            'LxcConf': [],
+            'Privileged': false,
+            'PortBindings': {},
+            'Links': null,
+            'PublishAllPorts': false,
+            'Dns': null,
+            'DnsSearch': null,
+            'ExtraHosts': null,
+            'VolumesFrom': null,
+            'Devices': [],
+            'NetworkMode': 'bridge',
+            'CapAdd': null,
+            'CapDrop': null,
+            'RestartPolicy': {
+                'Name': '',
+                'MaximumRetryCount': 0
+            }
+        }
+    };
+
+    var dockerClient = opts.dockerClient;
+    var vmapiClient = opts.vmapiClient;
+    var t = opts.test;
+    var response = {};
+
+    vasync.waterfall([
+        function (next) {
+            // Post create request
+            dockerClient.post('/v1.15/containers/create', payload, onpost);
+            function onpost(err, res, req, body) {
+                t.deepEqual(
+                    body.Warnings, [], 'Warnings should be present and empty');
+                t.ok(body.Id, 'Id should be present');
+                response.id = body.Id;
+                next(err);
+            }
+        },
+        function (next) {
+            // Attempt to get new container
+            dockerClient.get(
+                '/v1.15/containers/' + response.id + '/json', onget);
+            function onget(err, res, req, body) {
+                t.error(err);
+                response.inspect = body;
+                response.uuid = sdcutils.dockerIdToUuid(response.id);
+                next(err);
+            }
+        },
+        function (next) {
+            vmapiClient.getVm({ uuid: response.uuid }, function (err, vm) {
+                t.error(err);
+                response.vm = vm;
+                next(err);
+            });
+        }
+    ], function (err) {
+        t.error(err);
+        callback(null, response);
+    });
+}
+
 module.exports = {
     loadConfig: loadConfig,
     createDockerRemoteClient: createDockerRemoteClient,
     createVmapiClient: createVmapiClient,
+
+    createDockerContainer: createDockerContainer,
 
     ifErr: common.ifErr,
     assertInfo: assertInfo
