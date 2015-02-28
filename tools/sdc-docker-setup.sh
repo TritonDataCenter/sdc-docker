@@ -179,12 +179,12 @@ shift $((OPTIND - 1))
 # Offer some shortcuts:
 # - coal: Find the cloudapi in your local CoaL via ssh.
 # - <string without dots>: Treat as a joyentcloud region name and use:
-#       https://$region.api.joyentcloud.com
+#       https://$dc.api.joyentcloud.com
 # - if given without 'https://' prefix: add that automatically
 promptedUser=
 cloudapiUrl=$1
 if [[ -z "$cloudapiUrl" ]]; then
-    defaultCloudapiUrl=us-east-3b.api.joyentcloud.com
+    defaultCloudapiUrl=https://us-east-3b.api.joyentcloud.com
     #echo "Enter the SDC Docker hostname. Press enter for the default."
     printf "SDC Cloud API URL [$defaultCloudapiUrl]: "
     read cloudapiUrl
