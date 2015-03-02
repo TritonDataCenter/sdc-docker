@@ -48,6 +48,11 @@ function fatal
     exit 1
 }
 
+function warn
+{
+    echo "$NAME: warn: $*" >&2
+}
+
 function usage
 {
     echo "Usage:"
@@ -143,6 +148,40 @@ function cloudapiVerifyAccount() {
 }
 
 
+function cloudapiGetDockerService() {
+    local cloudapiUrl account sshPrivKeyPath sshKeyId now signature response
+    cloudapiUrl=$1
+    account=$2
+    sshPrivKeyPath=$3
+    sshKeyId=$4
+
+    # TODO: share the 'cloudapi request' code
+    now=$(date -u "+%a, %d %h %Y %H:%M:%S GMT")
+    signature=$(echo ${now} | tr -d '\n' | openssl dgst -sha256 -sign $sshPrivKeyPath | openssl enc -e -a | tr -d '\n')
+
+    local curlOpts
+    if [[ $coal == "true" || $optInsecure == "true" ]]; then
+        curlOpts=" -k"
+    fi
+
+    # TODO: a test on ListServices being a single line of JSON
+    local response status dockerService
+    response=$(curl $CURL_OPTS $curlOpts -isS \
+        -H "Accept:application/json" -H "api-version:*" -H "Date: ${now}" \
+        -H "Authorization: Signature keyId=\"/$account/keys/$sshKeyId\",algorithm=\"rsa-sha256\" ${signature}" \
+        --url $cloudapiUrl/$account/services)
+    status=$(echo "$response" | head -1 | awk '{print $2}')
+    if [[ "$status" != "200" ]]; then
+        warn "could not get Docker service endpoint from cloudapi (status=$status)"
+        return
+    fi
+    dockerService=$(echo "$response" | tail -1 | sed -E 's/.*"docker":"([^"]*)".*/\1/')
+    if [[ "$dockerService" != "$response" ]]; then
+        echo $dockerService
+    fi
+}
+
+
 
 # ---- mainline
 
@@ -178,20 +217,20 @@ shift $((OPTIND - 1))
 #
 # Offer some shortcuts:
 # - coal: Find the cloudapi in your local CoaL via ssh.
-# - <string without dots>: Treat as a joyentcloud region name and use:
-#       https://$dc.api.joyentcloud.com
+# - <string without dots>: Treat as a Joyent Cloud region name and use:
+#       https://$dc.api.joyent.com
 # - if given without 'https://' prefix: add that automatically
 promptedUser=
 cloudapiUrl=$1
 if [[ -z "$cloudapiUrl" ]]; then
-    defaultCloudapiUrl=https://us-east-3b.api.joyentcloud.com
+    defaultCloudapiUrl=https://us-east-3b.api.joyent.com
     #echo "Enter the SDC Docker hostname. Press enter for the default."
     printf "SDC Cloud API URL [$defaultCloudapiUrl]: "
     read cloudapiUrl
     promptedUser=true
 fi
 if [[ -z "$cloudapiUrl" ]]; then
-    portalUrl=https://my.joyentcloud.com
+    portalUrl=https://my.joyent.com
     cloudapiUrl=$defaultCloudapiUrl
 elif [[ "$cloudapiUrl" == "coal" ]]; then
     coal=true
@@ -200,8 +239,8 @@ elif [[ "$cloudapiUrl" == "coal" ]]; then
         fatal "could not find the cloudapi0 zone IP in CoaL"
     fi
 elif [[ "${cloudapiUrl/./X}" == "$cloudapiUrl" ]]; then
-    portalUrl=https://my.joyentcloud.com
-    cloudapiUrl=https://$cloudapiUrl.api.joyentcloud.com
+    portalUrl=https://my.joyent.com
+    cloudapiUrl=https://$cloudapiUrl.api.joyent.com
 elif [[ "${cloudapiUrl:0:8}" != "https://" ]]; then
     cloudapiUrl=https://$cloudapiUrl
 fi
@@ -292,26 +331,27 @@ openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/
 echo "Wrote certificate files to $certDir"
 
 
+echo "Get Docker host endpoint from cloudapi."
+dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
+if [[ -n "$dockerService" ]]; then
+    echo "Docker service endpoint is: $dockerService"
+else
+    echo "Could not discover service endpoint for DOCKER_HOST from cloudapi"
+fi
+
+
 echo ""
 echo "* * *"
-echo "Successfully setup for SDC Docker. When running 'docker' you must:"
+echo "Successfully setup for SDC Docker. Set your environment as follows: "
 echo ""
-echo "1. Tell it where your client certificate is via one of the following:"
-echo "       export DOCKER_CERT_PATH=$certDir"
-echo "   or via something like:"
-echo "       alias docker-$account='docker --tls --tlscert=$certPath --tlskey=$keyPath'"
+echo "    export DOCKER_CERT_PATH=$certDir"
+if [[ -n "$dockerService" ]]; then
+    echo "    export DOCKER_HOST=$dockerService"
+else
+    echo "    # See the product documentation for the Docker host."
+    echo "    export DOCKER_HOST=tcp://<HOST>:2376"
+fi
+echo "    alias docker=\"docker --tls\""
 echo ""
-echo "2. Tell it to use TLS via:"
-echo "       docker --tls ..."
-echo "   perhaps via a Bash alias:"
-echo "       alias docker='docker --tls'"
-echo ""
-echo "For example, run:"
-echo ""
-echo "export DOCKER_CERT_PATH=$certDir"
-echo "export DOCKER_HOST=tcp://<HOST>:2376"
-echo "alias docker=\"docker --tls\""
-echo "docker info"
-echo ""
-echo "And you should see your account name as SDCAccount in the output here"
-echo ""
+echo "Then you should be able to run 'docker info' and you see your account"
+echo "name 'SDCAccount' in the output."
