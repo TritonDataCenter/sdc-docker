@@ -28,4 +28,10 @@ EOF
     exit 2
 fi
 
+# Ensure nginx image present
+
+curl -v -X POST "http://docker.${CONFIG_datacenter_name}.${CONFIG_dns_domain}:2375/v1.15/images/create?fromImage=nginx%3Alatest"
+
+sleep 10
+
 PATH=$NODE_INSTALL/bin:$PATH $TAPE $1

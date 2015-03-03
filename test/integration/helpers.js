@@ -93,7 +93,7 @@ function createVmapiClient(callback) {
 function assertInfo(t, info) {
     t.equal(typeof (info), 'object', 'info is an object');
     t.equal(info.Driver, 'sdc', 'Driver is "sdc"');
-    t.equal(info.NGoroutines, 42, 'Totally have 42 goroutines');
+//     t.equal(info.NGoroutines, 42, 'Totally have 42 goroutines');
 }
 
 /**
