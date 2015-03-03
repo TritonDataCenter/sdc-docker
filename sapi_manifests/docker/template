@@ -2,6 +2,8 @@
     "adminUuid": "{{{ufds_admin_uuid}}}",
     "// port": "2376 for tls",
     "port": 2375,
+    "adminPort": 80,
+    "adminInterface": "net0",
     "logLevel": "debug",
     "datacenterName": "{{{datacenter_name}}}",
 
