@@ -68,7 +68,7 @@ function createDockerRemoteClient(callback) {
 
 
 /**
- * Get a simple restify JSON client to the SDC Docker Remote API.
+ * Get a simple restify JSON client to VMAPI.
  */
 function createVmapiClient(callback) {
     loadConfig(function (err, config) {
