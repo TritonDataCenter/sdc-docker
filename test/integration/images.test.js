@@ -51,6 +51,7 @@ test('docker images', function (t) {
                 next(err);
             });
         },
+        // Check that the nginx image exists
         function (next) {
             docker.get('/v1.15/images/json', function (err, req, res, images) {
                 t.error(err, 'should be no error retrieving images');
@@ -65,6 +66,7 @@ test('docker images', function (t) {
                 next();
             });
         },
+        // Pull ubuntu image...
         function (next) {
             var url = '/v1.15/images/create?fromImage=ubuntu%3Alatest';
             docker.post(url, function (err, req, res) {
@@ -74,6 +76,7 @@ test('docker images', function (t) {
                 next();
             });
         },
+        // ...and make sure it shows up in the list
         function (next) {
             docker.get('/v1.15/images/json', function (err, req, res, images) {
                 t.error(err, 'should be no error retrieving images');
@@ -85,6 +88,32 @@ test('docker images', function (t) {
                     return -1 !== image.RepoTags.indexOf('ubuntu:latest');
                 }).length, 'should be able to find image');
 
+                next();
+            });
+        },
+        // Delete the image...
+        function (next) {
+            docker.del('/v1.15/images/ubuntu', ondel);
+            function ondel(err, req, res) {
+                t.error(err, 'should be no error retrieving images');
+                next();
+            }
+        },
+        // ...and make sure it's gone
+        function (next) {
+            docker.get('/v1.15/images/json', function (err, req, res, images) {
+                t.error(err, 'should be no error retrieving images');
+                console.log(images);
+
+                t.ok(images.length, 'images array should not be empty');
+                var found = images.map(function (image) {
+                    return -1 !== image.RepoTags.indexOf('ubuntu:latest');
+                });
+
+                t.deepEqual(
+                    found.filter(function (i) { return i; }),
+                    [],
+                    'ubuntu image should have been deleted');
                 next();
             });
         }
