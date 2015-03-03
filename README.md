@@ -122,65 +122,71 @@ Let's create your first docker container:
 
 # Running sdc-docker with TLS support
 
-By default *for now*, sdc-docker will run in a non-secure mode with no user
-authentication. In this mode, there is no notion of users so every single
-client call will be assumed to belong to the default SDC local admin user
+By default *for now*, sdc-docker will run in a non-secure (non-production) mode
+with no user authentication. In this mode, there is no notion of users so every
+single client call will be assumed to belong to the default SDC local admin user
 (`ufds_admin_uuid`). To enable user authentication on sdc-docker we must
-complete four steps:
+complete three steps:
 
-1. Enable TLS support on sdc-docker
-2. Ensure the docker client user has added SSH keys to their account
-3. Generate a client TLS certificate
-4. Set docker client to --tls mode
+1.  Enable TLS support on sdc-docker
 
-In order to allow multiple SDC users to interact with sdc-docker, TLS
-support must be activated first. The sdc-docker install contains a sample
-self-signed certificate that should only be used for development/testing. The
-sample key and certificate are located at:
+    In order to allow multiple SDC users to interact with sdc-docker, TLS
+    support must be activated first. The sdc-docker install contains a sample
+    self-signed certificate that should only be used for development/testing.
+    The sample key and certificate are located at:
 
-    /opt/smartdc/docker/tls/server-key.pem
-    /opt/smartdc/docker/tls/server-cert.pem
+        /opt/smartdc/docker/tls/server-key.pem
+        /opt/smartdc/docker/tls/server-cert.pem
 
-Switch to TLS support by running the following commands:
+    Switch to TLS support by running the following commands:
 
-    ssh root@10.99.99.7                     # ssh to the COAL GZ
-    sdcadm self-update
-    sdcadm experimental update-docker       # ensure the latest sdc-docker
+        ssh root@10.99.99.7                     # ssh to the COAL GZ
+        sdcadm self-update
+        sdcadm experimental update-docker       # ensure the latest sdc-docker
 
-    docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
-    sapiadm update $docker_svc metadata.USE_TLS=true
+        docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
+        sapiadm update $docker_svc metadata.USE_TLS=true
 
-    # make sure service picks up new configuration
-    sdc-login docker
-    svcadm restart config-agent && sleep 3
-    netstat -f inet -an | grep 2376
-    exit
+        # make sure service picks up new configuration
+        sdc-login docker
+        svcadm restart config-agent && sleep 3
+        netstat -f inet -an | grep 2376
+        exit
 
-For development purposes, we are going to add our own SSH private key to
-the local SDC admin user. This step is optional for existing SDC users that
-already have their SSH keys added to UFDS:
+2.  Ensure the docker client user has added SSH keys to their account.
 
-    scp ~/.ssh/id_rsa.pub root@10.99.99.7:/var/tmp/id_rsa.pub
-    ssh root@10.99.99.7                     # ssh to the COAL GZ
-    sdc-useradm add-key admin /var/tmp/id_rsa.pub
+    For development purposes, we are going to add our own SSH private key to
+    the local SDC admin user. This step is optional for existing SDC users that
+    already have their SSH keys added to UFDS:
 
-Now, the docker client must be configured to use TLS by running the
-following command on your sdc-docker development install:
+        scp ~/.ssh/id_rsa.pub root@10.99.99.7:/var/tmp/id_rsa.pub
+        ssh root@10.99.99.7                     # ssh to the COAL GZ
+        sdc-useradm add-key admin /var/tmp/id_rsa.pub
 
-    ./tools/gen-client-certificate root@10.99.99.7 ~/.ssh/id_rsa
+3.  Generate a client TLS certificate and set `docker` to use `--tls` mode:
 
-After following the steps, there is going to be a new client certificate at
+    This script in the sdc-docker repo will create the client certificate
+    and print how to configure `docker`:
 
-    ~/.sdc_docker/cert.pem
+        ./tools/sdc-docker-setup.sh coal admin ~/.ssh/id_rsa
 
-The 'gen-client-certificate' should print instructions to configure the
-docker client to work on TLS mode. After exporting the two environment
-variables specified, docker can now be used with the --tls option:
+    For example, something like:
 
-    export DOCKER_CERT_PATH=~/.sdc_docker/
-    export DOCKER_HOST=tcp://10.88.88.5:2376
+        export DOCKER_CERT_PATH=$HOME/.sdc/docker/admin
+        export DOCKER_HOST=tcp://10.88.88.5:2376
+        alias docker="docker --tls"
 
-    docker --tls info
+You should now able to get `docker info` and see "SDCAccount: admin":
+
+    $ docker info
+    Containers: 0
+    Images: 32
+    Storage Driver: sdc
+     SDCAccount: admin
+    Execution Driver: sdc-0.1.0
+    Operating System: SmartDataCenter
+    Name: coal
+
 
 
 # Development hooks
