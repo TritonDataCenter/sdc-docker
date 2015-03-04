@@ -114,6 +114,13 @@ from docker. If you specify a UUID of an image that has been imported into
 the local imgapi and has the os set to 'smartos', the container will be started
 with a joyent-minimal brand instead of lx and will use that image.
 
+### SDC packages
+
+When using sdc-docker, you can specify a -m value for memory and sdc-docker
+if there is no package available with this value, it will round up to the
+nearest package. The package parameters can be found using the node-smartdc
+tools and specifically the 'sdc-listpackages' tool.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
@@ -194,12 +201,9 @@ This command is currently unimplemented (DOCKER-73)
 
  * Storage Driver will always be 'sdc'
  * Execution Driver is will be 'sdc-<VERSION>'
- * Kernel Version is the SDC version
- * Operating System will always be 'Joyent Smart Data Center'
- * Server will always be listed as in 'Debug mode'
- * Fds has a bogus value
- * Goroutines has a bogus value
- * 'Init Path' has a bogus value
+ * Operating System will always be 'SmartDataCenter'
+ * SDCAccount will show you the name of the SDC account you're authenticated as
+ * Name will show you the datacenter name
 
 ### `docker inspect`
 
