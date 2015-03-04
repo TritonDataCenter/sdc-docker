@@ -76,6 +76,7 @@ process.stdin.on('end', function () {
    } catch (er) {
       console.log('error: ' + er.message);
    }
+})   
 ```
 
 The script requires a template file called __haproxyCFG.template__
