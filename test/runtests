@@ -110,9 +110,10 @@ cd $TOP
 
 # Run the integration tests
 
-# . /lib/sdc/config.sh load_sdc_config
-# 
-# curl -v -X POST "http://docker.${CONFIG_datacenter_name}.${CONFIG_dns_domain}:2375/v1.15/images/create?fromImage=nginx%3Alatest"
+. /lib/sdc/config.sh
+load_sdc_config
+
+curl -v -X POST "http://docker.${CONFIG_datacenter_name}.${CONFIG_dns_domain}:2375/v1.15/images/create?fromImage=nginx%3Alatest"
 
 echo ""
 test_files=$(ls -1 test/integration/*.test.js)
