@@ -157,7 +157,7 @@ function createDockerContainer(opts, callback) {
     vasync.waterfall([
         function (next) {
             // Post create request
-            dockerClient.post('/v1.15/containers/create', payload, onpost);
+            dockerClient.post('/v1.16/containers/create', payload, onpost);
             function onpost(err, res, req, body) {
                 t.deepEqual(
                     body.Warnings, [], 'Warnings should be present and empty');
@@ -169,7 +169,18 @@ function createDockerContainer(opts, callback) {
         function (next) {
             // Attempt to get new container
             dockerClient.get(
-                '/v1.15/containers/' + response.id + '/json', onget);
+                '/v1.16/containers/' + response.id + '/json', onget);
+            function onget(err, res, req, body) {
+                t.error(err);
+                response.inspect = body;
+                response.uuid = sdcutils.dockerIdToUuid(response.id);
+                next(err);
+            }
+        },
+        function (next) {
+            // Attempt to stop the container
+            dockerClient.get(
+                '/v1.16/containers/' + response.id + '/json', onget);
             function onget(err, res, req, body) {
                 t.error(err);
                 response.inspect = body;
@@ -190,10 +201,36 @@ function createDockerContainer(opts, callback) {
     });
 }
 
+function listContainers(opts, callback) {
+    var dockerClient = opts.dockerClient;
+    var t = opts.test;
+    var containers;
+
+    vasync.waterfall([
+        function (next) {
+            // Post create request
+            dockerClient.get(
+                '/v1.16/containers/json'
+                + (opts.all ? '?all=1' : ''), onget);
+            function onget(err, res, req, body) {
+                t.error(err);
+                containers = body;
+                next(err);
+            }
+        }
+    ],
+    function (err) {
+        t.error(err);
+        callback(err, containers);
+    });
+}
+
+
 module.exports = {
     loadConfig: loadConfig,
     createDockerRemoteClient: createDockerRemoteClient,
     createVmapiClient: createVmapiClient,
+    listContainers: listContainers,
 
     createDockerContainer: createDockerContainer,
 

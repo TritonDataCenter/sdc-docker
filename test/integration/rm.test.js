@@ -33,7 +33,7 @@ var vmapi;
 // --- Tests
 
 test('docker rm', function (t) {
-    t.plan(12);
+    t.plan(13);
 
     var created;
 

@@ -32,7 +32,7 @@ var vmapi;
 // --- Tests
 
 test('docker create', function (t) {
-    t.plan(9);
+    t.plan(10);
 
     var uuid;
 

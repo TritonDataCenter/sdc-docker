@@ -26,23 +26,14 @@ var h = require('./helpers');
 // --- Globals
 
 var docker;
-var vmapi;
 
 
 // --- Tests
 
 test('docker images', function (t) {
-//     t.plan(9);
+    t.plan(13);
 
     vasync.waterfall([
-        function (next) {
-            // Create VMAPI client
-            h.createVmapiClient(function (err, client) {
-                t.error(err, 'no error getting vmapi client');
-                vmapi = client;
-                next(err);
-            });
-        },
         function (next) {
             // Create Docker client
             h.createDockerRemoteClient(function (err, client) {
@@ -55,7 +46,6 @@ test('docker images', function (t) {
         function (next) {
             docker.get('/v1.15/images/json', function (err, req, res, images) {
                 t.error(err, 'should be no error retrieving images');
-                console.log(images);
                 // check for nginx image
 
                 t.ok(images.length, 'images array should not be empty');
@@ -80,9 +70,6 @@ test('docker images', function (t) {
         function (next) {
             docker.get('/v1.15/images/json', function (err, req, res, images) {
                 t.error(err, 'should be no error retrieving images');
-                console.log(images);
-                // check for nginx image
-
                 t.ok(images.length, 'images array should not be empty');
                 t.ok(images.map(function (image) {
                     return -1 !== image.RepoTags.indexOf('ubuntu:latest');
@@ -103,7 +90,6 @@ test('docker images', function (t) {
         function (next) {
             docker.get('/v1.15/images/json', function (err, req, res, images) {
                 t.error(err, 'should be no error retrieving images');
-                console.log(images);
 
                 t.ok(images.length, 'images array should not be empty');
                 var found = images.map(function (image) {
