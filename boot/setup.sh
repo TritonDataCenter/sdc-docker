@@ -24,6 +24,10 @@ sdc_common_setup
 
 /usr/sbin/svccfg import /opt/smartdc/$role/smf/manifests/docker.xml
 
+# Add build/node/bin and node_modules/.bin to PATH
+echo "" >>/root/.profile
+echo "export PATH=\$PATH:/opt/smartdc/$role/build/node/bin:/opt/smartdc/$role/node_modules/.bin:/opt/smartdc/$role/bin" >>/root/.profile
+
 # Log rotation.
 sdc_log_rotation_add amon-agent /var/svc/log/*amon-agent*.log 1g
 sdc_log_rotation_add config-agent /var/svc/log/*config-agent*.log 1g

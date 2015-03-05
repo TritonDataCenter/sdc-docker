@@ -99,6 +99,7 @@ release: all
 	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/{etc,build}
 	cp -r \
 		$(TOP)/package.json \
+		$(TOP)/bin \
 		$(TOP)/lib \
 		$(TOP)/node_modules \
 		$(TOP)/smf \

@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+
+#
+# Copyright (c) 2015, Joyent, Inc.
+#
+
+TOP=$(unset CDPATH; cd $(dirname $0)/../; pwd)
+SVC=docker
+LOGFILE=$(svcs -L ${SVC})
+LOGLINES=50
+BUNYAN=${TOP}/node_modules/.bin/bunyan
+
+
+function fatal()
+{
+    echo "Error: $*" >&2
+    exit 1
+}
+
+
+function restart_svc()
+{
+    local state
+    state=$(svcs -o state -H ${SVC})
+
+    case "$state" in
+        "disabled")
+            exec svcadm enable ${SVC}
+            ;;
+        "maintenance")
+            exec svcadm clear ${SVC}
+            ;;
+        *)
+            exec svcadm restart ${SVC}
+            ;;
+    esac
+}
+
+
+function usage()
+{
+    local msg me
+    msg="$*"
+    [[ -n "$msg" ]] && echo "$msg"
+    me=$(basename $0)
+cat - >&2 <<USAGE
+Administer ${SVC}
+
+Usage:
+        $me <subcommand>
+
+Subcommands:
+        lastlog     View the last ${LOGLINES} bunyan-formatted log lines
+        log         View the bunyan-formated log
+        restart     Restart the service
+        tail        Tail the log and pipe through bunyan
+USAGE
+    exit 2
+}
+
+
+
+# --- Mainline
+
+
+
+CMD=$1
+
+case "$CMD" in
+    "clear")
+        exec svcadm clear ${SVC}
+        ;;
+    "log")
+        ${BUNYAN} ${LOGFILE}
+        ;;
+    "lastlog")
+        # XXX: allow overriding LOGLINES with an opt
+        exec tail -n ${LOGLINES} ${LOGFILE} | ${BUNYAN}
+        ;;
+    "restart")
+        restart_svc
+        ;;
+    "tail")
+        exec tail -f ${LOGFILE} | ${BUNYAN}
+        ;;
+    "")
+        usage
+        ;;
+    *)
+        fatal "Unknown command \"$CMD\""
+        ;;
+esac
