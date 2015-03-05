@@ -306,7 +306,7 @@ This works the same as upstream except:
 
 This works but does not support:
 
- * --force
+ * --force (DOCKER-182)
  * --no-prune
 
 ### `docker run`
