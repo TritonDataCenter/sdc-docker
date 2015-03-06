@@ -38,6 +38,7 @@ Installing sdc-docker means getting a running 'docker' SDC core zone.
     sdcadm self-update
     sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
     sdcadm post-setup dev-headnode-prov
+    sdcadm post-setup cloudapi
     sdcadm experimental update-docker
 
 Then setup `DOCKER_*` envvars on your Mac (or whever you have a `docker`
