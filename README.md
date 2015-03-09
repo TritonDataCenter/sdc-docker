@@ -198,6 +198,9 @@ authorized. This mode is configured via the `account_allowed_dcs`
 
     sdc-sapi /applications/$(sdc-sapi /applications?name=sdc | json -H 0.uuid) \
         -X PUT -d '{"metadata": {"account_allowed_dcs": true}}'
+    # Optional "403 Forbidden" response body.
+    sdc-sapi /applications/$(sdc-sapi /applications?name=sdc | json -H 0.uuid) \
+        -X PUT -d '{"metadata": {"account_allowed_dcs_msg": "talk to you Administrator"}}'
 
 Once enabled, one can allow an account via:
 

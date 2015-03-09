@@ -57,6 +57,7 @@
     {{#account_allowed_dcs}}
     "account_allowed_dcs": {{{account_allowed_dcs}}},
     {{/account_allowed_dcs}}
+    "account_allowed_dcs_msg": "{{{account_allowed_dcs_msg}}}",
 
     "ufds": {
         "url": "ldaps://{{{ufds_domain}}}",
