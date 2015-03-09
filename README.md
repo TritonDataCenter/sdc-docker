@@ -189,6 +189,47 @@ You should now able to get `docker info` and see "SDCAccount: admin":
     Name: coal
 
 
+# Running SDC docker in invite-only mode
+
+The public APIs to an SDC -- sdc-docker and cloudapi -- can be configured to
+be in invite-only mode where only explicitly allowed accounts are given
+authorized. This mode is configured via the `account_allowed_dcs`
+[SDC Application config var](https://github.com/joyent/sdc/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration).
+
+    sdc-sapi /applications/$(sdc-sapi /applications?name=sdc | json -H 0.uuid) \
+        -X PUT -d '{"metadata": {"account_allowed_dcs": true}}'
+
+Once enabled, one can allow an account via:
+
+    DC=$(sh /lib/sdc/config.sh -json | json datacenter_name)
+    sdc-useradm add-attr LOGIN allowed_dcs $DC
+
+and an account access removed via:
+
+    sdc-useradm delete-attr LOGIN allowed_dcs $DC
+
+Allowed users can be listed via:
+
+    sdc-useradm search allowed_dcs=$DC -o uuid,login,email,allowed_dcs
+
+For example:
+
+    [root@headnode (coal) ~]# sdc-useradm add-attr admin allowed_dcs coal
+    Added attribute on user 930896af-bf8c-48d4-885c-6573a94b1853 (admin): allowed_dcs=coal
+
+    [root@headnode (coal) ~]# sdc-useradm search allowed_dcs=coal -o uuid,login,email,allowed_dcs
+    UUID                                  LOGIN  EMAIL           ALLOWED_DCS
+    930896af-bf8c-48d4-885c-6573a94b1853  admin  root@localhost  ["us-west-2","coal"]
+
+    [root@headnode (coal) ~]# sdc-useradm delete-attr admin allowed_dcs coal
+    Deleted attribute "allowed_dcs=coal" from user 930896af-bf8c-48d4-885c-6573a94b1853 (admin)
+
+
+Limitation: Currently adding access can take a minute or two to take effect
+(caching) and removing access **requires the sdc-docker server to be
+restarted (DOCKER-233).**
+
+
 
 # Development hooks
 
