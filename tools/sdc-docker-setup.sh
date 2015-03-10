@@ -44,7 +44,7 @@ function fatal
 {
     echo "" >&2
     echo "* * *" >&2
-    echo "$NAME: fatal error: $*" >&2
+    printf "$NAME: fatal error: $*\n" >&2
     exit 1
 }
 
