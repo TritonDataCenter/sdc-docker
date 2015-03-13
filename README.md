@@ -241,6 +241,21 @@ Limitation: Currently adding access can take a minute or two to take effect
 restarted (DOCKER-233).**
 
 
+# Adding packages
+
+By default the size of the container (ram, disk, cpu shares) uses the package in
+the internal "sdc_" set of packages closest to 'ram=1024 MiB'. The "sdc_"
+packages are really only applicable for development. More appropriate for
+production is a set of packages separate from "sdc_". The following can be
+run to add a number of "t4-*" packages and to configure the Docker service
+to use them:
+
+    sdc-login docker /opt/smartdc/docker/tools/gen_packages.js
+    /opt/smartdc/bin/sapiadm update \
+       $(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.uuid) \
+       metadata.PACKAGE_PREFIX="t4-"
+
+
 
 # Development hooks
 

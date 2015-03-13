@@ -15,6 +15,24 @@ smallest package which has values larger than both provided. If no value is
 provided for cpu_shares, this parameter is ignored. If no value is provided for
 memory, the defaultMemory value is used as though the user had passed that.
 
+
+# Service Configuration
+
+The SDC Docker service can be configured with the following Service API
+(SAPI) metadata values.
+
+| Key                            | Type    | Default | Description                                                                  |
+| ------------------------------ | ------- | ------- | ----------- |
+| **USE_TLS**                    | Boolean | false   | Turn on TLS authentication. |
+| **DEFAULT_MEMORY**       | Number | 1024 | The default ram/memory to use for docker containers. |
+| **PACKAGE_PREFIX** | String | 'sdc_'    | The prefix for packages to use for docker container package selection. |
+
+### Example
+
+    docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
+    sdc-sapi /services/$docker_svc -X PUT -d '{ "metadata": { "USE_TLS": true } }'
+
+
 # Configuration
 
 Reference docs on configuration vars to sdc-docker. Configuration is loaded
