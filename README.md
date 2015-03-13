@@ -15,6 +15,14 @@ docker host. The Docker remote API is served from a 'docker' core SDC zone
 (built from this repo).
 
 
+# User Guide
+
+For users of Joyent SDC Docker private beta in Joyent's us-east-3b datacenter
+(or those using a SDC Docker standup, but not administering it) please see the
+[User Guide](./docs/index.md).  The rest of this README is targetted at
+*development* of sdc-docker.
+
+
 # Current State
 
 Disclaimer: This is still very much alpha. Use at your own risk!
