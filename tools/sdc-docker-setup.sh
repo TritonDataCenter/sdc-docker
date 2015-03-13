@@ -359,6 +359,11 @@ if [[ -n "$optSdcSetup" ]]; then
         echo "    # Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
         echo "    export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
     fi
+    if [[ "$coal" == "true" ]]; then
+        echo "    export SDC_TESTING=1"
+    else
+        echo "    #export SDC_TESTING=1   # set this if cloudapi uses a self-signed cert"
+    fi
 fi
 echo "    export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
