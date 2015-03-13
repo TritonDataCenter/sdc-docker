@@ -83,8 +83,9 @@ instructions](https://docs.docker.com/installation/#installation).
 ## 2. Setup an SDC account
 
 If you have a Joyent Cloud account *and* are setup to use [its
-CLI](https://mo.joyent.com/docs/cloudapi/master/#getting-started) in any of the
-Joyent Cloud datacenters, then you can move on to the next step.
+CLI](https://apidocs.joyent.com/cloudapi/#getting-started) in any of the
+Joyent Cloud datacenters, then you can move on to the next step. To test that
+you are setup you can run `sdc-getaccount`:
 
     $ sdc-getaccount
     {
