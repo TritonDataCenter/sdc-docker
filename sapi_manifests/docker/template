@@ -14,7 +14,7 @@
         "externalPool": "{{{sdc_nat_pool}}}"
 {{/fabric_cfg}}
 {{^fabric_cfg}}
-        "enabled": false,
+        "enabled": false
 {{/fabric_cfg}}
     },
     "moray": {
