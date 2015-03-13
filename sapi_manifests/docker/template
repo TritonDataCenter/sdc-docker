@@ -8,6 +8,15 @@
     "backend": "sdc",
     "defaultMemory": {{#DEFAULT_MEMORY}}{{{DEFAULT_MEMORY}}}{{/DEFAULT_MEMORY}}{{^DEFAULT_MEMORY}}1024{{/DEFAULT_MEMORY}},
     "packagePrefix": "{{#PACKAGE_PREFIX}}{{{PACKAGE_PREFIX}}}{{/PACKAGE_PREFIX}}{{^PACKAGE_PREFIX}}sdc_{{/PACKAGE_PREFIX}}",
+    "overlay": {
+{{#fabric_cfg}}
+        "enabled": true,
+        "externalPool": "{{{sdc_nat_pool}}}"
+{{/fabric_cfg}}
+{{^fabric_cfg}}
+        "enabled": false,
+{{/fabric_cfg}}
+    },
     "moray": {
         "logLevel": "info",
         "host": "{{{MORAY_SERVICE}}}",
