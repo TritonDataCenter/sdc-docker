@@ -66,6 +66,8 @@ function usage
     echo "          hostname responds, etc)."
     echo "  -k      Disable SSH certificate verification (e.g. if using CoaL"
     echo "          for development)."
+    echo "  -s      Include SDC_* environment variables for SDC CLI setup."
+    echo "          Otherwise, only the setup commands for 'docker' are emitted."
     # TODO: examples
 }
 
@@ -187,7 +189,8 @@ function cloudapiGetDockerService() {
 
 optForce=
 optInsecure=
-while getopts "hVfk" opt; do
+optSdcSetup=
+while getopts "hVfks" opt; do
     case "$opt" in
         h)
             usage
@@ -202,6 +205,9 @@ while getopts "hVfk" opt; do
             ;;
         k)
             optInsecure=true
+            ;;
+        s)
+            optSdcSetup=true
             ;;
         *)
             usage
@@ -304,8 +310,8 @@ echo "    SSH private key: $sshPrivKeyPath"
 echo ""
 
 
+sshPubKeyPath=$sshPrivKeyPath.pub
 if [[ $optForce != "true" ]]; then
-    sshPubKeyPath=$sshPrivKeyPath.pub
     if [[ ! -f $sshPubKeyPath ]]; then
         fatal "could not verify account/key: SSH public key does not exist at '$sshPubKeyPath'"
     fi
@@ -344,12 +350,22 @@ echo ""
 echo "* * *"
 echo "Successfully setup for SDC Docker. Set your environment as follows: "
 echo ""
+if [[ -n "$optSdcSetup" ]]; then
+    echo "    export SDC_URL=$cloudapiUrl"
+    echo "    export SDC_ACCOUNT=$account"
+    if [[ -f $sshPubKeyPath ]]; then
+        echo "    export SDC_KEY_ID=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')"
+    else
+        echo "    # Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
+        echo "    export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
+    fi
+fi
 echo "    export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
     echo "    export DOCKER_HOST=$dockerService"
 else
     echo "    # See the product documentation for the Docker host."
-    echo "    export DOCKER_HOST=tcp://<HOST>:2376"
+    echo "    export DOCKER_HOST='tcp://<HOST>:2376'"
 fi
 echo "    alias docker=\"docker --tls\""
 echo ""
