@@ -8,7 +8,7 @@ markdown2linkpatternsfile: link-patterns.txt
 
 Welcome to SDC Docker. This document is meant as a user guide for those
 getting started with a SmartDataCenter Docker service, e.g. the one that
-Joyent is hosting in its "us-east-3b" datacenter (details below). (If you are
+Joyent is hosting in its "us-east-3b" data center (details below). (If you are
 interested in running or developing SDC Docker, see the
 [README](https://github.com/joyent/sdc-docker/blob/master/README.md) for
 development details.)
@@ -33,7 +33,7 @@ And the full stack is open source:
 
 
 **A note for users of the Joyent SDC Docker beta:** Joyent is hosting a private
-beta of the SDC Docker service in their us-east-3b datacenter. Please [sign up
+beta of the SDC Docker service in their us-east-3b data center. Please [sign up
 here](https://www.joyent.com/lp/preview) and read on for how to get setup.
 
 
@@ -43,7 +43,7 @@ SDC Docker is currently in alpha and under heavy development. Current focus
 is on the stabilization and filling out support for *running* Docker containers.
 Support for building images (`docker build`) on SDC Docker is forthcoming.
 Please [report issues](https://github.com/joyent/sdc-docker/issues), give us
-feedback or discuss on #joyent IRC (on freenode).
+feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
 
 
 ## Table of Contents
@@ -84,7 +84,7 @@ instructions](https://docs.docker.com/installation/#installation).
 
 If you have a Joyent Cloud account *and* are setup to use [its
 CLI](https://apidocs.joyent.com/cloudapi/#getting-started) in any of the
-Joyent Cloud datacenters, then you can move on to the next step. To test that
+Joyent Cloud data centers, then you can move on to the next step. To test that
 you are setup you can run `sdc-getaccount`:
 
     $ sdc-getaccount
@@ -136,7 +136,7 @@ guide docs.)
 ## 3. sdc-docker-setup
 
 Now that you have access to the SmartDataCenter, we will setup authentication
-to the Docker Host. SDC Docker uses Docker's TLS authentication. This section
+to the Docker host. SDC Docker uses Docker's TLS authentication. This section
 will show you how to create a TLS client certificate from the SSH key you
 created in the previous section. Then we'll configure `docker` to send that
 client certificate to identify requests as coming from you.
@@ -149,12 +149,12 @@ We have a 'sdc-docker-setup.sh' script to help with this:
 For example, if you created an account with the "jill" login name and a key
 file "~/.ssh/sdc-docker.id_rsa" as in the previous section, then
 
-    sh sdc-docker-setup.sh https://us-beta-3b.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
+    sh sdc-docker-setup.sh https://us-east-3b.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
 
 That should output something like the following:
 
     Setting up for SDC Docker using:
-        Cloud API:       https://us-beta-3b.api.joyent.com
+        Cloud API:       https://us-east-3b.api.joyent.com
         Account:         jill
         SSH private key: /Users/localuser/.ssh/sdc-docker.id_rsa
 
@@ -181,9 +181,9 @@ be able to run `docker`:
 
     $ docker info
     Containers: 0
-    Images: 170
+    Images: 0
     Storage Driver: sdc
-     SDCAccount: jill
+    SDCAccount: jill
     Execution Driver: sdc-0.1.0
     Operating System: SmartDataCenter
     Name: us-east-3b
