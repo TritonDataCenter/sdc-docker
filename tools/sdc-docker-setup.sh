@@ -177,6 +177,10 @@ function cloudapiGetDockerService() {
         warn "could not get Docker service endpoint from cloudapi (status=$status)"
         return
     fi
+    if [[ -z "$(echo "$response" | (grep '"docker"' || true))" ]]; then
+        warn "could not get Docker service endpoint from cloudapi (no docker service listed)"
+        return
+    fi
     dockerService=$(echo "$response" | tail -1 | sed -E 's/.*"docker":"([^"]*)".*/\1/')
     if [[ "$dockerService" != "$response" ]]; then
         echo $dockerService

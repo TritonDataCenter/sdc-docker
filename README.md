@@ -157,10 +157,8 @@ complete three steps:
         sapiadm update $docker_svc metadata.USE_TLS=true
 
         # make sure service picks up new configuration
-        sdc-login docker
-        svcadm restart config-agent && sleep 3
-        netstat -f inet -an | grep 2376
-        exit
+        sdc-login docker 'svcadm restart config-agent' </dev/null && sleep 3
+        sdc-login docker netstat -f inet -an | grep 2376
 
 2.  Ensure the docker client user has added SSH keys to their account.
 
