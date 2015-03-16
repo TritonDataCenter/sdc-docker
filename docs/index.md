@@ -6,12 +6,17 @@ markdown2linkpatternsfile: link-patterns.txt
 
 # Docker on SmartDataCenter User Guide
 
-Welcome to Docker on SmarDataCenter. The Docker Engine for SDC is currently in alpha and under heavy development. The current focus is stabilization and filling out support for *running* Docker containers.
+Welcome to Docker on SmarDataCenter. The Docker Engine for SDC is currently in
+alpha and under heavy development. The current focus is stabilization and
+filling out support for *running* Docker containers.
 
-This document is meant as a user guide for those getting started using a Docker on SmartDataCenter service, e.g. the beta service in Joyent's public cloud (details below). If you are interested in running or developing the Docker Engine for SDC, see the
-[sdc-docker README](https://github.com/joyent/sdc-docker/blob/master/README.md).
+This document is meant as a user guide for those getting started using a Docker
+on SmartDataCenter service, e.g. the beta service in Joyent's public cloud
+(details below). If you are interested in running or developing
+the Docker Engine for SDC, see the [sdc-docker README](https://github.com/joyent/sdc-docker/blob/master/README.md).
 
-The Docker Engine for SmartDataCenter treats the entire data center as a single Docker host. Each container is a SmartOS LX-branded zone. Benefits:
+The Docker Engine for SmartDataCenter treats the entire data center as
+a single Docker host. Each container is a SmartOS LX-branded zone. Benefits:
 
 - [Zones](http://en.wikipedia.org/wiki/Solaris_Containers) have a
   proven security track record for isolation.
@@ -27,16 +32,18 @@ And the full stack is open source: [sdc-docker](https://github.com/joyent/sdc-do
 and [SmartOS](https://github.com/joyent/smartos-live).
 
 
-**A note for users of Joyent's public cloud:** Joyent is hosting a beta of their Docker service. Please sign up at https://www.joyent.com/lp/preview and read on for the settings for the standard Docker client.
+**A note for users of Joyent's public cloud:** Joyent is hosting a beta of
+their Docker service. Please sign up at https://www.joyent.com/lp/preview and
+read on for the settings for the standard Docker client.
 
 
 ## Current Status
 
-SDC Docker is currently in alpha and under heavy development. Current focus
-is on the stabilization and filling out support for *running* Docker containers.
-Support for building images (`docker build`) on SDC Docker is forthcoming.
-Please [report issues](https://github.com/joyent/sdc-docker/issues), give us
-feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
+The Docker Engine for SDC is currently in alpha and under heavy development.
+The current focus is on stabilization and filling out support for *running*
+Docker containers. Support for building images (`docker build`) is forthcoming.
+Please [report issues](https://github.com/joyent/sdc-docker/issues),
+give us feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
 
 
 ## Table of Contents
@@ -48,17 +55,17 @@ feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent)
 
 # Getting Started
 
-*This section will use the current Joyent-hosted SDC Docker beta for examples.
-Note that the same basic instructions hold for any sdc-docker standup.*
+*This section will use the current Joyent public cloud Docker beta for examples.
+Note that the same instructions hold for any sdc-docker standup.*
 
-SDC Docker is all about using the `docker` CLI. So all that is required is
-to setup an account with the SmartDataCenter cloud and to configure your
-`docker` client to use the appropriate auth information.
+The Docker Engine for SDC is all about using the `docker` CLI. So all that is
+required is to set up an account with a SmartDataCenter cloud and to configure
+your environment variables for the `docker` client.
 
 1. Install `docker`.
-2. Setup an account with the SmartDataCenter (in this case the [Joyent
-   Cloud](https://my.joyent.com)).
-3. Run the 'sdc-docker-setup.sh' script to setup your Docker client auth.
+2. Setup an account with the SmartDataCenter, in this case
+   the [Joyent Public Cloud](https://my.joyent.com).
+3. Run the 'sdc-docker-setup.sh' script to set the env.
 
 
 ## 1. Install `docker`
@@ -71,14 +78,14 @@ step. *Note: The minimum docker client version might be raised to 1.5.0.*
 
 Otherwise, please follow [Docker's own installation
 instructions](https://docs.docker.com/installation/#installation).
+Unfortunately, it's not Docker does not yet have a standalone client.
 
 
-## 2. Setup an SDC account
+## 2. Set Up an SDC Account
 
-If you have a Joyent Cloud account *and* are setup to use [its
-CLI](https://apidocs.joyent.com/cloudapi/#getting-started) in any of the
-Joyent Cloud data centers, then you can move on to the next step. To test that
-you are setup you can run `sdc-getaccount`:
+The SmartDataCenter CLI environment is not necessary for to use Docker on SDC,
+but for beta testing it will be helpful. To test that your
+SmartDataCenter client environment is configured, you can run `sdc-getaccount`:
 
     $ sdc-getaccount
     {
@@ -90,36 +97,36 @@ you are setup you can run `sdc-getaccount`:
       ...
     }
 
-Otherwise you need to:
+If sdc-getaccount works, then move on to [the next step](#3-sdc-docker-setup).
+Otherwise:
 
-- [Create](https://my.joyent.com/landing/signup/) or [sign
-  in](https://my.joyent.com) to your Joyent Cloud account, and
-- [Add an SSH public key to your account.](https://my.joyent.com/main/#!/account)
+1. [Create](https://my.joyent.com/landing/signup/) or [sign in](https://my.joyent.com)
+   to your Joyent Cloud account,
+2. [Add an SSH public key to your account.](https://my.joyent.com/main/#!/account)
+   and,
+3. Install [SDC CLI](https://apidocs.joyent.com/cloudapi/#getting-started) and
+   configure the SDC env.
 
-
-If you are able to, use an SSH public key you already have on your machine
-or create a new one via something like:
+If you have one, use your existing SSH public key. If you don't have a key pair,
+ you can create a new one via something like:
 
     # Create an SSH public/private key pair of type "RSA", with no passphrase
     # (you can add a passphrase if you like, drop the '-P ""').
-    ssh-keygen -t rsa -C "my-sdc-docker-key" -P "" -f ~/.ssh/sdc-docker.id_rsa -b 4096
+    ssh-keygen -t rsa -b 4096 -C "my-sdc-docker-key" -P "" -f ~/.ssh/sdc-docker.id_rsa
 
 This will create:
 
     ~/.ssh/sdc-docker.id_rsa      # your private key file
     ~/.ssh/sdc-docker.id_rsa.pub  # your public key file
 
-It is the *public* key that you want to upload via the "Import Public Key"
-button on [your account page](https://my.joyent.com/main/#!/account).
+It is the *public* key, the ending .pub, that you want to upload via the
+"Import Public Key" button on [your account page](https://my.joyent.com/main/#!/account).
 
 For more details on account setup and adding an SSH key, see [the Joyent
 Cloud Getting Started documentation](https://docs.joyent.com/jpc/getting-started-with-your-joyent-cloud-account).
 
-
-You can now move on to the next section. **Optionally** you can now setup the
-SDC command line tools (called node-smartdc). However, that is not required
-to run `docker`. See the [CloudAPI Getting Started
-documentation](https://apidocs.joyent.com/cloudapi/#getting-started).
+You can now set up the SDC command line tools (called node-smartdc). See the
+[CloudAPI Getting Started documentation](https://apidocs.joyent.com/cloudapi/#getting-started).
 
 (For those using an SDC Docker standup other than the Joyent beta service,
 see the [User Management](https://docs.joyent.com/sdc7/user-management) operator
