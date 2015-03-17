@@ -56,7 +56,7 @@ function warn
 function usage
 {
     echo "Usage:"
-    echo "  sdc-setup-docker [SDC-CLOUDAPI-OR-REGION] [ACCOUNT] [SSH-PRIVATE-KEY-PATH]"
+    echo "  sdc-docker-setup [SDC-CLOUDAPI-OR-REGION] [ACCOUNT] [SSH-PRIVATE-KEY-PATH]"
     echo ""
     echo "Options:"
     echo "  -h      Print this help and exit."
@@ -173,7 +173,14 @@ function cloudapiGetDockerService() {
         -H "Authorization: Signature keyId=\"/$account/keys/$sshKeyId\",algorithm=\"rsa-sha256\" ${signature}" \
         --url $cloudapiUrl/$account/services)
     status=$(echo "$response" | head -1 | awk '{print $2}')
-    if [[ "$status" != "200" ]]; then
+    if [[ "$status" == "403" ]]; then
+        # Forbidden (presumably from an invite-only DC).
+        # Assuming the error response is all on the last line:
+        #   {"code":"NotAuthorized","message":"Forbidden (This serv ..."}
+        local errmsg
+        errmsg=$(echo "$response" | tail -1 | sed -E 's/.*"message":"([^"]*)".*/\1/')
+        fatal "cannot setup for this datacenter: $errmsg"
+    elif [[ "$status" != "200" ]]; then
         warn "could not get Docker service endpoint from cloudapi (status=$status)"
         return
     fi
