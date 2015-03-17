@@ -14,7 +14,7 @@
 #
 # The basic steps are:
 #
-# 1. Select the data center (i.e. the Cloud API URL).
+# 1. Select the data center (i.e. the CloudAPI URL).
 # 2. Select the account (login) to use.
 # 3. Ensure the account has an SSH key to use.
 # 4. Generate a client certificate from your SSH key and save that where
@@ -138,7 +138,8 @@ function cloudapiVerifyAccount() {
             fi
             ;;
         200)
-            echo "Credentials are valid."
+            echo "CloudAPI access verified."
+            echo ''
             ;;
         *)
             if [[ "$status" == "400" && "$coal" == "true" ]]; then
@@ -242,7 +243,7 @@ cloudapiUrl=$1
 if [[ -z "$cloudapiUrl" ]]; then
     defaultCloudapiUrl=https://us-east-3b.api.joyent.com
     #echo "Enter the SDC Docker hostname. Press enter for the default."
-    printf "SDC Cloud API URL [$defaultCloudapiUrl]: "
+    printf "SDC CloudAPI URL [$defaultCloudapiUrl]: "
     read cloudapiUrl
     promptedUser=true
 fi
@@ -269,9 +270,9 @@ account=$2
 if [[ -z "$account" ]]; then
     defaultAccount=$SDC_ACCOUNT
     if [[ -z "$defaultAccount" ]]; then
-        printf "SDC Account: "
+        printf "SDC account: "
     else
-        printf "SDC Account [$defaultAccount]: "
+        printf "SDC account [$defaultAccount]: "
     fi
     read account
     promptedUser=true
@@ -295,7 +296,7 @@ if [[ -z "$sshPrivKeyPath" ]]; then
     if [[ -z "$defaultSSHPrivKeyPath" ]]; then
         printf "SSH private key path: "
     else
-        printf "SDC Account [$defaultSSHPrivKeyPath]: "
+        printf "SSH private key [$defaultSSHPrivKeyPath]: "
     fi
     read sshPrivKeyPath
     promptedUser=true
@@ -314,8 +315,8 @@ fi
 
 
 [[ $promptedUser == "true" ]] && echo ""
-echo "Setting up for SDC Docker using:"
-echo "    Cloud API:       $cloudapiUrl"
+echo "Setting up for Docker client for SDC using:"
+echo "    CloudAPI:        $cloudapiUrl"
 echo "    Account:         $account"
 echo "    SSH private key: $sshPrivKeyPath"
 echo ""
@@ -329,8 +330,9 @@ if [[ $optForce != "true" ]]; then
     sshKeyId=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')
     debug "sshKeyId: $sshKeyId"
 
-    echo "If you have a pass phrase on your key, the OS openssl command will"
+    echo "If you have a pass phrase on your key, the openssl command will"
     echo "prompt you for your pass phrase now and again later."
+    echo ''
     echo "Verifying CloudAPI access."
     cloudapiVerifyAccount "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId"
 fi
@@ -348,7 +350,7 @@ openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/
 # TODO: expiry?
 openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/null 2>/dev/null
 echo "Wrote certificate files to $certDir"
-
+echo ''
 
 echo "Get Docker host endpoint from cloudapi."
 dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
@@ -361,7 +363,7 @@ fi
 
 echo ""
 echo "* * *"
-echo "Successfully set up for SDC Docker. Set your environment as follows: "
+echo "Success. Set your environment as follows: "
 echo ""
 if [[ -n "$optSdcSetup" ]]; then
     echo "    export SDC_URL=$cloudapiUrl"
@@ -387,5 +389,5 @@ else
 fi
 echo "    alias docker=\"docker --tls\""
 echo ""
-echo "Then you should be able to run 'docker info' and you see your account"
+echo "Then you should be able to run 'docker info' and see your account"
 echo "name 'SDCAccount: ${account}' in the output."
