@@ -78,7 +78,9 @@ step. *Note: The minimum docker client version might be raised to 1.5.0.*
 
 Otherwise, please follow [Docker's own installation
 instructions](https://docs.docker.com/installation/#installation).
-Unfortunately, it's not Docker does not yet have a standalone client.
+Unfortunately, it's not Docker does not yet have a standalone client
+(i.e. you have to also install the Docker Engine, a.k.a. daemon, on
+your computer).
 
 
 ## 2. Set Up an SDC Account
@@ -128,14 +130,14 @@ Cloud Getting Started documentation](https://docs.joyent.com/jpc/getting-started
 You can now set up the SDC command line tools (called node-smartdc). See the
 [CloudAPI Getting Started documentation](https://apidocs.joyent.com/cloudapi/#getting-started).
 
-(For those using an SDC Docker standup other than the Joyent beta service,
+(For those using an SDC Docker standup other than the Joyent public cloud,
 see the [User Management](https://docs.joyent.com/sdc7/user-management) operator
 guide docs.)
 
 
-## 3. sdc-docker-setup
+## 3. sdc-docker-setup.sh
 
-Now that you have access to the SmartDataCenter, we will setup authentication
+Now that you have access to a SmartDataCenter, we will set up authentication
 to the Docker host. SDC Docker uses Docker's TLS authentication. This section
 will show you how to create a TLS client certificate from the SSH key you
 created in the previous section. Then we'll configure `docker` to send that
@@ -153,28 +155,33 @@ file "~/.ssh/sdc-docker.id_rsa" as in the previous section, then
 
 That should output something like the following:
 
-    Setting up for SDC Docker using:
-        Cloud API:       https://us-east-3b.api.joyent.com
+    Setting up Docker client for SDC using:
+        CloudAPI:        https://us-east-3b.api.joyent.com
         Account:         jill
-        SSH private key: /Users/localuser/.ssh/sdc-docker.id_rsa
-
-    Verifying credentials.
-    Credentials are valid.
+        Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
+    
+    If you have a pass phrase on your key, the openssl command will
+    prompt you for your pass phrase now and again later.
+    
+    Verifying CloudAPI access.
+    CloudAPI access verified.
+    
     Generating client certificate from SSH private key.
     writing RSA key
     Wrote certificate files to /Users/localuser/.sdc/docker/jill
+    
     Get Docker host endpoint from cloudapi.
-    Docker service endpoint is: tcp://<Docker API endpoint>
-
+    Docker service endpoint is: tcp://165.225.168.25:2376
+    
     * * *
-    Successfully setup for SDC Docker. Set your environment as follows:
-
+    Success. Set your environment as follows: 
+    
         export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-        export DOCKER_HOST=tcp://<Docker API endpoint>
+        export DOCKER_HOST=tcp://165.225.168.25:2376
         alias docker="docker --tls"
-
-    Then you should be able to run 'docker info' and you see your account
-    name 'SDCAccount' in the output.
+    
+    Then you should be able to run 'docker info' and see your account
+    name 'SDCAccount: jill' in the output.
 
 Run those `export` and `alias` commands in your shell and you should now
 be able to run `docker`:
@@ -183,7 +190,7 @@ be able to run `docker`:
     Containers: 0
     Images: 0
     Storage Driver: sdc
-    SDCAccount: jill
+     SDCAccount: jill
     Execution Driver: sdc-0.1.0
     Operating System: SmartDataCenter
     Name: us-east-3b

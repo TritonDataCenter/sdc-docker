@@ -315,7 +315,7 @@ fi
 
 
 [[ $promptedUser == "true" ]] && echo ""
-echo "Setting up for Docker client for SDC using:"
+echo "Setting up Docker client for SDC using:"
 echo "    CloudAPI:        $cloudapiUrl"
 echo "    Account:         $account"
 echo "    Key:             $sshPrivKeyPath"
