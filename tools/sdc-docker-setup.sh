@@ -318,7 +318,7 @@ fi
 echo "Setting up for Docker client for SDC using:"
 echo "    CloudAPI:        $cloudapiUrl"
 echo "    Account:         $account"
-echo "    SSH private key: $sshPrivKeyPath"
+echo "    Key:             $sshPrivKeyPath"
 echo ""
 
 
@@ -352,15 +352,17 @@ openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/
 echo "Wrote certificate files to $certDir"
 echo ''
 
-echo "Get Docker host endpoint from cloudapi."
-dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
-if [[ -n "$dockerService" ]]; then
-    echo "Docker service endpoint is: $dockerService"
-else
-    echo "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
+if [[ $optForce != "true" ]]; then
+    echo "Get Docker host endpoint from cloudapi."
+    dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
+    if [[ -n "$dockerService" ]]; then
+        echo "Docker service endpoint is: $dockerService"
+    else
+        echo "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
+    fi
 fi
 
-
+# TODO: success even if can't discover service endpoint for docker?
 echo ""
 echo "* * *"
 echo "Success. Set your environment as follows: "
@@ -384,7 +386,7 @@ echo "    export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
     echo "    export DOCKER_HOST=$dockerService"
 else
-    echo "    # See the product documentation for the Docker host."
+    echo "    # See the product docs for the value to use for DOCKER_HOST."
     echo "    export DOCKER_HOST='tcp://<HOST>:2376'"
 fi
 echo "    alias docker=\"docker --tls\""
