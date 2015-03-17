@@ -10,7 +10,7 @@
 #
 
 #
-# Setup your environment for `docker` to use a SmartDataCenter Docker.
+# Setup your environment for `docker` to use with SmartDataCenter.
 #
 # The basic steps are:
 #
@@ -61,13 +61,13 @@ function usage
     echo "Options:"
     echo "  -h      Print this help and exit."
     echo "  -V      Print version and exit."
-    echo "  -f      Force setup without checks (check that the given login and"
+    echo "  -f      Force set up without checks (check that the given login and"
     echo "          ssh key exist in the SDC cloudapi, check that the Docker"
     echo "          hostname responds, etc)."
     echo "  -k      Disable SSH certificate verification (e.g. if using CoaL"
     echo "          for development)."
-    echo "  -s      Include SDC_* environment variables for SDC CLI setup."
-    echo "          Otherwise, only the setup commands for 'docker' are emitted."
+    echo "  -s      Include SDC_* environment variables for setting up SDC CLI."
+    echo "          Otherwise, only the 'docker' env vars are emitted."
     # TODO: examples
 }
 
@@ -334,13 +334,15 @@ if [[ $optForce != "true" ]]; then
 fi
 
 
-echo "Generating client certificate from SSH private key."
+echo "Generating client certificate from SSH private key..."
 certDir="$CERT_BASE_DIR/$account"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
 
 mkdir -p $(dirname $keyPath)
+echo "If you have a pass phrase on your key, the OS openssl command will now"
+echo "prompt you for it and again later."
 openssl rsa -in $sshPrivKeyPath -outform pem > $keyPath
 openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
 # TODO: expiry?
@@ -359,7 +361,7 @@ fi
 
 echo ""
 echo "* * *"
-echo "Successfully setup for SDC Docker. Set your environment as follows: "
+echo "Successfully set up for SDC Docker. Set your environment as follows: "
 echo ""
 if [[ -n "$optSdcSetup" ]]; then
     echo "    export SDC_URL=$cloudapiUrl"
