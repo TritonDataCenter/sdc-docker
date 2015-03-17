@@ -10,12 +10,9 @@
     "packagePrefix": "{{#PACKAGE_PREFIX}}{{{PACKAGE_PREFIX}}}{{/PACKAGE_PREFIX}}{{^PACKAGE_PREFIX}}sdc_{{/PACKAGE_PREFIX}}",
     "overlay": {
 {{#fabric_cfg}}
-        "enabled": true,
-        "externalPool": "{{{sdc_nat_pool}}}"
+        "externalPool": "{{{sdc_nat_pool}}}",
 {{/fabric_cfg}}
-{{^fabric_cfg}}
-        "enabled": false
-{{/fabric_cfg}}
+        "enabled": {{#USE_FABRICS}}true{{/USE_FABRICS}}{{^USE_FABRICS}}false{{/USE_FABRICS}}
     },
     "moray": {
         "logLevel": "info",
