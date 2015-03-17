@@ -62,7 +62,7 @@ function usage
     echo "  -h      Print this help and exit."
     echo "  -V      Print version and exit."
     echo "  -f      Force set up without checks (check that the given login and"
-    echo "          ssh key exist in the SDC cloudapi, check that the Docker"
+    echo "          ssh key exist in the SDC CloudAPI, check that the Docker"
     echo "          hostname responds, etc)."
     echo "  -k      Disable SSH certificate verification (e.g. if using CoaL"
     echo "          for development)."
@@ -142,9 +142,9 @@ function cloudapiVerifyAccount() {
             ;;
         *)
             if [[ "$status" == "400" && "$coal" == "true" ]]; then
-                fatal "'Bad Request' from cloudapi. Possibly clock skew. Otherwise, check the cloudapi log.\n\n$response"
+                fatal "'Bad Request' from CloudAPI. Possibly clock skew. Otherwise, check the CloudAPI log.\n\n$response"
             fi
-            fatal "Unexpected cloudapi response:\n\n$response"
+            fatal "unexpected CloudAPI response:\n\n$response"
             ;;
     esac
 }
@@ -181,11 +181,11 @@ function cloudapiGetDockerService() {
         errmsg=$(echo "$response" | tail -1 | sed -E 's/.*"message":"([^"]*)".*/\1/')
         fatal "cannot setup for this datacenter: $errmsg"
     elif [[ "$status" != "200" ]]; then
-        warn "could not get Docker service endpoint from cloudapi (status=$status)"
+        warn "could not get Docker service endpoint from CloudAPI (status=$status)"
         return
     fi
     if [[ -z "$(echo "$response" | (grep '"docker"' || true))" ]]; then
-        warn "could not get Docker service endpoint from cloudapi (no docker service listed)"
+        warn "could not get Docker service endpoint from CloudAPI (no docker service listed)"
         return
     fi
     dockerService=$(echo "$response" | tail -1 | sed -E 's/.*"docker":"([^"]*)".*/\1/')
@@ -329,20 +329,20 @@ if [[ $optForce != "true" ]]; then
     sshKeyId=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')
     debug "sshKeyId: $sshKeyId"
 
-    echo "Verifying credentials."
+    echo "If you have a pass phrase on your key, the OS openssl command will"
+    echo "prompt you for your pass phrase now and again later."
+    echo "Verifying CloudAPI access."
     cloudapiVerifyAccount "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId"
 fi
 
 
-echo "Generating client certificate from SSH private key..."
+echo "Generating client certificate from SSH private key."
 certDir="$CERT_BASE_DIR/$account"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
 
 mkdir -p $(dirname $keyPath)
-echo "If you have a pass phrase on your key, the OS openssl command will now"
-echo "prompt you for it and again later."
 openssl rsa -in $sshPrivKeyPath -outform pem > $keyPath
 openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
 # TODO: expiry?
@@ -355,7 +355,7 @@ dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyP
 if [[ -n "$dockerService" ]]; then
     echo "Docker service endpoint is: $dockerService"
 else
-    echo "Could not discover service endpoint for DOCKER_HOST from cloudapi"
+    echo "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
 fi
 
 
@@ -388,4 +388,4 @@ fi
 echo "    alias docker=\"docker --tls\""
 echo ""
 echo "Then you should be able to run 'docker info' and you see your account"
-echo "name 'SDCAccount' in the output."
+echo "name 'SDCAccount: ${account}' in the output."
