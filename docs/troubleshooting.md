@@ -1,8 +1,8 @@
-# SDC Docker Troubleshooting Guide
+# Docker on SmartDataCenter Troubleshooting Guide
 
 ## "Couldn't read ca cert ... ca.pem: no such file or directory"
 
-Your environment is setup to speak to a SDC Docker
+Your environment is setup to speak to a Docker on SDC
 
     $ echo $DOCKER_CERT_PATH
     /Users/trentm/.sdc/docker/admin
@@ -32,3 +32,35 @@ Unset it and try again:
     Execution Driver: sdc-0.1.0
     Operating System: SmartDataCenter
     Name: coal
+
+## FATA[0000] Get http:///var/run/docker.sock/v1.17/info: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?
+
+from `docker info`.
+
+After running sdc-docker-setup.sh, did you run the `export` and `alias` commands in your shell?
+
+Try:
+
+    $ echo $DOCKER_CERT_PATH
+
+    $ echo $DOCKER_HOST
+
+    $ alias docker
+    -bash: alias: docker: not found
+
+Running the exports and alias for your SDC and account:
+
+    $ export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
+    $ export DOCKER_HOST=tcp://165.225.168.25:2376
+    $ alias docker="docker --tls"
+
+Result:
+
+    $ docker info
+    Containers: 0
+    Images: 0
+    Storage Driver: sdc
+     SDCAccount: jill
+    Execution Driver: sdc-0.1.0
+    Operating System: SmartDataCenter
+    Name: us-east-3b
