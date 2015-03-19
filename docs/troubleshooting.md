@@ -33,13 +33,18 @@ Unset it and try again:
     Operating System: SmartDataCenter
     Name: coal
 
-## FATA[0000] Get http:///var/run/docker.sock/v1.17/info: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS?
+## Are you trying to connect to a TLS-enabled daemon without TLS?
 
-from `docker info`.
+You get a "TLS-enabled daemon without TLS" error:
 
-After running sdc-docker-setup.sh, did you run the `export` and `alias` commands in your shell?
+    $ docker info
+    FATA[0000] Get http:///var/run/docker.sock/v1.17/info: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS
 
-Try:
+
+One possibility is that after running sdc-docker-setup.sh, did you run
+the `export` and `alias` commands in your shell.
+
+Confirm that the env settings are missing:
 
     $ echo $DOCKER_CERT_PATH
 
@@ -48,7 +53,7 @@ Try:
     $ alias docker
     -bash: alias: docker: not found
 
-Running the exports and alias for your SDC and account:
+Run the exports and alias for your SDC and account, example:
 
     $ export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
     $ export DOCKER_HOST=tcp://165.225.168.25:2376
