@@ -25,16 +25,16 @@ var MAX_LWPS = 4000;
 
 // Table of packages to create
 var package_data = [
-    {name: "t4-standard-128M", max_physical_memory: 128,   quota: 3,    shares: 8},
-    {name: "t4-standard-256M", max_physical_memory: 256,   quota: 6,    shares: 16},
-    {name: "t4-standard-512M", max_physical_memory: 512,   quota: 12,   shares: 32},
-    {name: "t4-standard-1G",   max_physical_memory: 1024,  quota: 25,   shares: 64, default: true},
-    {name: "t4-standard-2G",   max_physical_memory: 2048,  quota: 50,   shares: 128},
-    {name: "t4-standard-4G",   max_physical_memory: 4096,  quota: 100,  shares: 256},
-    {name: "t4-standard-8G",   max_physical_memory: 8192,  quota: 200,  shares: 512},
-    {name: "t4-standard-16G",  max_physical_memory: 16384, quota: 400,  shares: 1024},
-    {name: "t4-standard-32G",  max_physical_memory: 32768, quota: 800,  shares: 2048},
-    {name: "t4-standard-64G",  max_physical_memory: 65536, quota: 1600, shares: 4096}
+    {name: "t4-standard-128M", max_physical_memory: 128,   quota: 3072,    shares: 8},
+    {name: "t4-standard-256M", max_physical_memory: 256,   quota: 6144,    shares: 16},
+    {name: "t4-standard-512M", max_physical_memory: 512,   quota: 12288,   shares: 32},
+    {name: "t4-standard-1G",   max_physical_memory: 1024,  quota: 25600,   shares: 64, default: true},
+    {name: "t4-standard-2G",   max_physical_memory: 2048,  quota: 51200,   shares: 128},
+    {name: "t4-standard-4G",   max_physical_memory: 4096,  quota: 102400,  shares: 256},
+    {name: "t4-standard-8G",   max_physical_memory: 8192,  quota: 204800,  shares: 512},
+    {name: "t4-standard-16G",  max_physical_memory: 16384, quota: 409600,  shares: 1024},
+    {name: "t4-standard-32G",  max_physical_memory: 32768, quota: 819200,  shares: 2048},
+    {name: "t4-standard-64G",  max_physical_memory: 65536, quota: 1638400, shares: 4096}
 ];
 
 
