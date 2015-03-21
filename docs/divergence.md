@@ -10,9 +10,10 @@ docker.
 
 #### zsched
 
-In all containers you will see a `zsched` process in addition to your other
+In containers you may see a `zsched` process in addition to your other
 processes. It owns the kernel threads that do work on behalf of your zone.
-The PID of this process should always show up as 0.
+The PID of this process should always show up as 0, though some versions of
+`ps` on Linux filter this out.
 
 #### ipmgmtd
 
