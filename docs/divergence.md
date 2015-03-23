@@ -295,7 +295,7 @@ No known divergence.
 
 ### `docker rename`
 
-This command is currently unimplemented (DOCKER-157)
+No known divergence.
 
 ### `docker rm`
 
