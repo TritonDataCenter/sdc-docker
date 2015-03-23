@@ -84,6 +84,7 @@ With sdc-docker, host volumes work differently than on Docker Inc's docker.
 
  * there is a limit of 8 'data' volumes per container
  * there is a limit of 1 'host' volume per container
+ * there is a limit of 1 --volumes-from argument per container
  * 'host' volumes must be http[s] URLs, not paths in the docker host
  * the 'host' volume URL's must each refer to a single file
  * all 'host' volumes are read-only
