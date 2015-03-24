@@ -63,3 +63,30 @@ test('humanDuration', function (t) {
 
     t.end();
 });
+
+
+test('boolFromQueryParam', function (t) {
+    var boolFromQueryParam = common.boolFromQueryParam;
+
+    t.equal(boolFromQueryParam(''), false);
+    t.equal(boolFromQueryParam(' '), false);
+    t.equal(boolFromQueryParam('0'), false);
+    t.equal(boolFromQueryParam('no'), false);
+    t.equal(boolFromQueryParam('false'), false);
+    t.equal(boolFromQueryParam('none'), false);
+    t.equal(boolFromQueryParam('No'), false);
+    t.equal(boolFromQueryParam('NO'), false);
+    t.equal(boolFromQueryParam('nO '), false);
+    t.equal(boolFromQueryParam('\t FaLse'), false);
+    t.equal(boolFromQueryParam('None'), false);
+
+    t.equal(boolFromQueryParam('true'), true);
+    t.equal(boolFromQueryParam('True'), true);
+    t.equal(boolFromQueryParam('1'), true);
+    t.equal(boolFromQueryParam('yes'), true);
+    t.equal(boolFromQueryParam('nope'), true);
+    t.equal(boolFromQueryParam('nein'), true);
+    t.equal(boolFromQueryParam('nyet'), true);
+
+    t.end();
+});
