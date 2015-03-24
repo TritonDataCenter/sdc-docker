@@ -105,7 +105,7 @@ Let's create your first docker container:
     $ docker inspect --format '{{ .NetworkSettings.IPAddress }}' c6c0c650aa41
     10.88.88.15
 
-    # The see if nginx is serving:
+    # Then see if nginx is serving:
     $ curl -i http://10.88.88.15
     HTTP/1.1 200 OK
     Server: nginx/1.7.9
