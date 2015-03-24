@@ -25,11 +25,11 @@ For users of Joyent SDC Docker private beta in Joyent's us-east-3b datacenter
 
 # Current State
 
-Disclaimer: This is still very much alpha. Use at your own risk!
-
 Many commands are currently at least partially implemented. See
 [docs/divergence.md](./docs/divergence.md) for details on where sdc-docker
-diverges from Docker Inc's docker.
+diverges from Docker Inc's docker.  While Joyent has deployed this into early
+access, this software is still under active development and should be used in
+production with care.
 
 
 # Installation
