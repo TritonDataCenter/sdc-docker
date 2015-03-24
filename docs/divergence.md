@@ -36,7 +36,7 @@ problems with the way the initial process has been setup.
 When a container exits the exit status as returned by sdc-docker will currently
 be different from that which would be returned by Docker Inc's docker. This is
 due to differences in the way we handle processes within zones. This is
-currently considered to be a deficiency and should be improved by DOCKER-41.
+currently considered to be a deficiency and should be improved by [DOCKER-41](http://smartos.org/bugview/DOCKER-41).
 
 ### Restart Policies
 
@@ -127,7 +127,7 @@ tools and specifically the 'sdc-listpackages' tool.
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
 not match exactly with the messages you could get from a Docker Inc docker
-daemon. DOCKER-79 was created to try to address this.
+daemon. [DOCKER-79](http://smartos.org/bugview/DOCKER-79) was created to try to address this.
 
 ### `docker attach`
 
@@ -135,11 +135,11 @@ No intentional divergence. Any divergence can be considered a bug.
 
 ### `docker build`
 
-This command is currently unimplemented (DOCKER-74)
+This command is currently unimplemented ([DOCKER-74](http://smartos.org/bugview/DOCKER-74))
 
 ### `docker commit`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker cp`
 
@@ -156,28 +156,28 @@ implemented. Differences include:
  * --device which is unsupported (mounts host device into container)
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
-     * DOCKER-76
+     * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
-     * DOCKER-75
+     * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
- * --read-only which is unimplemented (DOCKER-158)
+ * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
  * --restart which is unimplimented (restart policies)
-     * OS-3546
+     * [OS-3546](http://smartos.org/bugview/OS-3546)
  * --security-opt which is unsupported (Security Options)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
 
 ### `docker diff`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker events`
 
-This command is currently unimplemented (DOCKER-78)
+This command is currently unimplemented ([DOCKER-78](http://smartos.org/bugview/DOCKER-78))
 
 ### `docker exec`
 
@@ -185,7 +185,7 @@ No known divergence.
 
 ### `docker export`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker history`
 
@@ -197,7 +197,7 @@ No known divergence.
 
 ### `docker import`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker info`
 
@@ -255,15 +255,15 @@ include:
 
 ### `docker load`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker login`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker logout`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker logs`
 
@@ -271,11 +271,11 @@ No known divergence.
 
 ### `docker port`
 
-This command is currently unimplemented (DOCKER-76)
+This command is currently unimplemented ([DOCKER-76](http://smartos.org/bugview/DOCKER-76))
 
 ### `docker pause`
 
-This command is currently unimplemented (OS-3455)
+This command is currently unimplemented ([OS-3455](http://smartos.org/bugview/OS-3455))
 
 ### `docker ps`
 
@@ -287,7 +287,7 @@ No known divergence.
 
 ### `docker push`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker restart`
 
@@ -308,7 +308,7 @@ This works the same as upstream except:
 
 This works but does not support:
 
- * --force (DOCKER-182)
+ * --force ([DOCKER-182](http://smartos.org/bugview/DOCKER-182))
  * --no-prune
 
 ### `docker run`
@@ -322,26 +322,26 @@ implemented. Differences include:
  * --device which is unsupported (mounts host device into container)
  * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
-     * DOCKER-76
+     * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
-     * DOCKER-75
+     * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
- * --read-only which is unimplemented (DOCKER-158)
+ * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
  * --restart which is unimplimented (restart policies)
-     * OS-3546
+     * [OS-3546](http://smartos.org/bugview/OS-3546)
  * --security-opt which is unsupported (Security Options)
  * --sig-proxy which is unimplemented
-     * DOCKER-82
+     * [DOCKER-82](http://smartos.org/bugview/DOCKER-82)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
 
 ### `docker save`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker search`
 
@@ -349,13 +349,13 @@ No known divergence.
 
 ### `docker stats`
 
-This command is currently unimplemented (DOCKER-156)
+This command is currently unimplemented ([DOCKER-156](http://smartos.org/bugview/DOCKER-156))
 
 ### `docker start`
 
 Should mostly match upstream except:
 
- * -a is currently broken (DOCKER-138)
+ * -a is currently broken ([DOCKER-138](http://smartos.org/bugview/DOCKER-138))
 
 ### `docker stop`
 
@@ -363,7 +363,7 @@ No known divergence.
 
 ### `docker tag`
 
-This command is currently unimplemented (DOCKER-73)
+This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/DOCKER-73))
 
 ### `docker top`
 
@@ -375,7 +375,7 @@ upstream integration of some solution to the issues described in:
 
 ### `docker unpause`
 
-This command is currently unimplemented (OS-3456)
+This command is currently unimplemented ([OS-3456](http://smartos.org/bugview/OS-3456))
 
 ### `docker version`
 
