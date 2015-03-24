@@ -165,8 +165,6 @@ implemented. Differences include:
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
- * --restart which is unimplimented (restart policies)
-     * [OS-3546](http://smartos.org/bugview/OS-3546)
  * --security-opt which is unsupported (Security Options)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
@@ -331,11 +329,7 @@ implemented. Differences include:
  * --publish-all and --publish which are unsupported (expose ports to host)
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
- * --restart which is unimplimented (restart policies)
-     * [OS-3546](http://smartos.org/bugview/OS-3546)
  * --security-opt which is unsupported (Security Options)
- * --sig-proxy which is unimplemented
-     * [DOCKER-82](http://smartos.org/bugview/DOCKER-82)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
 
@@ -353,9 +347,7 @@ This command is currently unimplemented ([DOCKER-156](http://smartos.org/bugview
 
 ### `docker start`
 
-Should mostly match upstream except:
-
- * -a is currently broken ([DOCKER-138](http://smartos.org/bugview/DOCKER-138))
+No known divergence.
 
 ### `docker stop`
 
