@@ -68,6 +68,8 @@ test('humanDuration', function (t) {
 test('boolFromQueryParam', function (t) {
     var boolFromQueryParam = common.boolFromQueryParam;
 
+    t.equal(boolFromQueryParam(undefined), false);
+
     t.equal(boolFromQueryParam(''), false);
     t.equal(boolFromQueryParam(' '), false);
     t.equal(boolFromQueryParam('0'), false);
