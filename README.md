@@ -10,15 +10,15 @@
 
 # sdc-docker
 
-A Docker Engine for SmartDataCenter, where the whole DC is exposed as a single
-docker host. The Docker remote API is served from a 'docker' core SDC zone
-(built from this repo).
+A Docker Engine for SmartDataCenter, where the data center is exposed
+as a single Docker host. The Docker remote API is served from a "docker" core
+SDC zone built from this repo.
 
 
 # User Guide
 
-For users of Joyent SDC Docker private beta in Joyent's us-east-3b datacenter
-(or those using a SDC Docker standup, but not administering it) please see the
+For users of the beta service in Joyent's public cloud, or those using
+an SDC Docker stand up, but not administering it, please see the
 [User Guide](./docs/index.md).  The rest of this README is targetted at
 *development* of sdc-docker.
 
@@ -42,17 +42,17 @@ For example, you could do the same on Joyent Engineering's internal
 
 Installing sdc-docker means getting a running 'docker' SDC core zone.
 
-    ssh root@10.99.99.7                     # ssh to the CoaL GZ
+    ssh root@10.99.99.7                                 # ssh to the CoaL GZ
     sdcadm self-update
     sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
     sdcadm post-setup dev-headnode-prov
     sdcadm post-setup cloudapi
     sdcadm experimental update-docker
 
-Then setup `DOCKER_*` envvars on your Mac (or whever you have a `docker`
-client). **The backticks are required to modify your shell environment.**
+Then setup `DOCKER_*` env vars on your Mac or wherever you have a `docker`
+client. **The backticks are required to modify your shell environment.**
 
-    cd .../sdc-docker     # your clone of this repo
+    cd sdc-docker  # your clone of this repo
     `./tools/docker-client-env root@10.99.99.7`
 
 Now you should be able to run the docker client:
@@ -105,7 +105,7 @@ Let's create your first docker container:
     $ docker inspect --format '{{ .NetworkSettings.IPAddress }}' c6c0c650aa41
     10.88.88.15
 
-    # The see if nginx is serving:
+    # Then see if nginx is serving:
     $ curl -i http://10.88.88.15
     HTTP/1.1 200 OK
     Server: nginx/1.7.9
@@ -311,7 +311,7 @@ e.g. with COAL that would be:
    SMF service.
 
 
-For testing I tend to have a shell open tailing the docker
+For testing I tend to have a shell open tailing the docker service's log file:
 
     ssh coal
     sdc-login docker
