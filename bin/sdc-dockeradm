@@ -9,18 +9,30 @@
 # Copyright (c) 2015, Joyent, Inc.
 #
 
-TOP=$(unset CDPATH; cd $(dirname $0)/../; pwd)
-SVC=docker
-LOGFILE=$(svcs -L ${SVC})
 LOGLINES=50
+PWD=$(unset CDPATH; cd $(dirname $0); pwd)
+TOP=$(unset CDPATH; cd $PWD/..; pwd)
 BUNYAN=${TOP}/node_modules/.bin/bunyan
-
+SVC_FILE=$PWD/.service
 
 function fatal()
 {
     echo "Error: $*" >&2
     exit 1
 }
+
+
+
+# --- Load service variable and any other variables that depend on it
+
+
+
+[[ ! -e $SVC_FILE ]] && fatal "Service file \"$SVC_FILE\" does not exist"
+source $SVC_FILE
+[[ -z $SVC ]] && fatal "SVC variable not exported in service file \"$SVC_FILE\""
+
+LOGFILE=$(svcs -L ${SVC})
+
 
 
 function restart_svc()
@@ -52,13 +64,15 @@ cat - >&2 <<USAGE
 Administer ${SVC}
 
 Usage:
-        $me <subcommand>
+    $me <subcommand>
 
 Subcommands:
-        lastlog     View the last ${LOGLINES} bunyan-formatted log lines
-        log         View the bunyan-formated log
-        restart     Restart the service
-        tail        Tail the log and pipe through bunyan
+    grep        Grep the current and historical service logs for a string
+    lastlog     View the last ${LOGLINES} bunyan-formatted log lines
+    log         View the bunyan-formated log
+    restart     Restart the service
+    stop        Stop the service
+    tail        Tail the log and pipe through bunyan
 USAGE
     exit 2
 }
@@ -82,8 +96,15 @@ case "$CMD" in
         # XXX: allow overriding LOGLINES with an opt
         exec tail -n ${LOGLINES} ${LOGFILE} | ${BUNYAN}
         ;;
+    "grep")
+        [[ -z $2 ]] && usage "Must specify string to search for!"
+        grep -h $2 ${LOGFILE} /var/log/sdc/upload/*${SVC}* | ${BUNYAN}
+        ;;
     "restart")
         restart_svc
+        ;;
+    "stop")
+        svcadm disable ${SVC}
         ;;
     "tail")
         exec tail -f ${LOGFILE} | ${BUNYAN}
