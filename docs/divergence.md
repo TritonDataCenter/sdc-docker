@@ -123,6 +123,12 @@ if there is no package available with this value, it will round up to the
 nearest package. The package parameters can be found using the node-smartdc
 tools and specifically the 'sdc-listpackages' tool.
 
+### Performance of container management functions
+
+Actions performed against sdc-docker are slower, and sometimes _much_ slower
+than those same actions performed against a local docker. This is something we
+are working on, and intend to keep improving over time.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
