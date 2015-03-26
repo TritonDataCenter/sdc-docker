@@ -129,6 +129,28 @@ Actions performed against sdc-docker are slower, and sometimes _much_ slower
 than those same actions performed against a local docker. This is something we
 are working on, and intend to keep improving over time.
 
+### Networking
+
+If fabric networking is enabled for sdc-docker, each docker container is
+provisioned with a private nic on the user's default fabric. This allows
+only other docker containers provisioned on that fabric to connect connect to
+each other. The container is able to reach the external internet via [Network
+Address Translation](http://en.wikipedia.org/wiki/Network_address_translation).
+Each default fabric network is private to a user - one user's containers cannot
+connect to another's fabric IP addresses, and vice-versa.
+
+If you specify the -p or -P options to `docker run` or `docker create`, the
+container will receive an external IP address that is reachable over the public
+internet.
+
+If fabric networking is not enabled, all docker containers are provisioned with
+a nic on the 'external' network by default.
+
+Currently, the `--link` option to `docker create` and `docker run` is
+unimplemented (see [DOCKER-75](http://smartos.org/bugview/DOCKER-75) for
+updates) - however, containers are still able to connect to each other on the
+networks mentioned above.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
