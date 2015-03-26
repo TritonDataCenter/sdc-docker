@@ -151,6 +151,11 @@ unimplemented (see [DOCKER-75](http://smartos.org/bugview/DOCKER-75) for
 updates) - however, containers are still able to connect to each other on the
 networks mentioned above.
 
+### CTRL-C
+
+There is currently a bug ([DOCKER-178](http://smartos.org/bugview/DOCKER-178)) that
+prevents CTRL-C from working correctly in some cases for `docker attach`.
+
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
