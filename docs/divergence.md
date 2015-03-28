@@ -190,7 +190,7 @@ implemented. Differences include:
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
- * --publish-all and --publish which are unsupported (expose ports to host)
+ * --publish-all and --publish: see 'Networking' section above
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
  * --security-opt which is unsupported (Security Options)
@@ -219,7 +219,7 @@ No known divergence.
 
 ### `docker images`
 
- * -a is not currently implemented
+No known divergence.
 
 ### `docker import`
 
@@ -235,10 +235,13 @@ This command is currently unimplemented ([DOCKER-73](http://smartos.org/bugview/
 
 ### `docker inspect`
 
+For the most part the `docker inspect` output should match what you'd see on
+Docker Inc's docker but some fields eg. AppArmorProfile, CapAdd, CapDrop,
+Cpuset, IpcMode, LxcConf, SecurityOpt don't make sense in sdc-docker and are
+never populated.
+
 (See also note about exit status differences in 'Differences in Container
 Behavior' section)
-
-Many values in the output here are still bogus.
 
 ### `docker kill`
 
@@ -354,7 +357,7 @@ implemented. Differences include:
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
- * --publish-all and --publish which are unsupported (expose ports to host)
+ * --publish-all and --publish: see 'Networking' section above
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
  * --security-opt which is unsupported (Security Options)
