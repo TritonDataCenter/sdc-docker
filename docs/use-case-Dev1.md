@@ -78,8 +78,7 @@ $ docker exec qa-redis-1  /usr/local/bin/redis-cli info
 
 #####To ensure Redis can be accessed outside of the Redis container Donna "curls" to the port she expects Redis is listening to
 ```
-$ curl `docker inspect  --format '{{ .NetworkSettings.IPAddress }}' 
- qa-redis-1`:6379`
+$ curl `docker inspect  --format '{{ .NetworkSettings.IPAddress }}' qa-redis-1`:6379
 ```
 
 ######The expected result is not formatted well, but it is clear that the port is responding 
