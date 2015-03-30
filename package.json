@@ -10,6 +10,7 @@
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#2363f8c",
     "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#6fa438d",
     "libuuid": "0.1.3",
+    "lru-cache": "2.5.0",
     "lstream": "0.0.4",
     "moray": "git+ssh://git@github.com:joyent/node-moray.git#b4730b6",
     "once": "1.3.1",
