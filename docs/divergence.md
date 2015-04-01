@@ -123,6 +123,15 @@ if there is no package available with this value, it will round up to the
 nearest package. The package parameters can be found using the node-smartdc
 tools and specifically the 'sdc-listpackages' tool.
 
+The package will be used to determine such things as:
+
+ * cpu shares
+ * DRAM (memory)
+ * disk quota
+ * I/O priority
+
+appropriate for the package and system your container is provisioned to.
+
 ### Performance of container management functions
 
 Actions performed against sdc-docker are slower, and sometimes _much_ slower
@@ -180,6 +189,7 @@ implemented. Differences include:
 
  * --add-host which is unsupported (host-to-IP mapping)
  * --cap-add and --cap-drop which are unsupported (Linux capabilities)
+ * --cpu-shares which is unsupported: see 'SDC packages' section above
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
  * --dns and --dns-search which are unimplemented (control DNS in the container)
@@ -346,6 +356,7 @@ This command mostly works however not all features are currently fully
 implemented. Differences include:
 
  * --add-host which is unsupported (host-to-IP mapping)
+ * --cpu-shares which is unsupported: see 'SDC packages' section above
  * --cap-add and --cap-drop which are unsupported (Linux capabilities)
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
