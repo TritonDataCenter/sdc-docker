@@ -21,8 +21,8 @@
     "sprintf": "~0.1.4",
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#a7c674b76696fe7ab0fff1e2486f20d3af6a0d1a",
     "trace-event": "1.2.0",
-    "vasync": "1.6.1",
-    "verror": "1.4.0",
+    "vasync": "1.6.3",
+    "verror": "1.6.0",
     "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b",
     "keyapi": "git+ssh://git@github.com:joyent/keyapi.git#0a49656"
   },
