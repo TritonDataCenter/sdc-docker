@@ -4,6 +4,11 @@ This document exists to provide a comprehensive list of known differences
 you may experience when interacting with sdc-docker instead of Docker Inc's
 docker.
 
+## Client Versions
+
+At this point only docker clients 1.4.1+ can be expected to work against
+sdc-docker.
+
 ## Differences in Container Behavior
 
 ### Extra Processes
@@ -125,7 +130,7 @@ tools and specifically the 'sdc-listpackages' tool.
 
 The package will be used to determine such things as:
 
- * cpu shares
+ * CPU shares
  * DRAM (memory)
  * disk quota
  * I/O priority
