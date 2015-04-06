@@ -53,6 +53,29 @@ function warn
     echo "$NAME: warn: $*" >&2
 }
 
+function info
+{
+    if [[ $optQuiet == "true" ]]; then
+        return
+    fi
+    echo "$*" >&2
+}
+
+function envInfo
+{
+    if [[ -n "$envFile" ]]; then
+	echo "$*" >>$envFile
+    fi
+    echo "    $*"
+}
+
+function debug
+{
+    #echo "$NAME: debug: $@" >&2
+    true
+}
+
+
 function usage
 {
     echo "Usage:"
@@ -61,6 +84,7 @@ function usage
     echo "Options:"
     echo "  -h      Print this help and exit."
     echo "  -V      Print version and exit."
+    echo "  -q      Quiet output. Only print out environment setup commands."
     echo "  -f      Force set up without checks (check that the given login and"
     echo "          ssh key exist in the SDC CloudAPI, check that the Docker"
     echo "          hostname responds, etc)."
@@ -69,12 +93,6 @@ function usage
     echo "  -s      Include SDC_* environment variables for setting up SDC CLI."
     echo "          Otherwise, only the 'docker' env vars are emitted."
     # TODO: examples
-}
-
-function debug
-{
-    #echo "$NAME: debug: $@" >&2
-    true
 }
 
 function dockerInfo
@@ -138,8 +156,8 @@ function cloudapiVerifyAccount() {
             fi
             ;;
         200)
-            echo "CloudAPI access verified."
-            echo ''
+            info "CloudAPI access verified."
+            info ''
             ;;
         *)
             if [[ "$status" == "400" && "$coal" == "true" ]]; then
@@ -199,10 +217,11 @@ function cloudapiGetDockerService() {
 
 # ---- mainline
 
+optQuiet=
 optForce=
 optInsecure=
 optSdcSetup=
-while getopts "hVfks" opt; do
+while getopts "hVqfks" opt; do
     case "$opt" in
         h)
             usage
@@ -211,6 +230,9 @@ while getopts "hVfks" opt; do
         V)
             echo "$(basename $0) $VERSION"
             exit 0
+            ;;
+        q)
+            optQuiet=true
             ;;
         f)
             optForce=true
@@ -242,7 +264,7 @@ promptedUser=
 cloudapiUrl=$1
 if [[ -z "$cloudapiUrl" ]]; then
     defaultCloudapiUrl=https://us-east-3b.api.joyent.com
-    #echo "Enter the SDC Docker hostname. Press enter for the default."
+    #info "Enter the SDC Docker hostname. Press enter for the default."
     printf "SDC CloudAPI URL [$defaultCloudapiUrl]: "
     read cloudapiUrl
     promptedUser=true
@@ -314,12 +336,12 @@ if [[ -z "$sshPrivKeyPath" ]]; then
 fi
 
 
-[[ $promptedUser == "true" ]] && echo ""
-echo "Setting up Docker client for SDC using:"
-echo "    CloudAPI:        $cloudapiUrl"
-echo "    Account:         $account"
-echo "    Key:             $sshPrivKeyPath"
-echo ""
+[[ $promptedUser == "true" ]] && info ""
+info "Setting up Docker client for SDC using:"
+info "    CloudAPI:        $cloudapiUrl"
+info "    Account:         $account"
+info "    Key:             $sshPrivKeyPath"
+info ""
 
 
 sshPubKeyPath=$sshPrivKeyPath.pub
@@ -330,66 +352,67 @@ if [[ $optForce != "true" ]]; then
     sshKeyId=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')
     debug "sshKeyId: $sshKeyId"
 
-    echo "If you have a pass phrase on your key, the openssl command will"
-    echo "prompt you for your pass phrase now and again later."
-    echo ''
-    echo "Verifying CloudAPI access."
+    info "If you have a pass phrase on your key, the openssl command will"
+    info "prompt you for your pass phrase now and again later."
+    info ''
+    info "Verifying CloudAPI access."
     cloudapiVerifyAccount "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId"
 fi
 
 
-echo "Generating client certificate from SSH private key."
+info "Generating client certificate from SSH private key."
 certDir="$CERT_BASE_DIR/$account"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
 
 mkdir -p $(dirname $keyPath)
-openssl rsa -in $sshPrivKeyPath -outform pem > $keyPath
+openssl rsa -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
 openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
 # TODO: expiry?
 openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/null 2>/dev/null
-echo "Wrote certificate files to $certDir"
-echo ''
+info "Wrote certificate files to $certDir"
+info ''
 
 if [[ $optForce != "true" ]]; then
-    echo "Get Docker host endpoint from cloudapi."
+    info "Get Docker host endpoint from cloudapi."
     dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
     if [[ -n "$dockerService" ]]; then
-        echo "Docker service endpoint is: $dockerService"
+        info "Docker service endpoint is: $dockerService"
     else
-        echo "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
+        info "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
     fi
 fi
 
 # TODO: success even if can't discover service endpoint for docker?
-echo ""
-echo "* * *"
-echo "Success. Set your environment as follows: "
-echo ""
+info ""
+info "* * *"
+info "Success. Set your environment as follows: "
+info ""
+envFile=$certDir/env.sh
+rm -f $envFile
+touch $envFile
 if [[ -n "$optSdcSetup" ]]; then
-    echo "    export SDC_URL=$cloudapiUrl"
-    echo "    export SDC_ACCOUNT=$account"
+    envInfo "export SDC_URL=$cloudapiUrl"
+    envInfo "export SDC_ACCOUNT=$account"
     if [[ -f $sshPubKeyPath ]]; then
-        echo "    export SDC_KEY_ID=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')"
+        envInfo "export SDC_KEY_ID=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')"
     else
-        echo "    # Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
-        echo "    export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
+        envInfo "# Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
+        envInfo "export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
     fi
-    if [[ "$coal" == "true" ]]; then
-        echo "    export SDC_TESTING=1"
-    else
-        echo "    #export SDC_TESTING=1   # set this if cloudapi uses a self-signed cert"
+    if [[ "$coal" == "true" || $optInsecure == "true" ]]; then
+        envInfo "export SDC_TESTING=1"
     fi
 fi
-echo "    export DOCKER_CERT_PATH=$certDir"
+envInfo "export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
-    echo "    export DOCKER_HOST=$dockerService"
+    envInfo "export DOCKER_HOST=$dockerService"
 else
-    echo "    # See the product docs for the value to use for DOCKER_HOST."
-    echo "    export DOCKER_HOST='tcp://<HOST>:2376'"
+    envInfo "# See the product docs for the value to use for DOCKER_HOST."
+    envInfo "export DOCKER_HOST='tcp://<HOST>:2376'"
 fi
-echo "    alias docker=\"docker --tls\""
-echo ""
-echo "Then you should be able to run 'docker info' and see your account"
-echo "name 'SDCAccount: ${account}' in the output."
+envInfo "alias docker=\"docker --tls\""
+info ""
+info "Then you should be able to run 'docker info' and see your account"
+info "name 'SDCAccount: ${account}' in the output."
