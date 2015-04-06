@@ -36,6 +36,34 @@ This is the log from the dockerinit process which sets up the container for
 your initial process and then exec()s it. This log exists only for debugging
 problems with the way the initial process has been setup.
 
+### Extra Filesystems
+
+#### /native/*
+
+If you run `mount` or `df` you will see several filesystems mounted in from
+/native. These are bits from the SmartOS host mounted in to support the LX
+emulation.
+
+#### objfs on /system/object
+
+This is the SmartOS kernel object filesystem. The contents of the filesystem
+are dynamic and reflect the current state of the system. See:
+
+http://illumos.org/man/7fs/objfs
+
+for more information.
+
+#### ctfs on /system/contract
+
+This is the SmartOS contract file system which is the interface to the SmartOS
+contract subsystem.
+
+See:
+
+http://illumos.org/man/4/contract
+
+for more information.
+
 ### Exit Statuses
 
 When a container exits the exit status as returned by sdc-docker will currently
