@@ -13,13 +13,14 @@
  */
 
 var bunyan = require('bunyan');
+var restify = require('restify');
 
 module.exports = bunyan.createLogger({
     name: 'sdc-docker-test',
-    serializers: bunyan.stdSerializers,
+    serializers: restify.bunyan.serializers,
     streams: [
         {
-            level: process.env.LOG_LEVEL || 'fatal',
+            level: process.env.LOG_LEVEL || 'error',
             stream: process.stderr
         }
     ]

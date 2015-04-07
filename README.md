@@ -270,13 +270,30 @@ clone via:
 
 # Testing
 
-As shown above, `make test` will run unit tests locally. To run
-*integration* tests, you need to call the "test/runtests" driver from
+As shown above, the run unit tests locally:
+
+    make test
+
+To run *integration* tests, you need to call the "test/runtests" driver from
 the *global zone* (GZ) of a SmartDataCenter setup with sdc-docker,
 e.g. with COAL that would be:
 
     ssh root@10.99.99.7
     /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests
+
+specifically for COAL there is a target for that:
+
+    make test-integration-in-coal
+
+To run (a) a particular subset of integration tests -- using 'info' as a filter
+on test names in this example -- and (b) with trace-level logging:
+
+    LOG_LEVEL=trace /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f info 2>&1 | bunyan
+
+Some integration tests (those that don't depend on running in the GZ) can be
+run from your Mac dev tree, e.g.:
+
+    ./test/runtest ./test/integration/info.test.js
 
 
 # Development from your Mac

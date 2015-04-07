@@ -9,59 +9,48 @@
  */
 
 /*
- * Integration tests for `docker info`.
+ * Integration tests for `docker info`
  */
 
-var p = console.log;
-
-var test = require('tape');
-var util = require('util');
-var vasync = require('vasync');
-
 var h = require('./helpers');
+var test = require('tape');
 
 
 
 // --- Globals
 
-var CLIENT;
+var log = require('../lib/log');
+var state = {
+    log: log
+};
+var alice;
 
-
-
-// --- Setup
-
-test('setup', function (t) {
-    h.createDockerRemoteClient(function (err, client) {
-        CLIENT = client;
-        t.end();
-    });
-});
 
 
 // --- Tests
 
-test('/v1.15/info', function (t) {
-    CLIENT.get('/v1.15/info', function (err, res, req, body) {
-        h.assertInfo(t, body);
-        t.end();
-    });
-});
+test('docker info', function (tt) {
 
-test('/v1.16/info', function (t) {
-    CLIENT.get('/v1.16/info', function (err, res, req, body) {
-        h.assertInfo(t, body);
-        t.end();
+    tt.test('setup', function (t) {
+        h.getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
+                function (err, env) {
+            t.ifErr(err);
+            t.ok(env, 'have a DockerEnv for alice');
+            alice = env;
+            t.end();
+        });
     });
-});
 
-// TODO: get this working: create lx zone, prep it, call `docker` client in it
-//test('docker info', function (t) {
-//    h.dockerExec('info', function (err, stdout, stderr) {
-//        if (h.ifErr(t, err)) {
-//            return t.end();
-//        }
-//        var info = JSON.parse(stdout);
-//        h.assertInfo(t, info);
-//        t.end();
-//    });
-//});
+    tt.test('docker info (alice)', function (t) {
+        alice.docker('info', function (err, stdout, stderr) {
+            t.ifErr(err, 'docker info');
+            t.ok(/^Storage Driver: sdc$/m.test(stdout), 'Storage Driver: sdc');
+            t.ok(/SDCAccount: sdcdockertest_alice$/m.test(stdout),
+                'SDCAccount: sdcdockertest_alice');
+            t.ok(/Operating System: SmartDataCenter$/m.test(stdout),
+                'Operating System');
+            t.end();
+        });
+    });
+
+});

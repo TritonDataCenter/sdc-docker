@@ -31,3 +31,8 @@ https://docs.google.com/spreadsheets/d/1fNrTR25N6t9TEdEs5fHWGc3XQeydNCIvtwWBGMNw
 ## Problem with --restart
 
  * [Issue with --restart=no not being passed by client](https://github.com/docker/docker/issues/10874).
+
+
+## docker-machine
+
+ * [Add option to skip SSH provisioning](https://github.com/docker/machine/issues/886)

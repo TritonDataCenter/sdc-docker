@@ -58,7 +58,7 @@ function info
     if [[ $optQuiet == "true" ]]; then
         return
     fi
-    echo "$*" >&2
+    echo "$*"
 }
 
 function envInfo

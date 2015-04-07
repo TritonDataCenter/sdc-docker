@@ -66,18 +66,28 @@ $(TAPE): | $(NPM_EXEC)
 
 CLEAN_FILES += $(TAPE) ./node_modules/tape
 
+# Run *unit* tests.
 .PHONY: test
 test: $(TAPE)
-	@echo '# Running sdc-docker unit tests.'
-	@echo '#'
-	@echo '# Note: to run *integration tests*, run this from the *GZ* of an SDC with Docker setup:'
-	@echo '#    /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests'
-	@echo
 	@(for F in test/unit/*.test.js; do \
 		echo "# $$F" ;\
 		$(NODE) $(TAPE) $$F ;\
 		[[ $$? == "0" ]] || exit 1; \
 	done)
+
+# Integration tests:
+#
+# - Typically the full suite of integration tests is run from the headnode GZ:
+#       /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests
+#
+# - Integration tests that just call the docker client (i.e. that don't assume
+#   running in the GZ) can be run from your Mac's dev build, e.g.:
+# 	./test/runtest ./test/integration/cli/info.test.js
+#
+.PHONY: test-integration-in-coal
+test-integration-in-coal: | $(TAPE)
+	@ssh root@10.99.99.7 'LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests'
+
 
 .PHONY: git-hooks
 git-hooks:
