@@ -49,7 +49,12 @@
         "registryUrl": "https://registry-1.docker.io"
     },
 
-    "useTls": {{#USE_TLS}}true{{/USE_TLS}}{{^USE_TLS}}false{{/USE_TLS}},
+    {{#USE_TLS}}
+    "useTls": {{{USE_TLS}}},
+    {{/USE_TLS}}
+    {{^USE_TLS}}
+    "useTls": true,
+    {{/USE_TLS}}
     "tls": {
         "key": "/opt/smartdc/docker/tls/server-key.pem",
         "cert": "/opt/smartdc/docker/tls/server-cert.pem",

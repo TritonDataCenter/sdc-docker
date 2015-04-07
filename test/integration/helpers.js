@@ -71,7 +71,7 @@ var CLIENT_ZONE_PAYLOAD = {
             '    ln -s docker-1.5.0 docker',
             'fi',
             '',
-            'touch /var/svc/user-script-done  # see waitForClientZoneUserScript',
+            'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
         ].join('\n')
         /* END JSSTYLED */
     },
