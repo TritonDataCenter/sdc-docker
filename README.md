@@ -201,19 +201,27 @@ docker binary and go (golang) installed, then do the following:
     # Target coal
     export DOCKER_HOST=tcp://10.88.88.6
     export DOCKER_TEST_HOST=tcp://10.88.88.6
+
     # Set go path, so `go get` works correctly
+    mkdir go && cd go
     export GOPATH=`pwd`
+
     # Checkout docker from git
     mkdir -p src/github.com/docker
     cd src/github.com/docker
     git clone https://github.com/docker/docker.git
     cd docker
+
+    # Build docker test infrastructure.
     sh hack/make/.go-autogen   # docker automated build files
     # If `go get` shows an error - just ignore it.
     go get ./...               # docker dependencies
+
     cd integration-cli
+
     # Run an individual test
     go test -test.run "^TestPsListContainers"
+
     # Run all tests - this will take forever... a specific test will be faster.
     go test -v
 
