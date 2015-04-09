@@ -192,6 +192,32 @@ run from your Mac dev tree, e.g.:
     ./test/runtest ./test/integration/info.test.js
 
 
+# Official docker test suite
+
+Docker have their own test suite *integration-cli* for testing a real docker
+environment. To run the docker cli tests against coal, you will need a local
+docker binary and go (golang) installed, then do the following:
+
+    # Target coal
+    export DOCKER_HOST=tcp://10.88.88.6
+    export DOCKER_TEST_HOST=tcp://10.88.88.6
+    # Set go path, so `go get` works correctly
+    export GOPATH=`pwd`
+    # Checkout docker from git
+    mkdir -p src/github.com/docker
+    cd src/github.com/docker
+    git clone https://github.com/docker/docker.git
+    cd docker
+    sh hack/make/.go-autogen   # docker automated build files
+    # If `go get` shows an error - just ignore it.
+    go get ./...               # docker dependencies
+    cd integration-cli
+    # Run an individual test
+    go test -test.run "^TestPsListContainers"
+    # Run all tests - this will take forever... a specific test will be faster.
+    go test -v
+
+
 # Development from your Mac
 
 1. Add a 'coal' entry to your '~/.ssh/config'. Not required, but we'll use this
