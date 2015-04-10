@@ -263,3 +263,24 @@ For testing I tend to have a shell open tailing the docker service's log file:
     ssh coal
     sdc-login docker
     tail -f `svcs -L docker` | bunyan
+
+
+# Coding style
+
+You've gotta have one to push to rest some of the bikeshedding. Here's the one
+for this repo:
+
+- 4-space indentation
+
+- `camelCase` capitalization for variables. This is within reason -- exceptions
+  where case is required due to outside APIs (e.g. Docker APIs) is fine.
+
+- `ClassCase` for classes (i.e. JS prototype'd functions).
+
+- Imports from "lib/models" shall consistently be imported as follows to allow
+  grepping for "Link.list", etc.
+
+        var ImageTag = require('.../models/image-tag');
+        var Link = require('.../models/link');
+
+
