@@ -42,15 +42,15 @@ For example, you could do the same on Joyent Engineering's internal
 
 1. Installing sdc-docker and supporting services:
 
-    ssh root@10.99.99.7                                 # ssh to the CoaL GZ
-    sdcadm self-update
-    sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
-    sdcadm post-setup dev-headnode-prov
-    sdcadm post-setup cloudapi
-    sdcadm experimental update-docker
-    # Optional additional steps for VXLAN setup.
-    sdcadm experimental portolan
-    sdcadm experimental fabrics --coal
+        ssh root@10.99.99.7                                 # ssh to the CoaL GZ
+        sdcadm self-update
+        sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
+        sdcadm post-setup dev-headnode-prov
+        sdcadm post-setup cloudapi
+        sdcadm experimental update-docker
+        # Optional additional steps for VXLAN setup.
+        sdcadm experimental portolan
+        sdcadm experimental fabrics --coal
 
 
 SDC Docker uses (as of [DOCKER-312](https://smartos.org/bugview/DOCKER-312))
