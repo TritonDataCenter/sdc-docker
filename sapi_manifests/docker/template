@@ -64,6 +64,9 @@
     "account_allowed_dcs": {{{account_allowed_dcs}}},
     {{/account_allowed_dcs}}
     "account_allowed_dcs_msg": "{{{account_allowed_dcs_msg}}}",
+{{#experimental_fluentd_host}}
+    "fluentd_host": "{{{experimental_fluentd_host}}}",
+{{/experimental_fluentd_host}}
 
     "ufds": {
         "url": "ldaps://{{{ufds_domain}}}",
