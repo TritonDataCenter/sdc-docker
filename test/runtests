@@ -31,7 +31,7 @@ set -o pipefail
 #---- guard
 
 guard_file=/lib/sdc/.sdc-test-no-production-data
-if [[ ! -f "$guard_file" ]]; then
+if [[ $(uname) == "SunOS" && ! -f "$guard_file" ]]; then
     cat <<EOF
 To run this test you must create the file:
 
