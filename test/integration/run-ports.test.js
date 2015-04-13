@@ -54,6 +54,14 @@ function portBindingsPort(port) {
 }
 
 
+/**
+ * Return an all-zeros IP + port
+ */
+function zeroAddr(port) {
+    return '0.0.0.0:' + port.toString();
+}
+
+
 // --- Tests
 
 
@@ -75,7 +83,14 @@ test('setup', function (tt) {
     });
 
 
-    tt.test('inspect: nginx image', function (t) {
+    tt.test('pull nginx image', function (t) {
+        cli.pull(t, {
+            image: 'nginx:latest'
+        });
+    });
+
+
+    tt.test('inspect nginx image', function (t) {
         cli.inspect(t, {
             id: 'nginx:latest'
         }, function (err, img) {
@@ -159,6 +174,14 @@ test('no port args', function (tt) {
         });
     });
 
+
+    tt.test('no port args: port', function (t) {
+        cli.port(t, {
+            id: cli.lastCreated,
+            expected: {}
+        });
+    });
+
 });
 
 
@@ -205,6 +228,17 @@ test('-P', function (tt) {
                 tags: {
                     sdc_docker: true
                 }
+            }
+        });
+    });
+
+
+    tt.test('-P: port', function (t) {
+        cli.port(t, {
+            id: cli.lastCreated,
+            expected: {
+                '80/tcp': zeroAddr(80),
+                '443/tcp': zeroAddr(443)
             }
         });
     });
@@ -261,6 +295,16 @@ test('-p', function (tt) {
     });
 
 
+    tt.test('-P: port', function (t) {
+        cli.port(t, {
+            id: cli.lastCreated,
+            expected: {
+                '80/tcp': zeroAddr(80)
+            }
+        });
+    });
+
+
     tt.test('docker run -p 8080:80', function (t) {
         // We don't allow remapping of ports (for now, at least):
         cli.run(t, {
@@ -280,7 +324,7 @@ test('-P and -p', function (tt) {
     });
 
 
-    tt.test('-P: VMAPI metadata', function (t) {
+    tt.test('-P and -p: VMAPI metadata', function (t) {
         vm.get(t, {
             id: cli.lastCreated,
             partialExp: {
@@ -304,7 +348,7 @@ test('-P and -p', function (tt) {
     });
 
 
-    tt.test('-P -p 54:54/udp -p 90:90: inspect', function (t) {
+    tt.test('-P and -p: inspect', function (t) {
         var partial = {
             Config: {
                 ExposedPorts: extend(EXPOSED_PORTS, {
@@ -332,6 +376,19 @@ test('-P and -p', function (tt) {
         cli.inspect(t, {
             id: cli.lastCreated,
             partialExp: partial
+        });
+    });
+
+
+    tt.test('-P and -p: port', function (t) {
+        cli.port(t, {
+            id: cli.lastCreated,
+            expected: {
+                '54/udp': zeroAddr(54),
+                '80/tcp': zeroAddr(80),
+                '90/tcp': zeroAddr(90),
+                '443/tcp': zeroAddr(443)
+            }
         });
     });
 

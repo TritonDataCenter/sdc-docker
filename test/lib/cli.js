@@ -95,6 +95,87 @@ function cliInspect(t, opts, callback) {
 
 
 /**
+ * `docker port <id> [port spec]`
+ */
+function cliPort(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.id, 'opts.id');
+
+    ALICE.docker('port ' + opts.id, function (err, stdout, stderr) {
+        var obj = {};
+
+        t.ifErr(err, 'docker port');
+        t.equal(stderr, '', 'stderr');
+
+        // XXX: allow setting opts.expectedErr
+        if (err) {
+            common.done(t, callback, err);
+            return;
+        }
+
+        if (!stdout) {
+            // Not an error to have an empty stdout - if no ports are
+            // exposed, this is expected.
+            stdout = '';
+        }
+
+        stdout.split('\n').forEach(function (line) {
+            var split = line.split(' -> ');
+            if (split[0] && split[1]) {
+                obj[split[0]] = split[1];
+            }
+        });
+
+        common.partialExp(t, opts, obj);
+
+        if (opts.expected) {
+            t.deepEqual(obj, opts.expected, 'expected');
+        }
+
+        common.done(t, callback, err, obj);
+        return;
+    });
+}
+
+
+/**
+ * `docker pull <id>`
+ */
+function cliPull(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.image, 'opts.image');
+
+    ALICE.docker('pull ' + opts.image, function (err, stdout, stderr) {
+        var obj;
+
+        t.ifErr(err, 'docker pull');
+        t.equal(stderr, '', 'stderr');
+
+        // XXX: allow setting opts.expectedErr
+        if (err) {
+            common.done(t, callback, err);
+            return;
+        }
+
+        if (!stdout) {
+            var stdoutErr = new Error('no stdout!');
+            t.ifErr(stdoutErr, 'no stdout found');
+            common.done(t, callback, stdoutErr);
+            return;
+        }
+
+        // XXX: allow some sort of comparison here, or do we just care
+        // about pass / fail?
+
+        common.done(t, callback, err, obj);
+        return;
+    });
+}
+
+
+/**
  * Removes all docker VMs created during this test
  */
 function cliRmAllCreated(t) {
@@ -176,6 +257,8 @@ module.exports = {
     get lastCreated() {
         return LAST_CREATED;
     },
+    pull: cliPull,
+    port: cliPort,
     rmAllCreated: cliRmAllCreated,
     run: cliRun
 };

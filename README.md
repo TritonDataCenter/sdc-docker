@@ -267,7 +267,7 @@ For testing I tend to have a shell open tailing the docker service's log file:
 
 # Coding style
 
-You've gotta have one to push to rest some of the bikeshedding. Here's the one
+You've gotta have one to put to rest some of the bikeshedding. Here's the one
 for this repo:
 
 - 4-space indentation
