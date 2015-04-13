@@ -28,8 +28,13 @@ var sdcUtils = require('../../lib/backends/sdc/utils');
 
 // --- globals
 
+var CONFIG = {
+    fwapi_url: process.env.FWAPI_URL,
+    vmapi_url: process.env.VMAPI_URL
+};
 var p = console.error;
 var UA = 'sdcdockertest';
+
 
 var CLIENT_ZONE_PAYLOAD = {
     'alias': 'sdcdockertest_client',
@@ -87,6 +92,35 @@ var CLIENT_ZONE_PAYLOAD = {
 
 
 // --- internal support routines
+
+
+/**
+ * Return an options object suitable for passing to a restify client
+ */
+function createClientOpts(name, callback) {
+    var configVal = CONFIG[name + '_url'];
+    var opts = {
+        agent: false
+    };
+
+    if (configVal) {
+        opts.url = configVal;
+        callback(null, opts);
+        return;
+    }
+
+    loadConfig(function (err, config) {
+        if (err) {
+            return callback(err);
+        }
+        opts.url = fmt('http://%s.%s.%s:2375', name,
+            config.datacenter_name,
+            config.dns_domain);
+
+        callback(null, opts);
+        return;
+    });
+}
 
 function getAccountKeys(opts, cb) {
     assert.object(opts.state, 'opts.state');
@@ -890,22 +924,33 @@ function getDockerEnv(t, state_, opts, cb) {
 
 // --- other exports
 
+
 /**
  * Get a simple restify JSON client to the SDC Docker Remote API.
  */
 function createDockerRemoteClient(callback) {
-    loadConfig(function (err, config) {
+    createClientOpts('docker', function (err, opts) {
         if (err) {
             return callback(err);
         }
-        var url = fmt('http://docker.%s.%s:2375',
-            config.datacenter_name,
-            config.dns_domain);
-        var client = restify.createJsonClient({
-            url: url,
-            agent: false
-        });
-        callback(err, client);
+
+        callback(null, restify.createJsonClient(opts));
+        return;
+    });
+}
+
+
+/**
+ * Get a simple restify JSON client to VMAPI.
+ */
+function createFwapiClient(callback) {
+    createClientOpts('fwapi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.FWAPI(opts));
+        return;
     });
 }
 
@@ -914,18 +959,13 @@ function createDockerRemoteClient(callback) {
  * Get a simple restify JSON client to VMAPI.
  */
 function createVmapiClient(callback) {
-    loadConfig(function (err, config) {
+    createClientOpts('vmapi', function (err, opts) {
         if (err) {
             return callback(err);
         }
-        var url = fmt('http://vmapi.%s.%s',
-            config.datacenter_name,
-            config.dns_domain);
-        var client = new sdcClients.VMAPI({
-            url: url,
-            agent: false
-        });
-        callback(err, client);
+
+        callback(null, new sdcClients.VMAPI(opts));
+        return;
     });
 }
 
@@ -997,11 +1037,31 @@ function createDockerContainer(opts, callback) {
     var t = opts.test;
     var response = {};
 
+    if (opts.extra) {
+        for (var e in opts.extra) {
+
+            // Allow overriding sub-properties with a dot notation,
+            // eg: RestartPolicy.Name
+            var split = e.split('.');
+            if (split.length > 1) {
+                payload[split[0]][split[1]] = opts.extra[e];
+
+            } else {
+                payload[e] = opts.extra[e];
+            }
+        }
+    }
+
     vasync.waterfall([
         function (next) {
             // Post create request
             dockerClient.post('/v1.16/containers/create', payload, onpost);
             function onpost(err, res, req, body) {
+                if (opts.expectedErr) {
+                    common.expErr(t, err, opts.expectedErr, callback);
+                    return;
+                }
+
                 t.deepEqual(
                     body.Warnings, [], 'Warnings should be present and empty');
                 t.ok(body.Id, 'Id should be present');
@@ -1039,8 +1099,11 @@ function createDockerContainer(opts, callback) {
             });
         }
     ], function (err) {
-        t.error(err);
-        callback(null, response);
+        if (!opts.expectedError) {
+            t.error(err);
+        }
+
+        callback(err, response);
     });
 }
 
@@ -1075,7 +1138,9 @@ function listContainers(opts, callback) {
 
 module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
+    createFwapiClient: createFwapiClient,
     createVmapiClient: createVmapiClient,
+    dockerIdToUuid: sdcUtils.dockerIdToUuid,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
 

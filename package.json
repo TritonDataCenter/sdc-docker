@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -29,7 +29,8 @@
   },
   "devDependencies": {
     "manta": "1.4.5",
-    "tape": "^3.2.0"
+    "tape": "^3.2.0",
+    "xtend": "^4.0.0"
   },
   "license": "MPL-2.0"
 }

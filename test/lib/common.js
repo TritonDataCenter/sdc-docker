@@ -18,6 +18,12 @@ var fmt = require('util').format;
 var VError = require('verror').VError;
 
 
+// --- Globals
+
+
+// Error format: (Name) Message text (Req ID)
+var ERR_RE = /^(.*) \(([^)]+)\)$/;
+
 
 // --- Exports
 
@@ -35,6 +41,19 @@ function objCopy(from, to) {
     return to;
 }
 
+
+/**
+ * Call when done an operation in a test.  If callback exists, call that.
+ * If not, end the test.
+ */
+function done(t, callback, err, res) {
+    if (callback) {
+        callback(err, res);
+        return;
+    }
+
+    t.end();
+}
 
 
 /**
@@ -82,6 +101,47 @@ function execPlus(args, cb) {
 }
 
 
+/**
+ * Tests for an expected error message, where `err` can either be an error
+ * object or a string, and `expected` is the expected message.
+ */
+function expErr(t, err, expected, callback) {
+    var message;
+    var split;
+
+    t.ok(err, 'expected error');
+
+    if (!err) {
+        done(t, callback, new Error('no error found'));
+        return;
+    }
+
+    message = (typeof (err) === 'object' ? err.message : err)
+        .replace(/\n$/, '');
+
+    // Messages from docker on stderr (when not attached to a termnial) look
+    // like: time="2015-04-12T15:01:11-07:00" level="fatal"
+    // msg="Error response from daemon: publish port: remapping of
+    // port numbers not allowed (c37b45e1-73bf-44c5-bb3b-84200c5a8384)"
+    /* JSSTYLED */
+    split = message.split('msg="');
+    /* JSSTYLED */
+    message = split[split.length -1].replace(/"\s*$/, '');
+
+    var matches = message.match(ERR_RE);
+    if (!matches || !matches[1] || !matches[2]) {
+        t.equal(message, '',
+            'error message does not match expected format');
+        done(t, callback, new Error('unexpected error format'));
+        return;
+    }
+
+    t.ok(matches[2], 'error req id: ' + matches[2]);
+    t.equal(matches[1], expected, 'error message');
+
+    done(t, callback, err);
+}
+
 
 /**
  * Calls t.ifError, outputs the error body for diagnostic purposes, and
@@ -98,11 +158,42 @@ function ifErr(t, err, desc) {
 }
 
 
+/**
+ * Partial expected output - check equality of pieces of an object (specified
+ * by `opts.exp`), not the whole thing.
+ */
+function partialExp(t, opts, obj) {
+    if (!opts.partialExp) {
+        return;
+    }
+
+    var partial = {};
+
+    for (var p in opts.partialExp) {
+        // Allow specifying some properties of sub-objects, but
+        // not all:
+        if (typeof (opts.partialExp[p]) === 'object') {
+            partial[p] = {};
+
+            for (var e in opts.partialExp[p]) {
+                partial[p][e] = obj[p][e];
+            }
+
+        } else {
+            partial[p] = obj[p];
+        }
+    }
+
+    t.deepEqual(partial, opts.partialExp, 'partial expected');
+}
+
 
 
 module.exports = {
-    objCopy: objCopy,
+    done: done,
     execPlus: execPlus,
-
-    ifErr: ifErr
+    expErr: expErr,
+    ifErr: ifErr,
+    objCopy: objCopy,
+    partialExp: partialExp
 };

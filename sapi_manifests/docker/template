@@ -25,6 +25,9 @@
             "minTimeout": 500
         }
     },
+    "fwapi": {
+        "url": "http://fwapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
     "imgapi": {
         "url": "http://imgapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
