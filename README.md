@@ -46,6 +46,7 @@ For example, you could do the same on Joyent Engineering's internal
         sdcadm self-update
         sdcadm post-setup common-external-nics && sleep 10  # imgapi needs external
         sdcadm post-setup dev-headnode-prov
+        sdcadm post-setup dev-sample-data  # sample packages for docker containers
         sdcadm post-setup cloudapi
         sdcadm experimental update-docker
         # Optional additional steps for VXLAN setup.
