@@ -25,7 +25,7 @@ The SDC Docker service can be configured with the following Service API
 | ------------------------------ | ------- | ------- | ----------- |
 | **USE_TLS**                    | Boolean | false   | Turn on TLS authentication. |
 | **DEFAULT_MEMORY**       | Number | 1024 | The default ram/memory to use for docker containers. |
-| **PACKAGE_PREFIX** | String | 'sdc_'    | The prefix for packages to use for docker container package selection. |
+| **PACKAGE_PREFIX** | String | 'sample-'    | The prefix for packages to use for docker container package selection. |
 
 ### Example
 
@@ -44,7 +44,7 @@ typically written out by config-agent using the
 | --- | ---- | ------- | ----------- |
 | datacenterName | String | coal | Data center name to use as the Docker engine name. |
 | defaultMemory | Number | 1024 | The amount of memory to choose if no -m is provided. |
-| packagePrefix | String | sdc_ | PAPI will be consulted with a request PREFIX* when looking for packages |
+| packagePrefix | String | sample- | PAPI will be consulted with a request PREFIX* when looking for packages |
 | externalNetwork | String | external | The network name (in NAPI) from which select an IP for docker container provisioning *in non-overlay networks mode*. |
 | port | Number | 2375 | Port number on which the Docker engine listens. |
 | logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
