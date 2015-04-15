@@ -25,12 +25,17 @@ var h = require('./helpers');
 
 // --- Globals
 
+var ALICE;
 var CLIENTS = {};
 var FMT = {
     arrayOfStr: '(Validation) "%s" must be an array of strings',
     bool: '(Validation) "%s" must be a boolean',
     obj: '(Validation) "%s" must be an object',
     str: '(Validation) "%s" must be a string'
+};
+var MAX_PORTS = 8;
+var STATE = {
+    log: require('../lib/log')
 };
 var STR = {
     portNum: '(Validation) HostConfig.PortBindings: invalid port number',
@@ -44,9 +49,39 @@ var STR = {
 };
 
 
+// --- Helpers
+
+
+/**
+ * Generate a HostConfig.PortBindings property with the maximum number of
+ * ports + 1
+ */
+function maxPorts(proto) {
+    var ports = {};
+
+    for (var i = 0; i <= MAX_PORTS; i++) {
+        ports[(30 + i).toString() + '/' + proto] = {};
+    }
+
+    return [ ports ];
+}
+
+
 // --- Tests
 
 test('setup', function (tt) {
+
+    tt.test('docker env', function (t) {
+        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
+                function (err, env) {
+            t.ifErr(err, 'docker env: alice');
+            t.ok(env, 'have a DockerEnv for alice');
+            ALICE = env;
+
+            t.end();
+        });
+    });
+
 
     tt.test('vmapi client', function (t) {
         h.createVmapiClient(function (err, client) {
@@ -56,8 +91,9 @@ test('setup', function (tt) {
         });
     });
 
+
     tt.test('docker client', function (t) {
-        h.createDockerRemoteClient(function (err, client) {
+        h.createDockerRemoteClient(ALICE, function (err, client) {
             t.error(err, 'docker client err');
             CLIENTS.docker = client;
             return t.end();
@@ -132,16 +168,12 @@ test('create', function (t) {
         {
             prop: 'HostConfig.PortBindings',
             err: STR.tcp,
-            inputs: [ { '31/tcp': {}, '32/tcp': {}, '33/tcp': {},
-                '34/tcp': {}, '35/tcp': {}, '36/tcp': {}, '37/tcp': {},
-                '38/tcp': {}, '39/tcp': {} } ]
+            inputs: maxPorts('tcp')
         },
         {
             prop: 'HostConfig.PortBindings',
             err: STR.udp,
-            inputs: [ { '31/udp': {}, '32/udp': {}, '33/udp': {},
-                '34/udp': {}, '35/udp': {}, '36/udp': {}, '37/udp': {},
-                '38/udp': {}, '39/udp': {} } ]
+            inputs: maxPorts('udp')
         }
     ];
 

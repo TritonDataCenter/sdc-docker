@@ -930,6 +930,8 @@ function getDockerEnv(t, state_, opts, cb) {
  * Get a simple restify JSON client to the SDC Docker Remote API.
  */
 function createDockerRemoteClient(user, callback) {
+    assert.object(user, 'user');
+
     createClientOpts('docker', function (err, opts) {
         if (err) {
             return callback(err);

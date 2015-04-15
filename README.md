@@ -52,6 +52,8 @@ For example, you could do the same on Joyent Engineering's internal
         # Optional additional steps for VXLAN setup.
         sdcadm experimental portolan
         sdcadm experimental fabrics --coal
+        #  <reboot>
+        sapiadm update $(sdc-sapi /services?name=docker | json -Ha uuid) metadata.USE_FABRICS=true
 
 
 SDC Docker uses (as of [DOCKER-312](https://smartos.org/bugview/DOCKER-312))
