@@ -23,7 +23,7 @@ var restify = require('restify');
 var vasync = require('vasync');
 
 var common = require('../lib/common');
-var sdcUtils = require('../../lib/backends/sdc/utils');
+var sdcCommon = require('../../lib/common');
 
 
 // --- globals
@@ -1083,7 +1083,7 @@ function createDockerContainer(opts, callback) {
             function onget(err, res, req, body) {
                 t.error(err);
                 response.inspect = body;
-                response.uuid = sdcUtils.dockerIdToUuid(response.id);
+                response.uuid = sdcCommon.dockerIdToUuid(response.id);
                 next(err);
             }
         },
@@ -1094,7 +1094,7 @@ function createDockerContainer(opts, callback) {
             function onget(err, res, req, body) {
                 t.error(err);
                 response.inspect = body;
-                response.uuid = sdcUtils.dockerIdToUuid(response.id);
+                response.uuid = sdcCommon.dockerIdToUuid(response.id);
                 next(err);
             }
         },
@@ -1147,7 +1147,7 @@ module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
     createFwapiClient: createFwapiClient,
     createVmapiClient: createVmapiClient,
-    dockerIdToUuid: sdcUtils.dockerIdToUuid,
+    dockerIdToUuid: sdcCommon.dockerIdToUuid,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
 

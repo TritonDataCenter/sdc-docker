@@ -16,6 +16,7 @@ var assert = require('assert-plus');
 var cli = require('../lib/cli');
 var common = require('../lib/common');
 var extend = require('xtend');
+var fmt = require('util').format;
 var h = require('./helpers');
 var vm = require('../lib/vm');
 var test = require('tape');
@@ -30,6 +31,45 @@ var CLIENTS = {};
 
 
 // --- Helpers
+
+
+/**
+ * Return a rule for exposing ports
+ */
+function exposeRule(proto, vmID, ports) {
+    var ruleVM = vmID;
+    if (ruleVM.length > 36) {
+        ruleVM = h.dockerIdToUuid(vmID);
+    }
+
+    return fmt('FROM any TO vm %s ALLOW %s %sPORT %s%s',
+        ruleVM, proto,
+        (ports.length === 1 ? '' : '('),
+        ports.join(' AND PORT '),
+        (ports.length === 1 ? '' : ')'));
+}
+
+
+/**
+ * List firewall rules and compare to opts.expected
+ */
+function listFwRules(t, opts) {
+    CLIENTS.fwapi.listRules(opts.filter, function (err, rules) {
+        t.ifErr(err, 'list firewall rules');
+        if (err) {
+            t.end();
+            return;
+        }
+
+        var expLength = opts.expected.length;
+        t.equal(rules.length, expLength, expLength + ' rules returned');
+        t.deepEqual(rules.map(function (r) { return r.rule; }).sort(),
+            opts.expected, 'expected rules present');
+
+        t.end();
+        return;
+    });
+}
 
 
 /**
@@ -113,27 +153,27 @@ test('no port args', function (tt) {
     });
 
 
-    tt.test('firewall rules created', function (t) {
-        var listOpts = {
-            owner_uuid: cli.accountUuid,
-            tag: 'sdc_docker'
-        };
-
-        CLIENTS.fwapi.listRules(listOpts, function (err, rules) {
-            t.ifErr(err, 'list firewall rules');
-            if (err) {
-                t.end();
-                return;
-            }
-
-            t.equal(rules.length, 2, '2 rules returned');
-            t.deepEqual(rules.map(function (r) { return r.rule; }).sort(), [
+    tt.test('docker firewall rules created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                tag: 'sdc_docker'
+            },
+            expected: [
                 'FROM tag sdc_docker TO tag sdc_docker ALLOW tcp PORT all',
                 'FROM tag sdc_docker TO tag sdc_docker ALLOW udp PORT all'
-            ], 'ALLOW PORT all rules present');
+            ]
+        });
+    });
 
-            t.end();
-            return;
+
+    tt.test('expose firewall rules not created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                vm: h.dockerIdToUuid(cli.lastCreated)
+            },
+            expected: []
         });
     });
 
@@ -216,6 +256,18 @@ test('-P', function (tt) {
     });
 
 
+    tt.test('-P: expose firewall rules created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                vm: h.dockerIdToUuid(cli.lastCreated)
+            },
+            expected: [
+                exposeRule('tcp', cli.lastCreated, [80, 443])
+            ]
+        });
+    });
+
     tt.test('-P: VMAPI metadata', function (t) {
         vm.get(t, {
             id: cli.lastCreated,
@@ -279,6 +331,19 @@ test('-p', function (tt) {
     });
 
 
+    tt.test('-p 80:80: expose firewall rules created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                vm: h.dockerIdToUuid(cli.lastCreated)
+            },
+            expected: [
+                exposeRule('tcp', cli.lastCreated, [80])
+            ]
+        });
+    });
+
+
     tt.test('-p 80:80: VMAPI metadata', function (t) {
         vm.get(t, {
             id: cli.lastCreated,
@@ -321,6 +386,20 @@ test('-P and -p', function (tt) {
 
     tt.test('docker run -P -p 54:54/udp -p 90:90', function (t) {
         cli.run(t, { args: '-P -p 54:54/udp -p 90:90 -d nginx:latest' });
+    });
+
+
+    tt.test('-P and -p: expose firewall rules created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                vm: h.dockerIdToUuid(cli.lastCreated)
+            },
+            expected: [
+                exposeRule('tcp', cli.lastCreated, [80, 90, 443]),
+                exposeRule('udp', cli.lastCreated, [54])
+            ]
+        });
     });
 
 
