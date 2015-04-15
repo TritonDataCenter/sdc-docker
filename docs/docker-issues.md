@@ -31,6 +31,7 @@ https://docs.google.com/spreadsheets/d/1fNrTR25N6t9TEdEs5fHWGc3XQeydNCIvtwWBGMNw
 ## Problem with --restart
 
  * [Issue with --restart=no not being passed by client](https://github.com/docker/docker/issues/10874).
+ * [The fix for #10874 made things worse](https://github.com/docker/docker/issues/12413).
 
 
 ## docker-machine
