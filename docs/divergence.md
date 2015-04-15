@@ -87,9 +87,9 @@ The way containers are restarted with sdc-docker:
        container will be restarted and the RestartCount will be incremented
        (see below on delays between restarts).
  * if you specify --restart=on-failure[:maxretries]:
-     * if the node your container is on is rebooted, and your container was
-       running at the time of the reboot, your container will be started when
-       the node boots.
+     * if the node your container is on is rebooted, your container will only
+       be started when the node boots if the init process of your container
+       exited non-zero as part of the CN reboot.
      * if your container process exits with a non-zero exit status, the
        container will be restarted and the RestartCount will be incremented.
        If you specified a maxretries and this is reached, the container will
@@ -110,6 +110,9 @@ Inc's docker, if you restart the docker daemon all containers will be stopped
 and those with --restart=always will be started again. With sdc-docker
 restarting the management systems will not touch your container but restarting
 the compute node the container lives on will.
+
+If you want your container to always be running you most likely want to specify
+--restart=always to avoid your containers being stopped when a CN reboots.
 
 ### Volumes
 
