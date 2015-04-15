@@ -25,117 +25,151 @@ var h = require('./helpers');
 
 // --- Globals
 
-var docker;
-var vmapi;
+var ALICE;
+var DOCKER;
+var STATE = {
+    log: require('../lib/log')
+};
+var VMAPI;
 
 
 // --- Tests
 
-test.skip('api: start stop', function (tt) {
 
-    tt.test('docker start stop', function (t) {
-        t.plan(22);
+test('setup', function (tt) {
 
-        var uuid;
-        var id;
+    tt.test('docker env', function (t) {
+        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
+                function (err, env) {
+            t.ifErr(err, 'docker env: alice');
+            t.ok(env, 'have a DockerEnv for alice');
+            ALICE = env;
 
-        vasync.waterfall([
-            function (next) {
-                // Create VMAPI client
-                h.createVmapiClient(function (err, client) {
-                    t.error(err);
-                    vmapi = client;
-                    next(err);
-                });
-            },
-            function (next) {
-                // Create Docker client
-                h.createDockerRemoteClient(function (err, client) {
-                    docker = client;
-                    next(err);
-                });
-            },
-            function (next) {
-                h.createDockerContainer({
-                    vmapiClient: vmapi,
-                    dockerClient: docker,
-                    test: t
-                }, oncreate);
-
-                function oncreate(err, result) {
-                    t.error(err);
-                    id = result.id;
-                    uuid = result.vm.uuid;
-                    next();
-                }
-            },
-            function (next) {
-                // Attempt to get new container
-                docker.post('/v1.16/containers/' + id + '/start', onpost);
-                function onpost(err, res, req, body) {
-                    t.error(err);
-                    next(err);
-                }
-            },
-            function (next) {
-                h.listContainers({
-                    all: true,
-                    dockerClient: docker,
-                    test: t
-                }, function (err, containers) {
-                    t.error(err);
-
-                    var found = containers.filter(function (c) {
-                        if (c.Id === id) {
-                            return true;
-                        }
-                    });
-
-                    t.equal(found.length, 1, 'found our container');
-                    t.ok(found[0].Status.match(/^Up /), 'container is started');
-
-                    next();
-                });
-            },
-            function (next) {
-                // Attempt to get new container
-                docker.post('/v1.16/containers/' + id + '/stop', onpost);
-                function onpost(err, res, req, body) {
-                    t.error(err);
-                    next(err);
-                }
-            },
-            function (next) {
-                h.listContainers({
-                    all: true,
-                    dockerClient: docker,
-                    test: t
-                }, function (err, containers) {
-                    t.error(err);
-
-                    var found = containers.filter(function (c) {
-                        if (c.Id === id) {
-                            return true;
-                        }
-                    });
-
-                    t.equal(found.length, 1, 'found our container');
-                    t.ok(found[0].Status.match(/^Exited /),
-                        'container is started');
-
-                    next();
-                });
-            },
-            function (next) {
-                // Cheat
-                exec('vmadm destroy ' + uuid, function (err, stdout, stderr) {
-                    t.error(err, 'vmadm destroy should succeed');
-                    next(err);
-                });
-            }
-        ], function (err) {
-            t.error(err);
             t.end();
         });
     });
+
+
+    tt.test('docker client init', function (t) {
+        h.createDockerRemoteClient(ALICE, function (err, client) {
+            DOCKER = client;
+            t.end();
+        });
+    });
+
+
+    tt.test('vmapi client init', function (t) {
+        h.createVmapiClient(function (err, client) {
+            t.ifErr(err, 'vmapi client');
+            VMAPI = client;
+            t.end();
+        });
+    });
+
+});
+
+
+test('api: create', function (tt) {
+
+    var id;
+
+    tt.test('docker create', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER,
+            test: t
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            id = result.id;
+            t.end();
+        }
+    });
+
+
+    tt.test('start container', function (t) {
+        // Attempt to start new container
+        DOCKER.post('/v1.16/containers/' + id + '/start', onpost);
+        function onpost(err, res, req, body) {
+            t.error(err);
+            t.end(err);
+        }
+    });
+
+
+    tt.test('confirm container started', function (t) {
+        h.listContainers({
+            all: true,
+            dockerClient: DOCKER,
+            test: t
+        }, function (err, containers) {
+            t.error(err);
+
+            var found = containers.filter(function (c) {
+                if (c.Id === id) {
+                    return true;
+                }
+            });
+
+            t.equal(found.length, 1, 'found our container');
+
+            var matched = found[0].Status.match(/^Up /);
+            t.ok(matched, 'container is started');
+            if (!matched) {
+                t.equal(found[0].Status, 'Status for debugging');
+            }
+
+            t.end();
+        });
+    });
+
+
+    tt.test('stop container', function (t) {
+        // Attempt to stop new container
+        DOCKER.post('/v1.16/containers/' + id + '/stop', onpost);
+        function onpost(err, res, req, body) {
+            t.error(err);
+            t.end(err);
+        }
+    });
+
+
+    tt.test('confirm container stopped', function (t) {
+        h.listContainers({
+            all: true,
+            dockerClient: DOCKER,
+            test: t
+        }, function (err, containers) {
+            t.error(err);
+
+            var found = containers.filter(function (c) {
+                if (c.Id === id) {
+                    return true;
+                }
+            });
+
+            var matched = found[0].Status.match(/^Exited /);
+            t.ok(matched, 'container is stopped');
+            if (!matched) {
+                t.equal(found[0].Status, 'Status for debugging');
+            }
+
+            t.end();
+        });
+    });
+
+
+    tt.test('delete container', function (t) {
+        DOCKER.del('/v1.15/containers/' + id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+
+
+
 });

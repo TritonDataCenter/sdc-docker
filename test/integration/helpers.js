@@ -29,6 +29,7 @@ var sdcUtils = require('../../lib/backends/sdc/utils');
 // --- globals
 
 var CONFIG = {
+    docker_url: process.env.DOCKER_URL,
     fwapi_url: process.env.FWAPI_URL,
     vmapi_url: process.env.VMAPI_URL
 };
@@ -928,11 +929,17 @@ function getDockerEnv(t, state_, opts, cb) {
 /**
  * Get a simple restify JSON client to the SDC Docker Remote API.
  */
-function createDockerRemoteClient(callback) {
+function createDockerRemoteClient(user, callback) {
     createClientOpts('docker', function (err, opts) {
         if (err) {
             return callback(err);
         }
+
+        // Now that TLS is the default, load the user's certificate and key:
+        opts.cert = fs.readFileSync(user.sdcDockerDir + '/cert.pem').toString();
+        opts.key = fs.readFileSync(user.sdcDockerDir + '/key.pem').toString();
+        // Necessary for self-signed server certs:
+        opts.rejectUnauthorized = false;
 
         callback(null, restify.createJsonClient(opts));
         return;

@@ -16,8 +16,6 @@ var p = console.log;
 
 var test = require('tape');
 var util = require('util');
-var exec = require('child_process').exec;
-var vasync = require('vasync');
 
 var h = require('./helpers');
 
@@ -25,59 +23,76 @@ var h = require('./helpers');
 
 // --- Globals
 
-var docker;
-var vmapi;
+var ALICE;
+var DOCKER;
+var STATE = {
+    log: require('../lib/log')
+};
+var VMAPI;
 
 
 // --- Tests
 
-test.skip('api: create', function (tt) {
 
-    tt.test('docker create', function (t) {
-        t.plan(10);
+test('setup', function (tt) {
 
-        var uuid;
+    tt.test('docker env', function (t) {
+        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
+                function (err, env) {
+            t.ifErr(err, 'docker env: alice');
+            t.ok(env, 'have a DockerEnv for alice');
+            ALICE = env;
 
-        vasync.waterfall([
-            function (next) {
-                // Create VMAPI client
-                h.createVmapiClient(function (err, client) {
-                    t.error(err);
-                    vmapi = client;
-                    next(err);
-                });
-            },
-            function (next) {
-                // Create Docker client
-                h.createDockerRemoteClient(function (err, client) {
-                    docker = client;
-                    next(err);
-                });
-            },
-            function (next) {
-                h.createDockerContainer({
-                    vmapiClient: vmapi,
-                    dockerClient: docker,
-                    test: t
-                }, oncreate);
-
-                function oncreate(err, result) {
-                    t.error(err);
-                    uuid = result.vm.uuid;
-                    next();
-                }
-            },
-            function (next) {
-                // Cheat
-                exec('vmadm destroy ' + uuid, function (err, stdout, stderr) {
-                    t.error(err, 'vmadm destroy should succeed');
-                    next(err);
-                });
-            }
-        ], function (err) {
-            t.error(err);
             t.end();
         });
+    });
+
+
+    tt.test('docker client init', function (t) {
+        h.createDockerRemoteClient(ALICE, function (err, client) {
+            DOCKER = client;
+            t.end();
+        });
+    });
+
+
+    tt.test('vmapi client init', function (t) {
+        h.createVmapiClient(function (err, client) {
+            t.ifErr(err, 'vmapi client');
+            VMAPI = client;
+            t.end();
+        });
+    });
+
+});
+
+
+test('api: create', function (tt) {
+
+    var created;
+
+    tt.test('docker create', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER,
+            test: t
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.end();
+        }
+    });
+
+
+    tt.test('docker rm', function (t) {
+        DOCKER.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
     });
 
 });

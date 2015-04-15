@@ -46,26 +46,28 @@ var STR = {
 
 // --- Tests
 
-test.skip('setup', function (t) {
-    t.test('vmapi client', function (t2) {
+test('setup', function (tt) {
+
+    tt.test('vmapi client', function (t) {
         h.createVmapiClient(function (err, client) {
-            t2.error(err, 'vmapi client err');
+            t.error(err, 'vmapi client err');
             CLIENTS.vmapi = client;
-            return t2.end();
+            return t.end();
         });
     });
 
-    t.test('docker client', function (t2) {
+    tt.test('docker client', function (t) {
         h.createDockerRemoteClient(function (err, client) {
-            t2.error(err, 'docker client err');
+            t.error(err, 'docker client err');
             CLIENTS.docker = client;
-            return t2.end();
+            return t.end();
         });
     });
+
 });
 
 
-test.skip('create', function (t) {
+test('create', function (t) {
     var invalid = [
         {
             prop: 'Image',

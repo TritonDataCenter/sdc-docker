@@ -24,26 +24,47 @@ var h = require('./helpers');
 
 // --- Globals
 
+var ALICE;
 var CLIENT;
+var STATE = {
+    log: require('../lib/log')
+};
 
 
 // --- Tests
 
-test.skip('api: info', function (tt) {
-    tt.test('setup', function (t) {
-        h.createDockerRemoteClient(function (err, client) {
-            CLIENT = client;
+
+test('setup', function (tt) {
+    tt.test('docker env', function (t) {
+        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
+                function (err, env) {
+            t.ifErr(err, 'docker env: alice');
+            t.ok(env, 'have a DockerEnv for alice');
+            ALICE = env;
+
             t.end();
+            return;
         });
     });
 
 
+    tt.test('client init', function (t) {
+        h.createDockerRemoteClient(ALICE, function (err, client) {
+            CLIENT = client;
+            t.end();
+        });
+    });
+});
+
+
+test('api: info', function (tt) {
     tt.test('/v1.15/info', function (t) {
         CLIENT.get('/v1.15/info', function (err, res, req, body) {
             h.assertInfo(t, body);
             t.end();
         });
     });
+
 
     tt.test('/v1.16/info', function (t) {
         CLIENT.get('/v1.16/info', function (err, res, req, body) {
