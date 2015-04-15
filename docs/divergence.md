@@ -241,6 +241,7 @@ implemented. Differences include:
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
  * --dns and --dns-search which are unimplemented (control DNS in the container)
+     * [DOCKER-338](http://smartos.org/bugview/DOCKER-338)
  * --expose which is unimplemented (exposes a port)
      * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
