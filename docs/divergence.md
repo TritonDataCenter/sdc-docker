@@ -366,7 +366,8 @@ This command is currently unimplemented ([OS-3455](http://smartos.org/bugview/OS
 
 ### `docker ps`
 
-No known divergence.
+Implemented, but does not support the *Size* field - all sizes will be returned
+as 0 ([DOCKER-285](http://smartos.org/bugview/DOCKER-285))
 
 ### `docker pull`
 
