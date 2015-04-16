@@ -406,6 +406,7 @@ if [[ -n "$optSdcSetup" ]]; then
     fi
 fi
 envInfo "export DOCKER_CERT_PATH=$certDir"
+envInfo "unset DOCKER_TLS_VERIFY"
 if [[ -n "$dockerService" ]]; then
     envInfo "export DOCKER_HOST=$dockerService"
 else
