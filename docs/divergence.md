@@ -240,7 +240,6 @@ implemented. Differences include:
  * --cpu-shares which is unsupported: see 'SDC packages' section above
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
- * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
@@ -409,7 +408,6 @@ implemented. Differences include:
  * --cap-add and --cap-drop which are unsupported (Linux capabilities)
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
- * --dns and --dns-search which are unimplemented (control DNS in the container)
  * --expose which is unimplemented (exposes a port)
      * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
