@@ -87,6 +87,7 @@ function cliInspect(t, opts, callback) {
         }
 
         common.partialExp(t, opts, obj);
+        common.expected(t, opts, obj);
 
         common.done(t, callback, err, obj);
         return;
@@ -128,10 +129,7 @@ function cliPort(t, opts, callback) {
         });
 
         common.partialExp(t, opts, obj);
-
-        if (opts.expected) {
-            t.deepEqual(obj, opts.expected, 'expected');
-        }
+        common.expected(t, opts, obj);
 
         common.done(t, callback, err, obj);
         return;

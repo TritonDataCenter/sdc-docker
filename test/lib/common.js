@@ -13,6 +13,8 @@
  */
 
 var assert = require('assert-plus');
+var deepEqual = require('deep-equal');
+var difflet = require('difflet');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
 var VError = require('verror').VError;
@@ -102,6 +104,22 @@ function execPlus(args, cb) {
 
 
 /**
+ * Does a deep equal of opts.expected and obj
+ */
+function expectedDeepEqual(t, opts, obj) {
+    if (!opts.hasOwnProperty('expected')) {
+        return;
+    }
+
+    t.deepEqual(obj, opts.expected, 'expected');
+    if (!deepEqual(obj, opts.expected)) {
+        process.stderr.write(difflet({ indent: 4, comment: true })
+            .compare(obj, opts.expected));
+    }
+}
+
+
+/**
  * Tests for an expected error message, where `err` can either be an error
  * object or a string, and `expected` is the expected message.
  */
@@ -185,6 +203,10 @@ function partialExp(t, opts, obj) {
     }
 
     t.deepEqual(partial, opts.partialExp, 'partial expected');
+    if (!deepEqual(partial, opts.partialExp)) {
+        process.stderr.write(difflet({ indent: 4, comment: true })
+            .compare(partial, opts.partialExp));
+    }
 }
 
 
@@ -192,6 +214,7 @@ function partialExp(t, opts, obj) {
 module.exports = {
     done: done,
     execPlus: execPlus,
+    expected: expectedDeepEqual,
     expErr: expErr,
     ifErr: ifErr,
     objCopy: objCopy,

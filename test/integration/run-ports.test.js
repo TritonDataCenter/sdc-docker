@@ -474,4 +474,104 @@ test('-P and -p', function (tt) {
 });
 
 
+test('-p range', function (tt) {
+
+    var p;
+    var ports = [];
+
+    tt.test('docker run -p 50-81:50-81', function (t) {
+        cli.run(t, { args: '-p 50-81:50-81 -d nginx:latest' });
+    });
+
+
+    tt.test('-p range: inspect', function (t) {
+        var partial = {
+            Config: {
+                ExposedPorts: EXPOSED_PORTS
+            },
+            HostConfig: {
+                PortBindings: {},
+                PublishAllPorts: false
+            },
+            NetworkSettings: {
+                Ports: {
+                    '443/tcp': null
+                }
+            }
+        };
+
+        for (p = 50; p <= 81; p++) {
+            partial.Config.ExposedPorts[p + '/tcp'] = {};
+            partial.HostConfig.PortBindings[p + '/tcp'] = portBindingsPort(p);
+            partial.NetworkSettings.Ports[p + '/tcp'] = netSettingsPort(p);
+            ports.push(p);
+        }
+
+        cli.inspect(t, {
+            id: cli.lastCreated,
+            partialExp: partial
+        });
+    });
+
+
+    tt.test('-p range:80: expose firewall rules created', function (t) {
+        listFwRules(t, {
+            filter: {
+                owner_uuid: cli.accountUuid,
+                vm: h.dockerIdToUuid(cli.lastCreated)
+            },
+            expected: [
+                exposeRule('tcp', cli.lastCreated,
+                    [50, 51, 52, 53, 54, 55, 56, 57]),
+                exposeRule('tcp', cli.lastCreated,
+                    [58, 59, 60, 61, 62, 63, 64, 65]),
+                exposeRule('tcp', cli.lastCreated,
+                    [66, 67, 68, 69, 70, 71, 72, 73]),
+                exposeRule('tcp', cli.lastCreated,
+                    [74, 75, 76, 77, 78, 79, 80, 81])
+            ]
+        });
+    });
+
+
+    tt.test('-p range: VMAPI metadata', function (t) {
+        vm.get(t, {
+            id: cli.lastCreated,
+            partialExp: {
+                firewall_enabled: true,
+                internal_metadata: {
+                    'docker:tcp_published_ports': JSON.stringify(ports)
+                },
+                tags: {
+                    sdc_docker: true
+                }
+            }
+        });
+    });
+
+
+    tt.test('-P: port', function (t) {
+        var exp = {};
+        for (p = 50; p <= 81; p++) {
+            exp[p + '/tcp'] = zeroAddr(p);
+        }
+
+        cli.port(t, {
+            id: cli.lastCreated,
+            expected: exp
+        });
+    });
+
+
+    // Make sure the limit of 32 ports is enforced:
+    tt.test('docker run -p 50-81:50-82', function (t) {
+        cli.run(t, {
+            args: '-p 50-82:50-82 -d nginx:latest',
+            expectedErr: 'Error response from daemon: publish port: '
+                + 'only support exposing 32 TCP ports'
+        });
+    });
+
+});
+
 test('teardown', cli.rmAllCreated);

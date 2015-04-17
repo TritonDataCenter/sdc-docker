@@ -33,7 +33,7 @@ var FMT = {
     obj: '(Validation) "%s" must be an object',
     str: '(Validation) "%s" must be a string'
 };
-var MAX_PORTS = 8;
+var MAX_PORTS = 32;
 var STATE = {
     log: require('../lib/log')
 };
@@ -44,8 +44,8 @@ var STR = {
         + 'must be "number/protocol"',
     proto: '(Validation) HostConfig.PortBindings: unknown protocol: '
         + 'must be tcp or udp',
-    tcp: 'publish port: only support exposing 8 TCP ports',
-    udp: 'publish port: only support exposing 8 UDP ports'
+    tcp: fmt('publish port: only support exposing %d TCP ports', MAX_PORTS),
+    udp: fmt('publish port: only support exposing %d UDP ports', MAX_PORTS)
 };
 
 
