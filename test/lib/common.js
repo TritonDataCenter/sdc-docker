@@ -113,7 +113,7 @@ function expectedDeepEqual(t, opts, obj) {
 
     t.deepEqual(obj, opts.expected, 'expected');
     if (!deepEqual(obj, opts.expected)) {
-        process.stderr.write(difflet({ indent: 4, comment: true })
+        t.comment(difflet({ indent: 4, comment: true })
             .compare(obj, opts.expected));
     }
 }
@@ -204,7 +204,7 @@ function partialExp(t, opts, obj) {
 
     t.deepEqual(partial, opts.partialExp, 'partial expected');
     if (!deepEqual(partial, opts.partialExp)) {
-        process.stderr.write(difflet({ indent: 4, comment: true })
+        t.comment(difflet({ indent: 4, comment: true })
             .compare(partial, opts.partialExp));
     }
 }
