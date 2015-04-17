@@ -129,6 +129,14 @@ With sdc-docker, host volumes work differently than on Docker Inc's docker.
    sharing (via --volumes-from), you must first delete all containers using that
    volume.
  * 'host' volumes are not shared through --volumes-from
+ * 'host' volume (URL) downloads have a limit of 60 seconds. If this timeout is
+   reached, your container will not boot.
+ * 'host' volume (URL) downloads have a limit of 10MiB of data. If this limit is
+   reached, your container will not boot.
+ * 'host' volume (URL) downloads have a limit of 2 HTTP redirects. If this limit
+   is reached, your container will not boot.
+ * If the remote host is unavailable when you're booting your container and you
+   have used a 'host' volume (URL), your container will not boot.
  * When you use --volumes-from you are necessarily coprovisioned with the
    container you are sharing the volumes from. If the physical host on which
    the source container exists does not have capacity for the new container,
