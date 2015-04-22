@@ -17,10 +17,27 @@ set -o errexit
 PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 role=docker
 
+function setup_tls_certificate() {
+	if [[ -f /data/tls/key.pem && -f /data/tls/cert.pem ]]; then
+		echo "TLS Certificate Exists"
+	else
+		echo "Generating TLS Certificate"
+		mkdir -p /data/tls
+		/opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
+		    -keyout /data/tls/key.pem \
+		    -out /data/tls/cert.pem -days 365
+	fi
+}
+
 # Include common utility functions (then run the boilerplate)
 source /opt/smartdc/boot/lib/util.sh
 CONFIG_AGENT_LOCAL_MANIFESTS_DIRS=/opt/smartdc/$role
 sdc_common_setup
+
+# Mount our delegate dataset at '/data'.
+zfs set mountpoint=/data zones/$(zonename)/data
+
+setup_tls_certificate
 
 /usr/sbin/svccfg import /opt/smartdc/$role/smf/manifests/docker.xml
 

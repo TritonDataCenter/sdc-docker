@@ -55,8 +55,6 @@
 
     "useTls": {{^USE_TLS}}false{{/USE_TLS}}{{#USE_TLS}}{{{USE_TLS}}}{{/USE_TLS}},
     "tls": {
-        "key": "/opt/smartdc/docker/tls/server-key.pem",
-        "cert": "/opt/smartdc/docker/tls/server-cert.pem",
         "requestCert": true,
         "rejectUnauthorized": false
     },
