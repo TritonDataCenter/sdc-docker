@@ -261,7 +261,6 @@ implemented. Differences include:
  * --security-opt which is unsupported (Security Options)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
- * you cannot create a container using an image UUID, you must use a tag ([DOCKER-344](http://smartos.org/bugview/DOCKER-344))
 
 ### `docker diff`
 
@@ -430,7 +429,6 @@ implemented. Differences include:
  * --security-opt which is unsupported (Security Options)
  * --volume: see 'Volumes' section above
  * --volumes-from: see 'Volumes' section above
- * you cannot create a container using an image UUID, you must use a tag ([DOCKER-344](http://smartos.org/bugview/DOCKER-344))
 
 ### `docker save`
 
