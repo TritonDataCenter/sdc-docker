@@ -109,6 +109,22 @@ function dockerInfo
 }
 
 
+
+# Return ssh fingerprint in the form "he:xh:ex:he:xh:..."
+# OpenSSH_6.8 changes the "-l" flag output.
+function sshGetMD5Fingerprint() {
+    local sshPubKeyPath=$1
+    local s
+    s=$(ssh-keygen -E md5 -l -f "$sshPubKeyPath" 2> /dev/null)
+    if [[ $? -eq  0 ]]; then
+        echo "$s" | awk '{print $2}' | tr -d '\n' | cut -d: -f2-;
+    else
+        # OpenSSH version < 6.8
+        ssh-keygen -l -f "$sshPubKeyPath" | awk '{print $2}' | tr -d '\n';
+    fi
+}
+
+
 function cloudapiVerifyAccount() {
     local cloudapiUrl account sshPrivKeyPath sshKeyId now signature response
     cloudapiUrl=$1
@@ -349,7 +365,7 @@ if [[ $optForce != "true" ]]; then
     if [[ ! -f $sshPubKeyPath ]]; then
         fatal "could not verify account/key: SSH public key does not exist at '$sshPubKeyPath'"
     fi
-    sshKeyId=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')
+    sshKeyId=$(sshGetMD5Fingerprint $sshPubKeyPath)
     debug "sshKeyId: $sshKeyId"
 
     info "If you have a pass phrase on your key, the openssl command will"
@@ -396,7 +412,7 @@ if [[ -n "$optSdcSetup" ]]; then
     envInfo "export SDC_URL=$cloudapiUrl"
     envInfo "export SDC_ACCOUNT=$account"
     if [[ -f $sshPubKeyPath ]]; then
-        envInfo "export SDC_KEY_ID=$(ssh-keygen -l -f $sshPubKeyPath | awk '{print $2}' | tr -d '\n')"
+        envInfo "export SDC_KEY_ID=$(sshGetMD5Fingerprint $sshPubKeyPath)"
     else
         envInfo "# Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
         envInfo "export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
