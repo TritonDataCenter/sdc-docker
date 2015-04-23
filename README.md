@@ -94,6 +94,21 @@ You should now able to get `docker info` and see "SDCAccount: jill":
     Operating System: SmartDataCenter
     Name: coal
 
+# Using custom TLS server certificates for SDC Docker
+
+SDC Docker can optionally be setup to use your own TLS certificates. By
+default, the Docker VM is provisioned with a self-signed certificate
+that can always be overridden with the following commands:
+
+        # Copy your TLS certificate to the SDC headnode (assuming COAL)
+        scp ./my-key.pem root@10.99.99.7:/var/tmp/
+        scp ./my-cert.pem root@10.99.99.7:/var/tmp/
+
+        # Install the TLS certificate
+        sdcadm experimental install-docker-cert -k /var/tmp/my-key.pem -c /var/tmp/my-cert.pem
+
+This command will automatically restart the SDC Docker service so certificate
+changes will take effect immediately.
 
 # Running SDC docker in invite-only mode
 
