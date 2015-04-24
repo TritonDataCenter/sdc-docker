@@ -253,6 +253,7 @@ implemented. Differences include:
  * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
+ * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish: see 'Networking' section above
@@ -421,6 +422,7 @@ implemented. Differences include:
  * --ipc which is unsupported
  * --link which is unimplemented (links to another container)
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
+ * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
  * --net which is currently unsupported (controls how networking is attached)
  * --publish-all and --publish: see 'Networking' section above
