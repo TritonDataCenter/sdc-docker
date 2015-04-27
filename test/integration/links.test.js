@@ -146,8 +146,7 @@ test('linked env', function (tt) {
             });
         });
     });
-
 });
 
 
-//test('teardown', cli.rmAllCreated);
+test('teardown', cli.rmAllCreated);
