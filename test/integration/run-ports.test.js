@@ -183,6 +183,9 @@ test('no port args', function (tt) {
             id: cli.lastCreated,
             partialExp: {
                 firewall_enabled: true,
+                internal_metadata: {
+                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
+                },
                 tags: {
                     sdc_docker: true
                 }
@@ -275,7 +278,8 @@ test('-P', function (tt) {
                 firewall_enabled: true,
                 internal_metadata: {
                     'docker:publish_all_ports': true,
-                    'docker:tcp_published_ports': JSON.stringify([ 443, 80 ])
+                    'docker:tcp_published_ports': JSON.stringify([ 443, 80 ]),
+                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
                 },
                 tags: {
                     sdc_docker: true
@@ -350,7 +354,8 @@ test('-p', function (tt) {
             partialExp: {
                 firewall_enabled: true,
                 internal_metadata: {
-                    'docker:tcp_published_ports': JSON.stringify([ 80 ])
+                    'docker:tcp_published_ports': JSON.stringify([ 80 ]),
+                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
                 },
                 tags: {
                     sdc_docker: true
@@ -414,9 +419,13 @@ test('-P and -p', function (tt) {
                         JSON.stringify([ 90 ]),
                     'docker:tcp_published_ports':
                         JSON.stringify([ 443, 80, 90 ]),
+                    'docker:tcp_all_ports':
+                        JSON.stringify([ 443, 80, 90]),
                     'docker:udp_bound_ports':
                         JSON.stringify([ 54 ]),
                     'docker:udp_published_ports':
+                        JSON.stringify([ 54 ]),
+                    'docker:udp_all_ports':
                         JSON.stringify([ 54 ])
                 },
                 tags: {
