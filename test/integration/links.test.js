@@ -105,7 +105,7 @@ test('linked env', function (tt) {
             // Regular expressions:
             var expectedHosts = [
                 '\\b' + 'ngx' + '\\b',
-                '\\b' + 'nginx_custom' + '\\b',
+                '\\b' + 'nginx_custom' + '\\b'
             ];
             expectedHosts.forEach(function (e) {
                 if (!linkHosts.match(e)) {
@@ -119,11 +119,8 @@ test('linked env', function (tt) {
 
 
     tt.test('link inspect', function (t) {
-        var expected = {
-        };
-
         cli.inspect(t, {
-            id: cli.lastCreated,
+            id: 'bbx',
             partialExp: {
                 HostConfig: {
                     Links: [
@@ -133,6 +130,24 @@ test('linked env', function (tt) {
             }
         });
     });
+
+
+    tt.test('link removal', function (t) {
+        cli.docker('rm --link /bbx/ngx', function (err, stdout, stderr) {
+            t.ifErr(err, 'docker rm --link');
+
+            cli.inspect(t, {
+                id: 'bbx',
+                partialExp: {
+                    HostConfig: {
+                        Links: null
+                    }
+                }
+            });
+        });
+    });
+
 });
 
-test('teardown', cli.rmAllCreated);
+
+//test('teardown', cli.rmAllCreated);

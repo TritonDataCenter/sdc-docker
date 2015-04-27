@@ -250,6 +250,9 @@ module.exports = {
     get accountUuid() {
         return ALICE.account.uuid;
     },
+    get docker() {
+        return ALICE.docker.bind(ALICE);
+    },
     init: cliInit,
     inspect: cliInspect,
     get lastCreated() {
