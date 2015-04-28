@@ -180,6 +180,27 @@ test('link rename', function (tt) {
             });
         });
     });
+
+
+    tt.test(' rename container', function (t) {
+        cli.docker('rename link_container link_container_renamed',
+                    function (err, stdout, stderr)
+        {
+            t.ifErr(err, 'docker rename');
+
+            cli.inspect(t, {
+                id: 'link_container_renamed',
+                partialExp: {
+                    HostConfig: {
+                        Links: [
+                            '/link_target_renamed:'
+                            + '/link_container_renamed/target'
+                        ]
+                    }
+                }
+            });
+        });
+    });
 });
 
 
