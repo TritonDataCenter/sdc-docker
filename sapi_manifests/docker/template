@@ -3,6 +3,9 @@
     "// port": "2376 for tls",
     "port": 2375,
     "logLevel": "debug",
+    {{#DOCKER_READONLY}}
+    "readOnly": true,
+    {{/DOCKER_READONLY}}
     "datacenterName": "{{{datacenter_name}}}",
 
     "backend": "sdc",
