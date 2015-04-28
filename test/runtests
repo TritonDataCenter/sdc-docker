@@ -76,7 +76,7 @@ TAPE=$TOP/node_modules/.bin/tape
 FAILING_LIST=$OUTPUT_DIR/failing-tests.txt
 
 export DOCKER_URL="https://$(vmadm lookup -j alias=docker0 | json 0.nics | json -c 'this.nic_tag==="external"' 0.ip):2376"
-export FWAPI_URL="http://$(vmadm lookup -j alias=napi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
+export FWAPI_URL="http://$(vmadm lookup -j alias=fwapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
 export VMAPI_URL="http://$(vmadm lookup -j alias=vmapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
 
 echo "Test config:"
