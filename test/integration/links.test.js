@@ -149,4 +149,38 @@ test('linked env', function (tt) {
 });
 
 
+test('link rename', function (tt) {
+
+    tt.test(' create link_target', function (t) {
+        cli.run(t, { args: '-d --name link_target busybox top' });
+    });
+
+
+    tt.test(' create link_container', function (t) {
+        cli.run(t, { args: '-d --name link_container --link link_target:target'
+                    + ' busybox top' });
+    });
+
+
+    tt.test(' rename target', function (t) {
+        cli.docker('rename link_target link_target_renamed',
+                    function (err, stdout, stderr)
+        {
+            t.ifErr(err, 'docker rename');
+
+            cli.inspect(t, {
+                id: 'link_container',
+                partialExp: {
+                    HostConfig: {
+                        Links: [
+                            '/link_target_renamed:/link_container/target'
+                        ]
+                    }
+                }
+            });
+        });
+    });
+});
+
+
 test('teardown', cli.rmAllCreated);
