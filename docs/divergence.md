@@ -245,17 +245,22 @@ implemented. Differences include:
 
  * --add-host which is unsupported (host-to-IP mapping)
  * --cap-add and --cap-drop which are unsupported (Linux capabilities)
+ * --cgroup-parent which is unsupported
  * --cpu-shares which is unsupported: see 'SDC packages' section above
  * --cpuset which is unsupported (controls which CPUs to run on)
  * --device which is unsupported (mounts host device into container)
  * --expose which is unimplemented (exposes a port)
      * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
+ * --label which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
+ * --label-file which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
  * --link which is unimplemented (links to another container)
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
+ * --mac-address which is unsupported
  * --net which is currently unsupported (controls how networking is attached)
+ * --pid=host which is unsupported
  * --publish-all and --publish: see 'Networking' section above
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
@@ -413,6 +418,7 @@ This command mostly works however not all features are currently fully
 implemented. Differences include:
 
  * --add-host which is unsupported (host-to-IP mapping)
+ * --cgroup-parent which is unsupported
  * --cpu-shares which is unsupported: see 'SDC packages' section above
  * --cap-add and --cap-drop which are unsupported (Linux capabilities)
  * --cpuset which is unsupported (controls which CPUs to run on)
@@ -420,11 +426,15 @@ implemented. Differences include:
  * --expose which is unimplemented (exposes a port)
      * [DOCKER-76](http://smartos.org/bugview/DOCKER-76)
  * --ipc which is unsupported
+ * --label which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
+ * --label-file which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
  * --link which is unimplemented (links to another container)
      * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
+ * --mac-address which is unsupported
  * --net which is currently unsupported (controls how networking is attached)
+ * --pid=host which is unsupported
  * --publish-all and --publish: see 'Networking' section above
  * --privileged which is unsupported (extended privileges for containers)
  * --read-only which is unimplemented ([DOCKER-158](http://smartos.org/bugview/DOCKER-158))
