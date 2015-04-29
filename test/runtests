@@ -79,7 +79,7 @@ export DOCKER_URL="https://$(vmadm lookup -j alias=docker0 | json 0.nics | json 
 export FWAPI_URL="http://$(vmadm lookup -j alias=fwapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
 export VMAPI_URL="http://$(vmadm lookup -j alias=vmapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
 
-echo "Test config:"
+echo "# Test config:"
 echo "#  DOCKER_URL: ${DOCKER_URL}"
 echo "#  FWAPI_URL: ${FWAPI_URL}"
 echo "#  VMAPI_URL: ${VMAPI_URL}"
