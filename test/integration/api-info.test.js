@@ -50,6 +50,7 @@ test('setup', function (tt) {
 
     tt.test('client init', function (t) {
         h.createDockerRemoteClient(ALICE, function (err, client) {
+            t.ifErr(err, 'docker client init');
             CLIENT = client;
             t.end();
         });
