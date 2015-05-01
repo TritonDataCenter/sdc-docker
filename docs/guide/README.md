@@ -1,18 +1,20 @@
 ---
-title: SDC Docker User Guide
+title: SDC Docker Operators Guide
 markdown2extras: tables, code-friendly, cuddled-lists, link-patterns
 markdown2linkpatternsfile: link-patterns.txt
 ---
 
-# Docker on SmartDataCenter User Guide
+# SDC Docker Operations
 
 Welcome to Docker on SmarDataCenter. The Docker Engine for SDC is currently in
 alpha and under heavy development. The current focus is stabilization and
 filling out support for *running* Docker containers.
 
-This document is meant as a user guide for those getting started using a Docker
-on SmartDataCenter service, e.g. the beta service in Joyent's public cloud
-(details below). If you are interested in running or developing
+SDC Docker is a Docker Engine for SmartDataCenter (SDC) where the entire DC is
+exposed as a single Docker host. The SDC Docker engine runs as the 'docker' SMF
+service in a 'docker' core SDC zone.
+
+This document includes details on operating an SDC Docker image. If you are interested in developing
 the Docker Engine for SDC, see the [sdc-docker README](https://github.com/joyent/sdc-docker/blob/master/README.md).
 
 The Docker Engine for SmartDataCenter treats the entire data center as
@@ -31,7 +33,6 @@ And the full stack is open source: [sdc-docker](https://github.com/joyent/sdc-do
 [SmartDataCenter](https://github.com/joyent/sdc),
 and [SmartOS](https://github.com/joyent/smartos-live).
 
-
 **A note for users of Joyent's public cloud:** Joyent is hosting a beta of
 their Docker service. Please sign up at https://www.joyent.com/lp/preview and
 read on for the settings for the standard Docker client.
@@ -45,47 +46,83 @@ Docker containers. Support for building images (`docker build`) is forthcoming.
 Please [report issues](https://github.com/joyent/sdc-docker/issues),
 give us feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
 
+### 3. sdc-docker-setup.sh
 
-## Table of Contents
+Now that you have access to a SmartDataCenter, we will set up authentication
+to the Docker host. SDC Docker uses Docker's TLS authentication. This section
+will show you how to create a TLS client certificate from the SSH key you
+created in the previous section. Then we'll configure `docker` to send that
+client certificate to identify requests as coming from you.
 
-- [User Guide](./index.md)
-- [Troubleshooting](./troubleshooting.md)
-- [Divergence from Docker Inc. `docker`](./divergence.md)
+Follow the steps in [the API guide to get connected and start using SDC Docker](../api/README.md).
 
 
-# Getting Started
+## Package Selection
 
-*This section will use the current Joyent public cloud Docker beta for examples.
-Note that the same instructions hold for any sdc-docker standup.*
+If the docker client specifies either -m (memory) or -c (cpu_shares), we'll look
+through the list of packages with packagePrefix* as their name, and find the
+smallest package which has values larger than both provided. If no value is
+provided for cpu_shares, this parameter is ignored. If no value is provided for
+memory, the defaultMemory value is used as though the user had passed that.
+
+
+## Service Configuration
+
+The SDC Docker service can be configured with the following Service API
+(SAPI) metadata values.
+
+| Key                            | Type    | Default | Description                                                                  |
+| ------------------------------ | ------- | ------- | ----------- |
+| **USE_TLS**                    | Boolean | false   | Turn on TLS authentication. |
+| **DEFAULT_MEMORY**       | Number | 1024 | The default ram/memory to use for docker containers. |
+| **PACKAGE_PREFIX** | String | 'sample-'    | The prefix for packages to use for docker container package selection. |
+
+### Example
+
+    docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
+    sdc-sapi /services/$docker_svc -X PUT -d '{ "metadata": { "USE_TLS": true } }'
+
+
+## Configuration
+
+Reference docs on configuration vars to sdc-docker. Configuration is loaded
+from "etc/config.json" in the sdc-docker installation. In SDC this is
+typically written out by config-agent using the
+"sapi_manifests/docker/template".
+
+| var | type | default | description |
+| --- | ---- | ------- | ----------- |
+| datacenterName | String | coal | Data center name to use as the Docker engine name. |
+| defaultMemory | Number | 1024 | The amount of memory to choose if no -m is provided. |
+| packagePrefix | String | sample- | PAPI will be consulted with a request PREFIX* when looking for packages |
+| externalNetwork | String | external | The network name (in NAPI) from which select an IP for docker container provisioning *in non-overlay networks mode*. |
+| port | Number | 2375 | Port number on which the Docker engine listens. |
+| logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
+| maxSockets | Number | 100 | Maximum number of sockets for external API calls |
+| backend | String | sdc | One of 'sdc' (all of SDC is a docker host) or 'lxzone' (just the CN is the docker host, this requires running the docker service in the GZ, not currently supported). |
+| moray.host | String | - | The Moray server hostname for this DC. |
+| moray.port | Number | 2020 | Port number on which the Moray server listens. |
+| moray.logLevel | String/Number | info | Level at which the Moray client should log. One of the supported Bunyan log levels. |
+| registry.indexUrl | String | - | The Docker Registry Index URL |
+| registry.registryUrl | String | - | The Docker Registry Hub URL |
+| cnapi.url | String | - | The CNAPI URL for this DC. |
+| imgapi.url | String | - | The IMGAPI URL for this DC. |
+| napi.url | String | - | The NAPI URL for this DC. |
+| papi.url | String | - | The PAPI URL for this DC. |
+| vmapi.url | String | - | The VMAPI URL for this DC. |
+| wfapi.url | String | - | The WFAPI URL for this DC. |
+
+## Client usage
 
 The Docker Engine for SDC is all about using the `docker` CLI. So all that is
 required is to set up an account with a SmartDataCenter cloud and to configure
 your environment variables for the `docker` client.
 
-1. Install `docker`.
-2. Setup an account with the SmartDataCenter, in this case
-   the [Joyent Public Cloud](https://my.joyent.com).
-3. Run the 'sdc-docker-setup.sh' script to set the env.
+### 2. Set Up an SDC Account
 
+See the [User Management](https://docs.joyent.com/sdc7/user-management) operator guide documentation on how to create a user in SmartDataCenter.
 
-## 1. Install `docker`
-
-If you have docker version 1.4.1 or higher then you can move on to the next
-step. *Note: The minimum docker client version might be raised to 1.5.0.*
-
-    $ docker --version
-    Docker version 1.4.1, build 5bc2ff8
-
-Otherwise, please follow [Docker's own installation
-instructions](https://docs.docker.com/installation/#installation).
-Unfortunately, it's not Docker does not yet have a standalone client
-(i.e. you have to also install the Docker Engine, a.k.a. daemon, on
-your computer).
-
-
-## 2. Set Up an SDC Account
-
-The SmartDataCenter CLI environment is not necessary for to use Docker on SDC,
+The [SmartDataCenter CLI environment](https://apidocs.joyent.com/cloudapi/#getting-started) is not necessary for to use Docker on SDC,
 but for beta testing it will be helpful. To test that your
 SmartDataCenter client environment is configured, you can run `sdc-getaccount`:
 
@@ -99,53 +136,10 @@ SmartDataCenter client environment is configured, you can run `sdc-getaccount`:
       ...
     }
 
-If sdc-getaccount works, then move on to [the next step](#3-sdc-docker-setup).
-Otherwise:
-
-1. [Create](https://my.joyent.com/landing/signup/) or [sign in](https://my.joyent.com)
-   to your Joyent Cloud account,
-2. [Add an SSH public key to your account.](https://my.joyent.com/main/#!/account)
-   and,
-3. Install [SDC CLI](https://apidocs.joyent.com/cloudapi/#getting-started) and
-   configure the SDC env.
-
-If you have one, use your existing SSH public key. If you don't have a key pair,
- you can create a new one via something like:
-
-    # Create an SSH public/private key pair of type "RSA", with no passphrase
-    # (you can add a passphrase if you like, drop the '-P ""').
-    ssh-keygen -t rsa -b 4096 -C "my-sdc-docker-key" -P "" -f ~/.ssh/sdc-docker.id_rsa
-
-This will create:
-
-    ~/.ssh/sdc-docker.id_rsa      # your private key file
-    ~/.ssh/sdc-docker.id_rsa.pub  # your public key file
-
-It is the *public* key, the ending .pub, that you want to upload via the
-"Import Public Key" button on [your account page](https://my.joyent.com/main/#!/account).
-
-For more details on account setup and adding an SSH key, see [the Joyent
-Cloud Getting Started documentation](https://docs.joyent.com/jpc/getting-started-with-your-joyent-cloud-account).
-
-You can now set up the SDC command line tools (called node-smartdc). See the
-[CloudAPI Getting Started documentation](https://apidocs.joyent.com/cloudapi/#getting-started).
-
-(For those using an SDC Docker standup other than the Joyent public cloud,
-see the [User Management](https://docs.joyent.com/sdc7/user-management) operator
-guide docs.)
+If `sdc-getaccount` works, then complete the [steps to configure the Docker client in the API guide](../api/).
 
 
-## 3. sdc-docker-setup.sh
-
-Now that you have access to a SmartDataCenter, we will set up authentication
-to the Docker host. SDC Docker uses Docker's TLS authentication. This section
-will show you how to create a TLS client certificate from the SSH key you
-created in the previous section. Then we'll configure `docker` to send that
-client certificate to identify requests as coming from you.
-
-Follow the steps in [the API guide to get connected and start using SDC Docker](../api/README.md).
-
-# TODO
+## TODO
 
 - where to go if hit troubles
 - usage examples

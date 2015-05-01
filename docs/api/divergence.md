@@ -76,9 +76,9 @@ Actions performed against sdc-docker are slower, and sometimes _much_ slower
 than those same actions performed against a local docker. This is something we
 are working on, and intend to keep improving over time.
 
-## Docker methods
+## Docker Remote API methods and Docker CLI commands
 
-In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see restart policies). Please see documentation for specific methods for any known divergence and file bugs as needed.
+In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see restart policies). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
 
 SDC Docker implements all the API methods necessary to deploy Docker containers in the cloud, but is notably missing methods necessary to build containers. For that, please continue using Docker on your laptop for now, though we definitely want to support those features in the future.
 

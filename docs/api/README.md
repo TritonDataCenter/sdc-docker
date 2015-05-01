@@ -102,6 +102,9 @@ Execution Driver: sdc-0.1.0
 Operating System: SmartDataCenter
 Name: us-east-3b
 ```
+## Troubleshooting API connection problems
+
+See our [guide to common API connection problems](./troubleshooting.md).
 
 ## Features
 
@@ -112,7 +115,7 @@ SDC Docker offers a number of features unique to Triton's container-native infra
 1. [Resource allocation: specify RAM, CPU, and storage for each container](features/resources.md).
 1. [Volumes: container-native volume management](features/volumes.md).
 
-## Methods
+## Docker CLI commands and Docker Remote API methods
 
 [insert list of methods here]
 
