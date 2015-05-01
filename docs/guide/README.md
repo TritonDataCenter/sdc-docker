@@ -143,58 +143,7 @@ will show you how to create a TLS client certificate from the SSH key you
 created in the previous section. Then we'll configure `docker` to send that
 client certificate to identify requests as coming from you.
 
-We have a 'sdc-docker-setup.sh' script to help with this:
-
-    curl -O https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh
-    sh sdc-docker-setup.sh <CLOUDAPI> <ACCOUNT> ~/.ssh/<PRIVATE_KEY_FILE>
-
-For example, if you created an account with the "jill" login name and a key
-file "~/.ssh/sdc-docker.id_rsa" as in the previous section, then
-
-    sh sdc-docker-setup.sh https://us-east-3b.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
-
-That should output something like the following:
-
-    Setting up Docker client for SDC using:
-        CloudAPI:        https://us-east-3b.api.joyent.com
-        Account:         jill
-        Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
-    
-    If you have a pass phrase on your key, the openssl command will
-    prompt you for your pass phrase now and again later.
-    
-    Verifying CloudAPI access.
-    CloudAPI access verified.
-    
-    Generating client certificate from SSH private key.
-    writing RSA key
-    Wrote certificate files to /Users/localuser/.sdc/docker/jill
-    
-    Get Docker host endpoint from cloudapi.
-    Docker service endpoint is: tcp://165.225.168.25:2376
-    
-    * * *
-    Success. Set your environment as follows: 
-    
-        export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-        export DOCKER_HOST=tcp://165.225.168.25:2376
-        alias docker="docker --tls"
-    
-    Then you should be able to run 'docker info' and see your account
-    name 'SDCAccount: jill' in the output.
-
-Run those `export` and `alias` commands in your shell and you should now
-be able to run `docker`:
-
-    $ docker info
-    Containers: 0
-    Images: 0
-    Storage Driver: sdc
-     SDCAccount: jill
-    Execution Driver: sdc-0.1.0
-    Operating System: SmartDataCenter
-    Name: us-east-3b
-
+Follow the steps in [the API guide to get connected and start using SDC Docker](../api/README.md).
 
 # TODO
 
