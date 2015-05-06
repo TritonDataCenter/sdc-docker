@@ -14,6 +14,7 @@ export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}
 set -o xtrace
 set -o errexit
 
+DEFAULT_HOSTNAME="*.sdc-docker"
 PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 role=docker
 
@@ -23,9 +24,11 @@ function setup_tls_certificate() {
 	else
 		echo "Generating TLS Certificate"
 		mkdir -p /data/tls
-		/opt/local/bin/openssl req -x509 -nodes -subj '/CN=*' -newkey rsa:2048 \
-		    -keyout /data/tls/key.pem \
+		/opt/local/bin/openssl req -x509 -nodes -subj "/CN=$DEFAULT_HOSTNAME" \
+            -newkey rsa:2048 -keyout /data/tls/key.pem \
 		    -out /data/tls/cert.pem -days 365
+        # Remember the certificate's host name used in the cert.
+        echo "$HOST" > /data/tls/hostname
 	fi
 }
 

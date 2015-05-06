@@ -229,6 +229,20 @@ function cloudapiGetDockerService() {
     fi
 }
 
+function downloadCaCertificate()
+{
+    local dockerHttpsUrl="https://$1"
+    local outFile=$2
+    local curlOpts=""
+
+    if [[ "$coal" == "true" || $optInsecure == "true" ]]; then
+        curlOpts="-k"
+    fi
+
+    curl $CURL_OPTS $curlOpts --connect-timeout 10 \
+        --url "$dockerHttpsUrl/ca.pem" -o $outFile 2>/dev/null
+}
+
 
 
 # ---- mainline
@@ -381,24 +395,32 @@ certDir="$CERT_BASE_DIR/$account"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
+caPath=$certDir/ca.pem
 
 mkdir -p $(dirname $keyPath)
 openssl rsa -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
 openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
 # TODO: expiry?
 openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/null 2>/dev/null
+rm $csrPath    # The signing request has been used - remove it.
 info "Wrote certificate files to $certDir"
 info ''
 
 if [[ $optForce != "true" ]]; then
     info "Get Docker host endpoint from cloudapi."
     dockerService=$(cloudapiGetDockerService "$cloudapiUrl" "$account" "$sshPrivKeyPath" "$sshKeyId")
+    dockerHostAndPort=${dockerService#*://}   # remove 'tcp://' from start
+    dockerHost=${dockerHostAndPort%:*}        # remove ':2376' from end
+    dockerPort=${dockerHostAndPort#*:}        # remove everything before ':2376'
     if [[ -n "$dockerService" ]]; then
         info "Docker service endpoint is: $dockerService"
     else
         info "Could not discover service endpoint for DOCKER_HOST from CloudAPI."
     fi
 fi
+
+# Add the sdc-docker ca.pem (server certificate verification).
+downloadCaCertificate $dockerHostAndPort $caPath
 
 # TODO: success even if can't discover service endpoint for docker?
 info ""
@@ -422,14 +444,27 @@ if [[ -n "$optSdcSetup" ]]; then
     fi
 fi
 envInfo "export DOCKER_CERT_PATH=$certDir"
-envInfo "unset DOCKER_TLS_VERIFY"
 if [[ -n "$dockerService" ]]; then
     envInfo "export DOCKER_HOST=$dockerService"
+    if [[ $dockerHost =~ ^[0-9]+ ]]; then
+        # IP address - let them know a FQDN is needed to use DOCKER_TLS_VERIFY.
+        dockerHostname="my.sdc-docker"
+        envInfo "unset DOCKER_TLS_VERIFY"
+        info ""
+        info "In order to run docker with TLS verification, you'll need to use"
+        info "a fully qualified hostname and set DOCKER_TLS_VERIFY=1, example:"
+        info ""
+        info "    echo '${dockerHost}    ${dockerHostname}' >> /etc/hosts"
+        info "    export DOCKER_TLS_VERIFY=1"
+        info "    export DOCKER_HOST=tcp://${dockerHostname}:${dockerPort}"
+    else
+        # Fully qualified domain name... assume the cert is already setup.
+        envInfo "export DOCKER_TLS_VERIFY=1"
+    fi
 else
     envInfo "# See the product docs for the value to use for DOCKER_HOST."
     envInfo "export DOCKER_HOST='tcp://<HOST>:2376'"
 fi
-envInfo "alias docker=\"docker --tls\""
 info ""
 info "Then you should be able to run 'docker info' and see your account"
 info "name 'SDCAccount: ${account}' in the output."
