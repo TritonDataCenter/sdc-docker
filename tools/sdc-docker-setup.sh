@@ -455,8 +455,9 @@ if [[ -n "$dockerService" ]]; then
         info "a fully qualified hostname and set DOCKER_TLS_VERIFY=1, example:"
         info ""
         info "    echo '${dockerHost}    ${dockerHostname}' >> /etc/hosts"
-        info "    export DOCKER_TLS_VERIFY=1"
+        info "    export DOCKER_CERT_PATH=$certDir"
         info "    export DOCKER_HOST=tcp://${dockerHostname}:${dockerPort}"
+        info "    export DOCKER_TLS_VERIFY=1"
     else
         # Fully qualified domain name... assume the cert is already setup.
         envInfo "export DOCKER_TLS_VERIFY=1"
