@@ -422,14 +422,12 @@ if [[ -n "$optSdcSetup" ]]; then
     fi
 fi
 envInfo "export DOCKER_CERT_PATH=$certDir"
-envInfo "unset DOCKER_TLS_VERIFY"
 if [[ -n "$dockerService" ]]; then
     envInfo "export DOCKER_HOST=$dockerService"
 else
     envInfo "# See the product docs for the value to use for DOCKER_HOST."
     envInfo "export DOCKER_HOST='tcp://<HOST>:2376'"
 fi
-envInfo "alias docker=\"docker --tls\""
 info ""
 info "Then you should be able to run 'docker info' and see your account"
 info "name 'SDCAccount: ${account}' in the output."
