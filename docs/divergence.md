@@ -211,11 +211,6 @@ not supported at this time.
 If fabric networking is not enabled, all docker containers are provisioned with
 a nic on the 'external' network by default.
 
-Currently, the `--link` option to `docker create` and `docker run` is
-unimplemented (see [DOCKER-75](http://smartos.org/bugview/DOCKER-75) for
-updates) - however, containers are still able to connect to each other on the
-networks mentioned above.
-
 ## Current Differences as Experienced by cmdline Clients
 
 Currently error messages returned by 'docker' when talking to sdc-docker will
@@ -254,8 +249,6 @@ implemented. Differences include:
  * --ipc which is unsupported
  * --label which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
  * --label-file which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
- * --link which is unimplemented (links to another container)
-     * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
  * --mac-address which is unsupported
@@ -428,8 +421,6 @@ implemented. Differences include:
  * --ipc which is unsupported
  * --label which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
  * --label-file which is unsupported ([DOCKER-359](http://smartos.org/bugview/DOCKER-359))
- * --link which is unimplemented (links to another container)
-     * [DOCKER-75](http://smartos.org/bugview/DOCKER-75)
  * --log-driver which is unsupported
  * --lxc-conf which is unsupported (LXC specific)
  * --mac-address which is unsupported
