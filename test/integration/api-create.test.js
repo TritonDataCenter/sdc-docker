@@ -54,6 +54,10 @@ test('setup', function (tt) {
             t.ok(env, 'have a DockerEnv for alice');
             ALICE = env;
 
+            // We create Bob here, who is permanently set as unprovisionable
+            // below. Docker's ufds client caches account values, so mutating
+            // Alice isn't in the cards (nor is Bob -- which is why we don't
+            // set Bob provisionable when this test file completes).
             h.getDockerEnv(t, STATE, {account: 'sdcdockertest_bob'},
                     function (err2, env2) {
                 t.ifErr(err2, 'docker env: bob');
@@ -129,7 +133,9 @@ test('api: create', function (tt) {
         function oncreate(err, result) {
             t.ok(err, 'should not create without approved_for_provisioning');
             t.equal(err.statusCode, 403);
-            t.ok(err.message.match('Do not have permission to provision'));
+
+            var expected = BOB.login + ' does not have permission to provision';
+            t.ok(err.message.match(expected));
 
             t.end();
         }
