@@ -42,9 +42,12 @@ test('setup', function (tt) {
 
     tt.test('docker env', function (t) {
         function setProvisioning(login, val, cb) {
-            var s = '/opt/smartdc/bin/sdc-useradm replace-attr %s \
+            var s = '/opt/smartdc/bin/sdc sdc-useradm replace-attr %s \
                 approved_for_provisioning %s';
             var cmd = fmt(s, login, val);
+            if (BOB.state.runningFrom === 'remote') {
+                cmd = 'ssh ' + BOB.state.headnodeSsh + ' ' + cmd;
+            }
             exec(cmd, cb);
         }
 
