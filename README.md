@@ -108,7 +108,8 @@ that can always be overridden with the following commands:
         sdcadm experimental install-docker-cert -k /var/tmp/my-key.pem -c /var/tmp/my-cert.pem
 
 This command will automatically restart the SDC Docker service so certificate
-changes will take effect immediately.
+changes will take effect immediately. After changing the TLS certificates, you
+will need to re-run the ./tools/sdc-docker-setup.sh script.
 
 # Running SDC docker in invite-only mode
 
@@ -217,8 +218,8 @@ environment. To run the docker cli tests against coal, you will need a local
 docker binary and go (golang) installed, then do the following:
 
     # Target coal
-    export DOCKER_HOST=tcp://10.88.88.6
-    export DOCKER_TEST_HOST=tcp://10.88.88.6
+    export DOCKER_HOST=tcp://my.docker.coal:2376
+    export DOCKER_TEST_HOST=$DOCKER_HOST
 
     # Set go path, so `go get` works correctly
     mkdir go && cd go

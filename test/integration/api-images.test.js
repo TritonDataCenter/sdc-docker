@@ -24,7 +24,9 @@ var h = require('./helpers');
 // --- Globals
 
 var ALICE;
-var DOCKER;
+var BOB;
+var DOCKER_ALICE;
+var DOCKER_BOB;
 var STATE = {
     log: require('../lib/log')
 };
@@ -36,11 +38,11 @@ var STATE = {
 test('setup', function (tt) {
 
     tt.test('docker env', function (t) {
-        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
-                function (err, env) {
-            t.ifErr(err, 'docker env: alice');
-            t.ok(env, 'have a DockerEnv for alice');
-            ALICE = env;
+        h.initDockerEnv(t, STATE, {}, function (err, accounts) {
+            t.ifErr(err);
+
+            ALICE = accounts.alice;
+            BOB   = accounts.bob;
 
             t.end();
         });
@@ -50,8 +52,14 @@ test('setup', function (tt) {
     tt.test('docker client init', function (t) {
         h.createDockerRemoteClient(ALICE, function (err, client) {
             t.ifErr(err, 'docker client init');
-            DOCKER = client;
-            t.end();
+            DOCKER_ALICE = client;
+
+            h.createDockerRemoteClient(BOB, function (err2, client2) {
+                t.ifErr(err2, 'docker client init for bob');
+                DOCKER_BOB = client2;
+
+                t.end();
+            });
         });
     });
 
@@ -61,7 +69,8 @@ test('setup', function (tt) {
 test('docker images', function (tt) {
 
     tt.test('list images', function (t) {
-        DOCKER.get('/v1.15/images/json', function (err, req, res, images) {
+        DOCKER_ALICE.get('/v1.15/images/json',
+                function (err, req, res, images) {
             t.error(err, 'should be no error retrieving images');
             // check for nginx image
 
@@ -77,7 +86,7 @@ test('docker images', function (tt) {
 
     tt.test('pull ubuntu image', function (t) {
         var url = '/v1.15/images/create?fromImage=ubuntu%3Alatest';
-        DOCKER.post(url, function (err, req, res) {
+        DOCKER_ALICE.post(url, function (err, req, res) {
             t.error(err, 'should be no error posting image create request');
 
             t.end();
@@ -86,7 +95,8 @@ test('docker images', function (tt) {
 
 
     tt.test('ensure ubuntu image is in the list', function (t) {
-        DOCKER.get('/v1.15/images/json', function (err, req, res, images) {
+        DOCKER_ALICE.get('/v1.15/images/json',
+                function (err, req, res, images) {
             t.error(err, 'should be no error retrieving images');
             t.ok(images.length, 'images array should not be empty');
             t.ok(images.map(function (image) {
@@ -99,7 +109,7 @@ test('docker images', function (tt) {
 
 
     tt.test('delete image', function (t) {
-        DOCKER.del('/v1.15/images/ubuntu', ondel);
+        DOCKER_ALICE.del('/v1.15/images/ubuntu', ondel);
         function ondel(err, req, res) {
             t.error(err, 'should be no error retrieving images');
             t.end();
@@ -108,7 +118,8 @@ test('docker images', function (tt) {
 
 
     tt.test('ensure image is gone', function (t) {
-        DOCKER.get('/v1.15/images/json', function (err, req, res, images) {
+        DOCKER_ALICE.get('/v1.15/images/json',
+                function (err, req, res, images) {
             t.error(err, 'should be no error retrieving images');
 
             t.ok(images.length, 'images array should not be empty');
@@ -120,6 +131,21 @@ test('docker images', function (tt) {
                 found.filter(function (i) { return i; }),
                 [],
                 'ubuntu image should have been deleted');
+            t.end();
+        });
+    });
+
+    tt.test('pull image without approved_for_provisioning', function (t) {
+        var url = '/v1.15/images/create?fromImage=ubuntu%3Alatest';
+        DOCKER_BOB.post(url, function (err, req, res) {
+            t.ok(err, 'should not pull without approved_for_provisioning');
+
+            t.equal(err.statusCode, 403);
+
+            var expected = BOB.login + ' does not have permission to pull or '
+                + 'provision';
+            t.ok(err.message.match(expected));
+
             t.end();
         });
     });
