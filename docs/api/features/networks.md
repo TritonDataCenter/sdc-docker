@@ -26,8 +26,3 @@ not supported at this time.
 
 If fabric networking is not enabled, all docker containers are provisioned with
 a nic on the 'external' network by default.
-
-Currently, the `--link` option to `docker create` and `docker run` is
-unimplemented (see [DOCKER-75](http://smartos.org/bugview/DOCKER-75) for
-updates) - however, containers are still able to connect to each other on the
-networks mentioned above.
