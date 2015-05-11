@@ -854,6 +854,59 @@ LocalDockerEnv.prototype.exec = function ldenvExec(cmd, opts, cb) {
  */
 
 /*
+ * Get `*DockerEnv` wrappers for several test accounts, setting them up in the
+ * DC if necessary. Callback returns (err, accounts), where accounts is a hash
+ * of account objects.
+ */
+function initDockerEnv(t, state, opts, cb) {
+    // if account does not have approved_for_provisioning set to val, set it
+    function setProvisioning(env, val, next) {
+        if (env.account.approved_for_provisioning === '' + val) {
+            next(null);
+            return;
+        }
+
+        var s = '/opt/smartdc/bin/sdc sdc-useradm replace-attr %s \
+            approved_for_provisioning %s';
+        var cmd = fmt(s, env.login, val);
+
+        if (env.state.runningFrom === 'remote') {
+            cmd = 'ssh ' + env.state.headnodeSsh + ' ' + cmd;
+        }
+
+        exec(cmd, next);
+    }
+
+    getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
+            function (err, alice) {
+        t.ifErr(err, 'docker env: alice');
+        t.ok(alice, 'have a DockerEnv for alice');
+
+        // We create Bob here, who is permanently set as unprovisionable
+        // below. Docker's ufds client caches account values, so mutating
+        // Alice isn't in the cards (nor is Bob -- which is why we don't
+        // set Bob provisionable when this test file completes).
+        getDockerEnv(t, state, {account: 'sdcdockertest_bob'},
+                function (err2, bob) {
+            t.ifErr(err2, 'docker env: bob');
+            t.ok(bob, 'have a DockerEnv for bob');
+
+            setProvisioning(bob, false, function (err3) {
+                t.ifErr(err3, 'set bob unprovisionable');
+
+                var accounts = {
+                    alice: alice,
+                    bob: bob
+                };
+
+                cb(null, accounts);
+                return;
+            });
+        });
+    });
+}
+
+/*
  * Get a `*DockerEnv` wrapper for a given account, setting it up in the DC
  * if necessary.
  *
@@ -1150,6 +1203,7 @@ module.exports = {
     createFwapiClient: createFwapiClient,
     createVmapiClient: createVmapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
+    initDockerEnv: initDockerEnv,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
 

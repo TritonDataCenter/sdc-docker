@@ -41,37 +41,13 @@ var VMAPI;
 test('setup', function (tt) {
 
     tt.test('docker env', function (t) {
-        function setProvisioning(login, val, cb) {
-            var s = '/opt/smartdc/bin/sdc sdc-useradm replace-attr %s \
-                approved_for_provisioning %s';
-            var cmd = fmt(s, login, val);
-            if (BOB.state.runningFrom === 'remote') {
-                cmd = 'ssh ' + BOB.state.headnodeSsh + ' ' + cmd;
-            }
-            exec(cmd, cb);
-        }
+        h.initDockerEnv(t, STATE, {}, function (err, accounts) {
+            t.ifErr(err);
 
-        h.getDockerEnv(t, STATE, {account: 'sdcdockertest_alice'},
-                function (err, env) {
-            t.ifErr(err, 'docker env: alice');
-            t.ok(env, 'have a DockerEnv for alice');
-            ALICE = env;
+            ALICE = accounts.alice;
+            BOB   = accounts.bob;
 
-            // We create Bob here, who is permanently set as unprovisionable
-            // below. Docker's ufds client caches account values, so mutating
-            // Alice isn't in the cards (nor is Bob -- which is why we don't
-            // set Bob provisionable when this test file completes).
-            h.getDockerEnv(t, STATE, {account: 'sdcdockertest_bob'},
-                    function (err2, env2) {
-                t.ifErr(err2, 'docker env: bob');
-                t.ok(env2, 'have a DockerEnv for bob');
-                BOB = env2;
-
-                setProvisioning(BOB.login, false, function (err3) {
-                    t.ifErr(err3, 'set bob unprovisionable');
-                    t.end();
-                });
-            });
+            t.end();
         });
     });
 
@@ -137,7 +113,8 @@ test('api: create', function (tt) {
             t.ok(err, 'should not create without approved_for_provisioning');
             t.equal(err.statusCode, 403);
 
-            var expected = BOB.login + ' does not have permission to provision';
+            var expected = BOB.login + ' does not have permission to pull or '
+                + 'provision';
             t.ok(err.message.match(expected));
 
             t.end();
