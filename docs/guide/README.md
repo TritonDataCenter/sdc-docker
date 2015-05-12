@@ -59,10 +59,10 @@ Follow the steps in [the API guide to get connected and start using SDC Docker](
 
 ## Package Selection
 
-If the docker client specifies either -m (memory) or -c (cpu_shares), we'll look
-through the list of packages with packagePrefix* as their name, and find the
+If the docker client specifies either -m (memory) or -c (cpu\_shares), we'll look
+through the list of packages with `packagePrefix*` as their name, and find the
 smallest package which has values larger than both provided. If no value is
-provided for cpu_shares, this parameter is ignored. If no value is provided for
+provided for `cpu_shares`, this parameter is ignored. If no value is provided for
 memory, the defaultMemory value is used as though the user had passed that.
 
 
@@ -94,7 +94,7 @@ typically written out by config-agent using the
 | --- | ---- | ------- | ----------- |
 | datacenterName | String | coal | Data center name to use as the Docker engine name. |
 | defaultMemory | Number | 1024 | The amount of memory to choose if no -m is provided. |
-| packagePrefix | String | sample- | PAPI will be consulted with a request PREFIX* when looking for packages |
+| packagePrefix | String | sample- | PAPI will be consulted with a request `PREFIX*` when looking for packages |
 | externalNetwork | String | external | The network name (in NAPI) from which select an IP for docker container provisioning *in non-overlay networks mode*. |
 | port | Number | 2375 | Port number on which the Docker engine listens. |
 | logLevel | String/Number | debug | Level at which to log. One of the supported Bunyan log levels. |
@@ -103,8 +103,6 @@ typically written out by config-agent using the
 | moray.host | String | - | The Moray server hostname for this DC. |
 | moray.port | Number | 2020 | Port number on which the Moray server listens. |
 | moray.logLevel | String/Number | info | Level at which the Moray client should log. One of the supported Bunyan log levels. |
-| registry.indexUrl | String | - | The Docker Registry Index URL |
-| registry.registryUrl | String | - | The Docker Registry Hub URL |
 | cnapi.url | String | - | The CNAPI URL for this DC. |
 | imgapi.url | String | - | The IMGAPI URL for this DC. |
 | napi.url | String | - | The NAPI URL for this DC. |

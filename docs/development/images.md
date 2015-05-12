@@ -247,6 +247,8 @@ ordering:
 
 ## sdc-docker storage of per-user Docker image data
 
+(Somewhat out of date. See the sdc-docker.git:lib/models files now.)
+
 Sdc-docker needs to store (a) the docker image tags per user, and (b) the set
 of pulled docker images per user. These will be in moray. Buckets:
 
