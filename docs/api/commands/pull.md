@@ -40,7 +40,10 @@ use `docker pull`:
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+`docker pull -a` is currently unsupported.
+
+Currently only pulls from Docker Hub (public repos) are supported. Follow
+[DOCKER-257](http://smartos.org/bugview/DOCKER-257) for status and progress.
 
 ## Related
 
