@@ -11,6 +11,14 @@
 
 # Run a single test of any type.
 
+if [ "$TRACE" != "" ]; then
+    export PS4='${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+    set -o xtrace
+fi
+set -o errexit
+set -o pipefail
+
+
 TOP=$(cd $(dirname $0)/../; pwd)
 NODE_INSTALL=$TOP/build/node
 TAPE=$TOP/node_modules/.bin/tape

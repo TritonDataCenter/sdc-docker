@@ -51,10 +51,6 @@
         "workflows": ["pull-image"],
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
-    "registry": {
-        "indexUrl": "https://index.docker.io",
-        "registryUrl": "https://registry-1.docker.io"
-    },
 
     "useTls": {{^USE_TLS}}false{{/USE_TLS}}{{#USE_TLS}}{{{USE_TLS}}}{{/USE_TLS}},
     "tls": {

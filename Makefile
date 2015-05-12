@@ -82,7 +82,7 @@ test: $(TAPE)
 #
 # - Integration tests that just call the docker client (i.e. that don't assume
 #   running in the GZ) can be run from your Mac's dev build, e.g.:
-# 	./test/runtest ./test/integration/cli/info.test.js
+# 	./test/runtest ./test/integration/info.test.js
 #
 .PHONY: test-integration-in-coal
 test-integration-in-coal: | $(TAPE)
