@@ -1,4 +1,4 @@
-# Docker on SmartDataCenter Troubleshooting Guide
+# SDC Docker client troubleshooting guide
 
 ## "Couldn't read ca cert ... ca.pem: no such file or directory"
 
