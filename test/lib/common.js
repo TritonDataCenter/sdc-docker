@@ -87,15 +87,16 @@ function execPlus(args, cb) {
         args.log.trace({exec: true, command: command, execOpts: execOpts,
             err: err, stdout: stdout, stderr: stderr}, 'exec done');
         if (err) {
-            var msg = fmt(
-                '%s:\n'
-                + '\tcommand: %s\n'
-                + '\texit status: %s\n'
-                + '\tstdout:\n%s\n'
-                + '\tstderr:\n%s',
-                args.errMsg || 'exec error', command, err.code,
-                stdout.trim(), stderr.trim());
-            cb(new VError(err, msg), stdout, stderr);
+            cb(
+                new VError(err,
+                    '%s:\n'
+                    + '\tcommand: %s\n'
+                    + '\texit status: %s\n'
+                    + '\tstdout:\n%s\n'
+                    + '\tstderr:\n%s',
+                    args.errMsg || 'exec error', command, err.code,
+                    stdout.trim(), stderr.trim()),
+                stdout, stderr);
         } else {
             cb(null, stdout, stderr);
         }
