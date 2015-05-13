@@ -2,7 +2,7 @@
 
     Usage: docker rename OLD_NAME NEW_NAME
 
-    rename a existing container to a NEW_NAME
+    rename an existing container to a NEW_NAME
 
 The `docker rename` command allows the container to be renamed to a different name.
 
@@ -12,4 +12,4 @@ There is no known divergence between the Triton SDC Docker and Docker Inc. imple
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`sdc-renamemachine`](https://apidocs.joyent.com/cloudapi/#RenameMachine) and `POST /my/machines/:id?action=rename` in CloudAPI

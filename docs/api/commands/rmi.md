@@ -75,4 +75,4 @@ Please contact Joyent support or file a ticket if you discover any other varianc
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker images`](../commands/images.md) 

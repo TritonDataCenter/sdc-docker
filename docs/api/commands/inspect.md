@@ -78,4 +78,5 @@ Please contact Joyent support or file a ticket if you discover any additional di
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker port`](../commands/port.md) as in `docker port $(docker ps -l -q)`
+- [`sdc-getmachine`](https://apidocs.joyent.com/cloudapi/#GetMachine) and `GET /my/machines/:id` in CloudAPI

@@ -447,7 +447,7 @@ set on the daemon.
 
 ## Divergence
 
-Triton's secure,, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation,  or networking, are more effective because of features unique to Triton.
+Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
 * `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md). 
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
@@ -470,4 +470,5 @@ Triton's secure,, multi-tenant, container-native environment imposes some differ
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker ps`](../commands/ps.md)
+- [`sdc-createmachine`](https://apidocs.joyent.com/cloudapi/#CreateMachine) and `POST /my/machines` in CloudAPI

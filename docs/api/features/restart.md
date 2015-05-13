@@ -1,4 +1,4 @@
-# Restart Policies
+# Restart policies
 
 The way containers are restarted with sdc-docker:
 

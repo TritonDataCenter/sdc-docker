@@ -46,4 +46,4 @@ Please contact Joyent support or file a ticket if you discover any additional di
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`sdc-deletemachine`](https://apidocs.joyent.com/cloudapi/#DeleteMachine) and `DELETE /my/machines/:id` in CloudAPI
