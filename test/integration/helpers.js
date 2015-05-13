@@ -114,7 +114,7 @@ function createClientOpts(name, callback) {
         if (err) {
             return callback(err);
         }
-        opts.url = fmt('http://%s.%s.%s:2375', name,
+        opts.url = fmt('https://%s.%s.%s:2376', name,
             config.datacenter_name,
             config.dns_domain);
 
