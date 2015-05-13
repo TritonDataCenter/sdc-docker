@@ -62,7 +62,7 @@ Please contact Joyent support or file a ticket if you discover any additional di
 
 ## Related
 
-- [`docker stop`](/docker/stop) as in `docker stop $(docker ps -a -q)`
-- [`docker rm`](/docker/rm) as in `docker rm $(docker ps -a -q)`
+- [`docker stop`](../commands/stop.md) as in `docker stop $(docker ps -a -q)`
+- [`docker rm`](../commands/rm.md) as in `docker rm $(docker ps -a -q)`
 - [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines) and `GET /my/machines` in CloudAPI
-- [`vmadm list`](https://link.to/) in SDC private API
+- [`vmadm list`](https://smartos.org/man/1m/vmadm) in SDC private API

@@ -121,4 +121,4 @@ There is no known divergence between the Triton SDC Docker and Docker Inc. imple
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker rmi`](../commands/rmi.md) 

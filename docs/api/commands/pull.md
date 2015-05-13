@@ -47,4 +47,5 @@ Currently only pulls from Docker Hub (public repos) are supported. Follow
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker images`](../commands/images.md)
+- [`docker rmi`](../commands/rmi.md)  

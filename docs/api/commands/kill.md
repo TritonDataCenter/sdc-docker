@@ -51,4 +51,5 @@ Please contact Joyent support or file a ticket if you discover any additional di
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker stop`](../commands/stop.md) as in `docker stop $(docker ps -a -q)`
+- [`sdc-stopmachine`](https://apidocs.joyent.com/cloudapi/#StopMachine) and `POST /my/machines/:id?action=stop` in CloudAPI

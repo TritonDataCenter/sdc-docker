@@ -12,4 +12,5 @@ Please contact Joyent support or file a ticket if you discover any other diverge
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`Analytics`](https://apidocs.joyent.com/cloudapi/#analytics) in CloudAPI
+- [`prstats`](https://smartos.org/man/1M/prstat) SmartOS utility
