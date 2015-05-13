@@ -243,6 +243,27 @@ function downloadCaCertificate()
         --url "$dockerHttpsUrl/ca.pem" -o $outFile 2>/dev/null
 }
 
+# Arguments:
+#   $1 - the function that will handle the printing
+#   $2 - the indentation string
+function sdcEnvConfiguration()
+{
+    local indent=$2
+    if [[ -n "$optSdcSetup" ]]; then
+        $1 "${indent}export SDC_URL=$cloudapiUrl"
+        $1 "${indent}export SDC_ACCOUNT=$account"
+        if [[ -f $sshPubKeyPath ]]; then
+            $1 "${indent}export SDC_KEY_ID=$(sshGetMD5Fingerprint $sshPubKeyPath)"
+        else
+            $1 "${indent}# Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
+            $1 "${indent}export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
+        fi
+        if [[ "$coal" == "true" || $optInsecure == "true" ]]; then
+            $1 "${indent}export SDC_TESTING=1"
+        fi
+    fi
+}
+
 
 
 # ---- mainline
@@ -430,19 +451,9 @@ info ""
 envFile=$certDir/env.sh
 rm -f $envFile
 touch $envFile
-if [[ -n "$optSdcSetup" ]]; then
-    envInfo "export SDC_URL=$cloudapiUrl"
-    envInfo "export SDC_ACCOUNT=$account"
-    if [[ -f $sshPubKeyPath ]]; then
-        envInfo "export SDC_KEY_ID=$(sshGetMD5Fingerprint $sshPubKeyPath)"
-    else
-        envInfo "# Could not calculate KEY_ID: SSH public key '$sshPubKeyPath' does not exist"
-        envInfo "export SDC_KEY_ID='<fingerprint of SSH public key for $(basename $sshPrivKeyPath)>'"
-    fi
-    if [[ "$coal" == "true" || $optInsecure == "true" ]]; then
-        envInfo "export SDC_TESTING=1"
-    fi
-fi
+
+sdcEnvConfiguration envInfo ""
+
 envInfo "export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
     envInfo "export DOCKER_HOST=$dockerService"
@@ -456,6 +467,7 @@ if [[ -n "$dockerService" ]]; then
         info "a fully qualified hostname and set DOCKER_TLS_VERIFY=1, example:"
         info ""
         info "    echo '${dockerHost}    ${dockerHostname}' >> /etc/hosts"
+        sdcEnvConfiguration info "    "
         info "    export DOCKER_CERT_PATH=$certDir"
         info "    export DOCKER_HOST=tcp://${dockerHostname}:${dockerPort}"
         info "    export DOCKER_TLS_VERIFY=1"
