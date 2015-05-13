@@ -10,7 +10,7 @@ relative to the root of the container's filesystem.
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+With sdc-docker, `docker cp` does not work against stopped containers. ([DOCKER-374](http://smartos.org/bugview/DOCKER-374))
 
 ## Related
 
