@@ -470,4 +470,7 @@ Triton's secure,, multi-tenant, container-native environment imposes some differ
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker exec`](/docker/exec) as in `docker exec $(docker ps -l -q) bash`
+- [`docker rm`](/docker/rm) as in `docker rm $(docker ps -a -q)`
+- [`docker stop`](/docker/run) as in `docker stop $(docker ps -a -q)`
+- [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines) and `GET /my/machines` in CloudAPI

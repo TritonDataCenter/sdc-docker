@@ -122,4 +122,7 @@ Please contact Joyent support or file a ticket if you discover any additional di
 
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker start`](/docker/start) as in `docker start $(docker ps -a -q)`
+- [`docker rm`](/docker/rm) as in `docker rm $(docker ps -a -q)`
+- [`docker run`](/docker/run) as in `docker run $(docker ps -a -q)`
+- [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines) and `GET /my/machines` in CloudAPI
