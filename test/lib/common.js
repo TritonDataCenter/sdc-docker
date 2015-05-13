@@ -88,7 +88,7 @@ function execPlus(args, cb) {
             err: err, stdout: stdout, stderr: stderr}, 'exec done');
         if (err) {
             cb(
-               new VError(err,
+                new VError(err,
                     '%s:\n'
                     + '\tcommand: %s\n'
                     + '\texit status: %s\n'

@@ -64,7 +64,10 @@ test('docker search', function (tt) {
      * quickly. For example on docker-docker:
      *
      *  $ time docker search localhost:4321/foo
-     *  FATA[0000] Error response from daemon: v1 ping attempt failed with error: Get http://localhost:4321/v1/_ping: dial tcp 127.0.0.1:5000: connection refused
+     *  FATA[0000] Error response from daemon: v1 \
+     *    ping attempt failed with error: Get \
+     *    http://localhost:4321/v1/_ping: dial tcp 127.0.0.1:5000: \
+     *    connection refused
      *
      *  real	0m0.192s
      *  user	0m0.150s
