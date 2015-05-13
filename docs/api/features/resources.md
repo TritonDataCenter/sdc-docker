@@ -1,4 +1,4 @@
-# Resource Allocation
+# Resource allocation
 
 When using sdc-docker, you can specify a `-m` value for memory and sdc-docker
 will select the container package that best matches the resources requested.

@@ -6,4 +6,4 @@ This command is currently unimplemented. Follow [DOCKER-78](http://smartos.org/b
 
 ## Related
 
-- [`MachineAudit`](https://apidocs.joyent.com/cloudapi/#MachineAudit) and `GET /my/machines/:id/audit` in CloudAPI
+- [`sdc-getmachineaudit`](https://apidocs.joyent.com/cloudapi/#MachineAudit) and `GET /my/machines/:id/audit` in CloudAPI
