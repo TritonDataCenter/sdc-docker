@@ -210,6 +210,12 @@ run from your Mac dev tree, e.g.:
 
     ./test/runtest ./test/integration/info.test.js
 
+# Testing locally
+
+It's also possible to run tests directly from your local development machine,
+by specifying the sdc environment and launching node on the test file(s):
+
+    FWAPI_URL=http://10.99.99.26 VMAPI_URL=http://10.99.99.27 node ./test/integration/run-ports.test.js
 
 # Official docker test suite
 
