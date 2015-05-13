@@ -450,6 +450,7 @@ if [[ -n "$dockerService" ]]; then
         # IP address - let them know a FQDN is needed to use DOCKER_TLS_VERIFY.
         dockerHostname="my.sdc-docker"
         envInfo "unset DOCKER_TLS_VERIFY"
+        envInfo "alias docker=\"docker --tls\""
         info ""
         info "In order to run docker with TLS verification, you'll need to use"
         info "a fully qualified hostname and set DOCKER_TLS_VERIFY=1, example:"
