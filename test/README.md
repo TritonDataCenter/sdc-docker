@@ -20,10 +20,14 @@ Or you can run a specific test file via:
 
 Integration tests run from the headnode GZ -- using an LX zone that hosts the
 `docker` client the test suites will call. See the "Integration tests design"
-section below for why.
+section below for why. To run the integration tests use:
 
-    ssh coal
-    /zones/$(vmadm lookup alias=docker0)/root/opt/smartdc/docker/test/runtests
+    make test-integration-in-coal
+
+It's also possible to run the integration tests on a per-file basis, though you
+will need to set the correct environment variables, example:
+
+    FWAPI_URL=http://10.99.99.26 VMAPI_URL=http://10.99.99.27 node ./test/integration/run-ports.test.js
 
 
 The [nightly](https://jenkins.joyent.us/view/nightly/) test system runs [the
