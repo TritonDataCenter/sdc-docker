@@ -20,7 +20,7 @@
     "sdc-bunyan-serializers": "git+ssh://git@github.com:joyent/sdc-bunyan-serializers.git#5454ae4",
     "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#aa56691",
     "sprintf": "~0.1.4",
-    "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#a7c674b76696fe7ab0fff1e2486f20d3af6a0d1a",
+    "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#c7aa563",
     "trace-event": "1.2.0",
     "vasync": "1.6.3",
     "verror": "1.6.0",
