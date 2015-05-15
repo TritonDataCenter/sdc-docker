@@ -231,7 +231,13 @@ function cliRun(t, opts, callback) {
 
         } else {
             t.ifErr(err, 'docker run');
-            t.equal(stderr, '', 'stderr');
+            // Docker run may need to download the image, which produces
+            // stderr - only allow for that case:
+            if (stderr &&
+                stderr.indexOf('Status: Downloaded newer image') === -1) {
+
+                t.equal(stderr, '', 'stderr');
+            }
         }
 
         if (id) {
