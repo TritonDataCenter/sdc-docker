@@ -82,6 +82,15 @@ test('api: create', function (tt) {
 
     var created;
 
+    tt.test('pull nginx image', function (t) {
+        var url = '/v1.15/images/create?fromImage=nginx%3Alatest';
+        DOCKER_ALICE.post(url, function (err, req, res) {
+            t.error(err, 'should be no error posting image create request');
+
+            t.end();
+        });
+    });
+
     tt.test('docker create', function (t) {
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -128,6 +137,14 @@ test('api: create', function (tt) {
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('delete nginx image', function (t) {
+        DOCKER_ALICE.del('/v1.15/images/nginx', ondel);
+        function ondel(err, req, res) {
+            t.error(err, 'should be no error deleting nginx');
             t.end();
         }
     });
