@@ -19,14 +19,14 @@ SDC zone built from this repo.
 
 For users of the beta service in Joyent's public cloud, or those using
 an SDC Docker stand up, but not administering it, please see the
-[User Guide](./docs/index.md).  The rest of this README is targetted at
+[User Guide](./docs/api/).  The rest of this README is targetted at
 *development* of sdc-docker.
 
 
 # Current State
 
 Many commands are currently at least partially implemented. See
-[docs/divergence.md](./docs/divergence.md) for details on where sdc-docker
+[docs/divergence.md](./docs/api/divergence.md) for details on where sdc-docker
 diverges from Docker Inc's docker.  While Joyent has deployed this into early
 access, this software is still under active development and should be used in
 production with care.
