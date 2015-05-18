@@ -9,7 +9,7 @@
     "bunyan": "1.3.2",
     "docker-registry-client": "git+ssh://git@github.com:joyent/node-docker-registry-client.git#d66119d7d210b0ef1758e92fedd37b97bc7aa54a",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
-    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#5e266a6",
+    "imgmanifest": "git+ssh://git@github.com:joyent/node-imgmanifest.git#e21ea53",
     "libuuid": "0.1.3",
     "lru-cache": "2.5.0",
     "lstream": "0.0.4",
