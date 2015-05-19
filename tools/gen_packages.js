@@ -160,6 +160,7 @@ function createPackage(pkg, callback)
 function processPackage(pkg, callback)
 {
     pkg.active = true;
+    pkg.billing_tag = pkg.name;
     pkg.default = !!pkg.default;
     pkg.fss = pkg.shares;
     pkg.max_lwps = MAX_LWPS;
