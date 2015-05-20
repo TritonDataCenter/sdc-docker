@@ -42,10 +42,28 @@ use `docker pull`:
 
 `docker pull -a` is currently unsupported.
 
-Currently only pulls from Docker Hub (public repos) are supported. Follow
-[DOCKER-257](http://smartos.org/bugview/DOCKER-257) for status and progress.
+Limited support for pulling from private registries. The current state: You can
+'docker login' and pull from private Docker Hub repos. There are a couple issues
+with other private registries
+([DOCKER-381](http://smartos.org/bugview/DOCKER-381)). There is a known issue
+with pulling from quay.io ([DOCKER-380](http://smartos.org/bugview/DOCKER-380)).
+sdc-docker requires a registry to be HTTPS *and* to have a verifiable cert (i.e.
+not self-signed certs). See [DOCKER-382](http://smartos.org/bugview/DOCKER-382)
+for allowing specifying per-user private registry certs. Only pulls from Docker
+Registry v1 is supported at this time
+([DOCKER-112](http://smartos.org/bugview/DOCKER-112) for v2 support).
+
+The first status line from a `docker pull` shows a UUID:
+
+    $ docker pull busybox
+    latest: Pulling from busybox (67c12cfb-f717-4bc6-b3a9-b558becf4bbb)
+    ...
+
+That UUID is an "request id" for the pull. It can be useful for auditing
+and internal debugging of sdc-docker.
+
 
 ## Related
 
 - [`docker images`](../commands/images.md)
-- [`docker rmi`](../commands/rmi.md)  
+- [`docker rmi`](../commands/rmi.md)
