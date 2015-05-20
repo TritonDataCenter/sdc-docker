@@ -68,11 +68,10 @@ To remove an image using its digest:
 
 SDC Docker does not support the following arguments for this command:
 
-* `--force` [DOCKER-182](http://smartos.org/bugview/DOCKER-182))
 * `--no-prune`
 
 Please contact Joyent support or file a ticket if you discover any other variance.
 
 ## Related
 
-- [`docker images`](../commands/images.md) 
+- [`docker images`](../commands/images.md)
