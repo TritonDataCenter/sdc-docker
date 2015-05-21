@@ -9,7 +9,7 @@ Each default fabric network is private to a user - one user's containers cannot
 connect to another's fabric IP addresses, and vice-versa.
 
 To isolate the traffic between different applications or groups of applications,
-users may use the CloudAPI to create additional networks on their fabrics.
+users may use the CloudAPI to create additional networks on their fabric.
 Any of these user-defined networks can be designated as the 'default' network 
 to be used for provisioning Docker containers. When you change the 'default'
 network, it affects only the newly provisioned containers.
