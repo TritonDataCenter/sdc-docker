@@ -1,8 +1,8 @@
 # Private repositories
 
-SDC-Docker supports the use of Docker images maintained in Docker Hub's public or private repos, or in self-hosted Docker repos hosted in your own application environment.  Images are uniquely identified by the repo namespace, i.e. [REPOHOST_OR_NAMESPACE/]IMAGE_NAME[:TAG]. You may connect to multiple repos at the same time and pull images from them without having to switch from one to another.
+SDC-Docker supports the use of Docker images maintained in Docker Hub's public or private repos, or in self-hosted Docker repos in your own application environment.  Images are uniquely identified by the repo namespace, i.e. [REPOHOST_OR_NAMESPACE/]IMAGE_NAME[:TAG]. You may connect to multiple repos at the same time and pull images from them without having to switch from one to another.
 
-## Using images with private repo hosted on Docker Hub
+## Using images in Docker Hub private repo
 
 If no server is specified, "https://index.docker.io/v1/" is the default. For example:
 
@@ -22,7 +22,7 @@ If no server is specified, "https://index.docker.io/v1/" is the default. For exa
 
 In `docker pull` and `docker run`, the image search goes across Docker Hub's public repo and the private repos you have logged in. As with Docker Inc. docker, `docker search` operation is confined to only the public repo.
 
-## Using images with private repo hosted outside of Docker Hub
+## Using images in self-hosted private repo
 
 All self-hosted private repos should have a fully qualified domain name and an authority-signed certificate. The end-point should be referenced in the image name when using docker pull/run/create operations.
 
