@@ -11,7 +11,8 @@ connect to another's fabric IP addresses, and vice-versa.
 To isolate the traffic between different applications or groups of applications,
 users may use the CloudAPI to create additional networks on their fabrics.
 Any of these user-defined networks can be designated as the 'default' network 
-to be used for provisioning Docker containers.
+to be used for provisioning Docker containers. When you change the 'default'
+network, it affects only the newly provisioned containers.
 
 All docker containers owned by a user have firewalls enabled by default, and
 their default policy is to block all incoming traffic and allow all outbound
