@@ -1119,11 +1119,6 @@ function createDockerContainer(opts, callback) {
         function (next) {
             // There is a dependency here, in order to create a nginx container,
             // the nginx image must first be downloaded.
-            if (dockerClient.haveCheckedForNginxImage) {
-                next(null);
-                return;
-            }
-
             log.debug('Checking for nginx docker image');
             dockerClient.get('/v1.15/images/json',
                     function (err, req, res, images) {
@@ -1139,12 +1134,10 @@ function createDockerContainer(opts, callback) {
 
                     dockerClient.post(url, function (err2, req2, res2) {
                         t.error(err2, 'pull nginx image - should be no error');
-                        dockerClient.haveCheckedForNginxImage = true;
                         next(null);
                     });
 
                 } else {
-                    dockerClient.haveCheckedForNginxImage = true;
                     next(null);
                 }
             });
