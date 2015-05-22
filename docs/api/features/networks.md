@@ -36,6 +36,6 @@ a nic on the 'external' network by default.
 
 ## Related
 
-- [`sdc-fabric vlan`](https://apidocs.joyent.com/cloudapi/#CreateFabricVlan) and `POST /my/fabrics/default/vlans` in CloudAPI
+- [`sdc-fabric vlan`](https://apidocs.joyent.com/cloudapi/#CreateFabricVLAN) and `POST /my/fabrics/default/vlans` in CloudAPI
 - [`sdc-fabric network`](https://apidocs.joyent.com/cloudapi/#CreateFabricNetwork) and `POST /my/fabrics/default/vlans/:id/networks` in CloudAPI
-- [`sdc-fabric networki set-default`](https://apidocs.joyent.com/cloudapi/#SetDefaultNetwork) and `PUT /my/config` in CloudAPI
+- [`sdc-fabric networki set-default`](https://apidocs.joyent.com/cloudapi/#UpdateConfig) and `PUT /my/config` in CloudAPI

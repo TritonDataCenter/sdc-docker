@@ -21,7 +21,7 @@ If you want to login to a self-hosted registry you can specify this by adding th
 
 The SDC Docker implementation does not support third-party registries at this time. Follow [DOCKER-380](https://smartos.org/bugview/DOCKER-380) for progress updates.
 
-Self-hosted private repos that use self-signed certificates are not supported. Follow [DOCKER-382](https://smartos.org/bugview/DOCKER-382) for progress updates. See also [repos](../features/repos.md).
+Self-hosted private repos that use self-signed certificates are not supported. Follow [DOCKER-382](https://smartos.org/bugview/DOCKER-382) for progress updates. See also [Private repositories](../features/repos.md).
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.
 

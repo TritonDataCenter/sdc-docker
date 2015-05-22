@@ -121,4 +121,6 @@ There is no known divergence between the Triton SDC Docker and Docker Inc. imple
 
 ## Related
 
+- [`docker inspect`](../commands/inspect.md) 
+- [`docker history`](../commands/history.md) 
 - [`docker rmi`](../commands/rmi.md) 
