@@ -19,8 +19,10 @@ more details on finding shared images from the command line.
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc.
+implementations of this method. Please contact Joyent support or file a ticket
+if you discover any.
 
 ## Related
 
-- [`docker pull`](../commands/pull.md) 
+- [`docker pull`](../commands/pull.md)

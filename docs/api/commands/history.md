@@ -24,14 +24,16 @@ To see how the `docker:apache` image was added to a container's base image:
     $ docker history docker:scm
     IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
     2ac9d1098bf1        3 months ago        /bin/bash                                       241.4 MB            Added Apache to Fedora base image
-    88b42ffd1f7c        5 months ago        /bin/sh -c #(nop) ADD file:1fd8d7f9f6557cafc7   373.7 MB            
-    c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mandvekar   0 B                 
+    88b42ffd1f7c        5 months ago        /bin/sh -c #(nop) ADD file:1fd8d7f9f6557cafc7   373.7 MB
+    c69cab00d6ef        5 months ago        /bin/sh -c #(nop) MAINTAINER Lokesh Mandvekar   0 B
     511136ea3c5a        19 months ago                                                       0 B                 Imported from -
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc.
+implementations of this method. Please contact Joyent support or file a ticket
+if you discover any.
 
 ## Related
 
-- [`docker inspect`](../commands/inspect.md) 
+- [`docker inspect`](../commands/inspect.md)

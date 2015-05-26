@@ -14,14 +14,18 @@
       -s, --size=false      Display total file sizes
       --since=""            Show created since Id or Name, include non-running
 
-`docker ps` will show only running containers by default. To see all containers us `docker ps -a`
+`docker ps` will show only running containers by default. To see all containers
+use `docker ps -a`.
 
-`docker ps` will group exposed ports into a single range if possible. E.g., a container that exposes TCP ports `100, 101, 102` will display `100-102/tcp` in the `PORTS` column.
+`docker ps` will group exposed ports into a single range if possible. E.g., a
+container that exposes TCP ports `100, 101, 102` will display `100-102/tcp` in
+the `PORTS` column.
 
 ## Filtering
 
-The filtering flag (`-f` or `--filter)` format is a `key=value` pair. If there is more
-than one filter, then pass multiple flags (e.g. `--filter "foo=bar" --filter "bif=baz"`)
+The filtering flag (`-f` or `--filter)` format is a `key=value` pair. If there
+is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar"
+--filter "bif=baz"`)
 
 Current filters:
  * id (container's id)
@@ -56,13 +60,17 @@ This shows all the containers that have exited with status of '0'
 
 ## Divergence
 
-This command does not support the *Size* field. All sizes will be returned as 0. See [DOCKER-285](http://smartos.org/bugview/DOCKER-285) to follow this issue.
+This command does not support the *Size* field. All sizes will be returned as 0.
+See [DOCKER-285](http://smartos.org/bugview/DOCKER-285) to follow this issue.
 
-Please contact Joyent support or file a ticket if you discover any additional divergence.
+Please contact Joyent support or file a ticket if you discover any additional
+divergence.
 
 ## Related
 
-- [`docker inspect`](../commands/inspect.md) as in `docker inspect $(docker ps -l -q)`
+- [`docker inspect`](../commands/inspect.md) as in
+  `docker inspect $(docker ps -l -q)`
 - [`docker rm`](../commands/rm.md) as in `docker rm $(docker ps -a -q)`
-- [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines) and `GET /my/machines` in CloudAPI
+- [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines)
+  and `GET /my/machines` in CloudAPI
 - [`vmadm list`](https://smartos.org/man/1m/vmadm) in SDC private API

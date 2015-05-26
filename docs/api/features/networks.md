@@ -2,7 +2,7 @@
 
 If fabric networking is enabled for sdc-docker, each docker container is
 provisioned with a private nic on the user's default fabric. This allows
-only other docker containers provisioned on that fabric to connect to each 
+only other docker containers provisioned on that fabric to connect to each
 other. The container is able to reach the external internet via [Network
 Address Translation](http://en.wikipedia.org/wiki/Network_address_translation).
 Each default fabric network is private to a user - one user's containers cannot
@@ -10,7 +10,7 @@ connect to another's fabric IP addresses, and vice-versa.
 
 To isolate the traffic between different applications or groups of applications,
 users may use the CloudAPI to create additional networks on their fabric.
-Any of these user-defined networks can be designated as the 'default' network 
+Any of these user-defined networks can be designated as the 'default' network
 to be used for provisioning Docker containers. When you change the 'default'
 network, it affects only the newly provisioned containers.
 
@@ -38,4 +38,4 @@ a nic on the 'external' network by default.
 
 - [`sdc-fabric vlan`](https://apidocs.joyent.com/cloudapi/#CreateFabricVLAN) and `POST /my/fabrics/default/vlans` in CloudAPI
 - [`sdc-fabric network`](https://apidocs.joyent.com/cloudapi/#CreateFabricNetwork) and `POST /my/fabrics/default/vlans/:id/networks` in CloudAPI
-- [`sdc-fabric networki set-default`](https://apidocs.joyent.com/cloudapi/#UpdateConfig) and `PUT /my/config` in CloudAPI
+- [`sdc-fabric network set-default`](https://apidocs.joyent.com/cloudapi/#UpdateConfig) and `PUT /my/config` in CloudAPI

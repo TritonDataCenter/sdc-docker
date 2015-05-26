@@ -113,14 +113,17 @@ Ready for use by `docker rmi ...`, like:
     dea752e4e117
     511136ea3c5a
 
-NOTE: Docker will warn you if any containers exist that are using these untagged images.
+NOTE: Docker will warn you if any containers exist that are using these untagged
+images.
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc.
+implementations of this method. Please contact Joyent support or file a ticket
+if you discover any.
 
 ## Related
 
-- [`docker inspect`](../commands/inspect.md) 
-- [`docker history`](../commands/history.md) 
-- [`docker rmi`](../commands/rmi.md) 
+- [`docker inspect`](../commands/inspect.md)
+- [`docker history`](../commands/history.md)
+- [`docker rmi`](../commands/rmi.md)
