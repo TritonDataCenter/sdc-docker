@@ -9,7 +9,7 @@ and carry their own copyright notices and license terms:
 * The documentation for API methods and CLI commands includes content 
   from or derived from content copyrighted by Docker, Inc. and 
   developed by Docker, Inc. and contributors. That content is found 
-  in /docs/api/commands within this distribution. Content there is 
+  in docs/api/commands/ within this distribution. Content there is 
   redistributed under the terms of the Apache 2.0 license as noted in 
   the source repo (https://github.com/docker/docker):
 
@@ -66,7 +66,7 @@ and carry their own copyright notices and license terms:
 
   In all such cases, the absence of explicit licensing text
   indicates that the contributor chose to license their work
-  for distribution under identical terms to those Mozilla
+  for distribution under identical terms to those Joyent
   has chosen for the collective work, enumerated at the top
   of this file. The only difference is the retention of
   copyright itself, held by the contributor.
