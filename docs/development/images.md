@@ -259,21 +259,6 @@ of pulled docker images per user. These will be in moray. Buckets:
 2. `docker_image_ids`: Per-user set of pulled docker image ids.
    Columns:  `key` (unused), `owner_uuid`, `image_id`.
 
-3. `docker_tombstone_image_ids`: The set of docker image ids to be removed
-   from IMGAPI *after a period of time* because they are no longer referenced by
-   anyone, i.e. after the last user does `docker rmi ID` on that image.
-   Columns:  `key` (unused), `image_id`, `expires_at`.
-
-   Dev Note: We track the expiry time to allow reviving image layers. This
-   allows IMGAPI to not page docker images in and out if there are, say, two
-   users doing `docker pull foo; ...; docker rmi foo`. The foo image layers
-   will be picked up by the second user, instead of having been dumped and
-   needing to be downloaded from docker.io again.
-
-TODO: Specify indeces. One consideration is the lookups required for reference
-counting for removing images from IMGAPI that are no longer in use by any user
-(see Use Case 3 above).
-
 
 ## Why store docker native format in IMGAPI?
 
