@@ -18,7 +18,7 @@
     "openssl-wrapper": "0.2.1",
     "restify": "git://github.com/mcavage/node-restify.git#06b3745",
     "sdc-bunyan-serializers": "git+ssh://git@github.com:joyent/sdc-bunyan-serializers.git#5454ae4",
-    "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#bc2b3ea",
+    "sdc-clients": "git+ssh://git@github.com:joyent/node-sdc-clients.git#f628e50",
     "sprintf": "0.1.5",
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#c7aa563",
     "trace-event": "1.2.0",

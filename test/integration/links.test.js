@@ -201,6 +201,40 @@ test('link rename', function (tt) {
             });
         });
     });
+
+
+    tt.test(' restart container', function (t) {
+        cli.docker('restart link_container_renamed',
+                    function (err, stdout, stderr)
+        {
+            t.ifErr(err, 'docker restart');
+
+            cli.docker('exec link_container_renamed sh -c export',
+                        function (err2, stdout2, stderr2)
+            {
+                t.ifErr(err2, 'docker exec export');
+
+                var envName = 'TARGET_NAME=\'/link_container_renamed/target\'';
+                if (stdout2.indexOf(envName) === -1) {
+                    t.fail('env var ' + envName + ' not found in\n' + stdout2);
+                }
+
+                cli.docker('exec link_container_renamed cat /etc/hosts',
+                            function (err3, stdout3, stderr3)
+                {
+                    t.ifErr(err3, 'docker exec cat');
+
+                    var hostName = 'link_target_renamed';
+                    if (stdout3.indexOf(hostName) === -1) {
+                        t.fail('host ' + hostName + ' not found in\n'
+                                + stdout3);
+                    }
+
+                    t.end();
+                });
+            });
+        });
+    });
 });
 
 
