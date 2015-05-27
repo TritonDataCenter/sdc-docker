@@ -10,13 +10,13 @@ Connecting to the API requires an account on the Triton data center, SSH key, an
 
 ### Docker version
 
-SDC Docker supports clients using Docker Remote API XXX and greater. For the Docker CLI, this includes Docker 1.4.1 and newer.
+SDC Docker supports clients using Docker Remote API XXX and greater. For the Docker CLI, this includes Docker 1.6.0 and newer.
 
 You can see the version of your currently installed Docker CLI:
 
 ```bash
 $ docker --version
-Docker version 1.4.1, build 5bc2ff8
+Docker version 1.6.0, build 4749651
 ```
 
 Please [install or upgrade](https://docs.docker.com/installation/#installation) the Docker CLI if you do not have it or have an older version.
@@ -76,21 +76,21 @@ writing RSA key
 Wrote certificate files to /Users/localuser/.sdc/docker/jill
 
 Get Docker host endpoint from cloudapi.
-Docker service endpoint is: tcp://165.225.168.25:2376
+Docker service endpoint is: tcp://us-east-3b.docker.joyent.com:2376
 
 * * *
 Success. Set your environment as follows: 
 
 	export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-	export DOCKER_HOST=tcp://165.225.168.25:2376
-	alias docker="docker --tls"
+	export DOCKER_HOST=tcp://us-east-3b.docker.joyent.com:2376
+	export DOCKER_TLS_VERIFY=1
 ```
 
 Then you should be able to run 'docker info' and see your account
 name 'SDCAccount: jill' in the output.
 
-Run those `export` and `alias` commands in your shell and you should now
-be able to run `docker`:
+Run those `export` commands in your shell and you should now be able to
+run `docker`:
 
 ```bash
 $ docker info
@@ -114,10 +114,15 @@ SDC Docker offers a number of features unique to Triton's container-native infra
 1. [Networking: one or more real IP addresses for each container](features/networking.md).
 1. [Resource allocation: specify RAM, CPU, and storage for each container](features/resources.md).
 1. [Volumes: container-native volume management](features/volumes.md).
+1. [Private repositories: image repository management](features/repos.md)
 
 ## Docker CLI commands and Docker Remote API methods
 
-[insert list of methods here]
+`docker attach`, `docker cp`, `docker create`, `docker exec`, `docker history`, `docker images`,
+`docker info`, `docker inspect`, `docker kill`, `docker login`, `docker logout`, `docker logs`,
+`docker port`, `docker ps`, `docker pull`, `docker rename`, `docker restart`, `docker rm`,
+`docker rmi`, `docker run`, `docker search`, `docker start`, `docker stop`, `docker top`,
+`docker version`, `docker wait`
 
 ## Divergence
 

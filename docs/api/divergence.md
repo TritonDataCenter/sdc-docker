@@ -7,6 +7,7 @@ Joyent's implementation of the Docker Remote API has some added features as well
 - [CPU and memory resource allocation](features/resources.md)
 - [Overlay networks](features/networks.md)
 - [Volumes](features/volumes.md)
+- [Private repositories](features/repos.md)
 
 ## Container behavior and contents
 
@@ -80,8 +81,23 @@ are working on, and intend to keep improving over time.
 
 In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see restart policies). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
 
-SDC Docker implements all the API methods necessary to deploy Docker containers in the cloud, but is notably missing methods necessary to build containers. For that, please continue using Docker on your laptop for now, though we definitely want to support those features in the future.
+SDC Docker implements all the API methods necessary to deploy Docker containers in
+the cloud, but is notably missing methods necessary to build containers. For that,
+please continue using Docker on your laptop for now, though we definitely want to
+support those features in the future.
 
-Here's the list of API methods currently unimplemented as of this writing, but expect it to get shorter by the day:
+Here's the list of API methods currently unimplemented as of this writing, but
+expect it to get shorter by the day:
 
-`docker build`, `docker commit`, `docker diff`, `docker events`, `docker export`, `docker import`, `docker load`, `docker login`, `docker logout`, `docker port`, `docker pause`, `docker push`, `docker rename`, `docker save`, `docker stats`, `docker tag`, `docker unpause`
+`docker build`, `docker commit`, `docker diff`, `docker events`, `docker export`,
+`docker import`, `docker load`, `docker pause`, `docker push`, `docker save`,
+`docker stats`, `docker tag`, `docker unpause`
+
+## Images and private registries
+
+SDC Docker supports the integration with Docker Hub repositories through Docker's
+Registry v1 API. The use of the short or long Image ID may not uniquely identify
+an image if images of the same ID exist in more than one repo. To work around this
+Registry v1 API limitation in such rare case, use the repo, image and tag name in
+the image management API methods (e.g. `docker pull`, `docker inspect`) instead of
+the Image ID.
