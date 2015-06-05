@@ -1,4 +1,4 @@
-Title: Commands:
+Title: Commands
 ----
 Text:
 
