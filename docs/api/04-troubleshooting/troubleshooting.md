@@ -1,4 +1,6 @@
-# SDC Docker client troubleshooting guide
+title: SDC Docker client troubleshooting guide
+----
+text:
 
 ## "Couldn't read ca cert ... ca.pem: no such file or directory"
 

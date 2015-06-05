@@ -1,4 +1,6 @@
-# Divergence
+title: Divergence
+----
+text:
 
 Joyent's implementation of the Docker Remote API has some added features as well as omissions where the API conflicted with the needs of deploying containers across Triton data centers.
 
