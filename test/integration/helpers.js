@@ -1125,7 +1125,7 @@ function createDockerContainer(opts, callback) {
 
                 t.error(err, 'check for nginx image - should be no error');
 
-                if (images.map(function (image) {
+                if (images.filter(function (image) {
                     return -1 !== image.RepoTags.indexOf('nginx:latest');
                 }).length === 0) {
                     // Urgh, it doesn't exist... go get it then.

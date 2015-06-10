@@ -8,10 +8,6 @@
  * Copyright (c) 2015, Joyent, Inc.
  */
 
-/*
- * Integration tests for `docker create`.
- */
-
 var p = console.log;
 
 var fmt = require('util').format;
