@@ -35,10 +35,8 @@ production with care.
 # Installation
 
 Note: Examples in this section are for
-[CoaL](https://github.com/joyent/sdc#cloud-on-a-laptop-coal). However the
-only thing CoaL-specific is the IP for the headnode (root@10.99.99.7).
-For example, you could do the same on Joyent Engineering's internal
-"nightly-1" DC with "root@172.26.1.4".
+[CoaL](https://github.com/joyent/sdc#cloud-on-a-laptop-coal), i.e. some
+setup will not be appropriate for a production DC.
 
 1. Installing sdc-docker and supporting services:
 
@@ -48,11 +46,11 @@ For example, you could do the same on Joyent Engineering's internal
         sdcadm post-setup dev-headnode-prov
         sdcadm post-setup dev-sample-data  # sample packages for docker containers
         sdcadm post-setup cloudapi
-        sdcadm experimental update-docker
+        sdcadm experimental update-docker --servers cns,headnode
         # Optional additional steps for VXLAN setup.
         sdcadm experimental portolan
         sdcadm experimental fabrics --coal
-        #  <reboot>
+        # <reboot>
         sapiadm update $(sdc-sapi /services?name=docker | json -Ha uuid) metadata.USE_FABRICS=true
 
 
@@ -157,16 +155,17 @@ restarted (DOCKER-233).**
 # Adding packages
 
 By default the size of the container (ram, disk, cpu shares) uses the package in
-the internal "sdc_" set of packages closest to 'ram=1024 MiB'. The "sdc_"
+the internal `sdc_` set of packages closest to 'ram=1024 MiB'. The `sdc_`
 packages are really only applicable for development. More appropriate for
-production is a set of packages separate from "sdc_". The following can be
-run to add a number of "t4-*" packages and to configure the Docker service
+production is a set of packages separate from `sdc_`. The following can be
+run to add a number of `sample-*` packages and to configure the Docker service
 to use them:
 
-    sdc-login docker /opt/smartdc/docker/tools/gen_packages.js
+    # In the headnode global zone:
+    sdcadm post-setup dev-sample-data
     /opt/smartdc/bin/sapiadm update \
        $(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.uuid) \
-       metadata.PACKAGE_PREFIX="t4-"
+       metadata.PACKAGE_PREFIX="sample-"
 
 
 
