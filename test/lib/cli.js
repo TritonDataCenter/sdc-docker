@@ -252,6 +252,91 @@ function cliRun(t, opts, callback) {
 }
 
 
+/**
+ * `docker ps <opts.args>`
+ *
+ * An array of entries will returned via the callback(err, entries), with each
+ * entry being an object holding the docker ps contents for one vm. Example:
+ *  {
+ *    container_id: 'db49fddba05e',
+ *    image: 'nginx',
+ *    command: '"nginx -g \'daemon of',
+ *    created: '43 seconds ago',
+ *    status: 'Up 31 seconds',
+ *    ports: '443/tcp, 0.0.0.0:80->80/tcp',
+ *    names: 'linkstest_nginx'
+ *  }
+ */
+function cliPs(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.optionalString(opts.args, 'opts.args');
+
+    ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
+        var id;
+
+        t.ifErr(err, 'docker ps');
+        t.equal(stderr, '', 'stderr');
+
+        // Parse stdout.
+        var lines = stdout.split('\n');
+        var entries = [];
+        var re = /\s+/;
+        var headerLine = lines[0].toLowerCase();
+        headerLine = headerLine.replace('container id', 'container_id');
+        var header = headerLine.split(re);
+
+        // From header, determine where each section begins/ends:
+        var headerStartEnds = header.map(function (val, idx) {
+            var nextval = header[idx+1];
+            if (idx+1 == header.length) {
+                return [headerLine.indexOf(val), 100000];
+            } else {
+                return [headerLine.indexOf(val), headerLine.indexOf(nextval)];
+            }
+        });
+        //console.log('header:', header, 'startEnds', headerStartEnds);
+
+        // Split the output lines:
+        for (var i=1; i < lines.length; i++) {
+            var entry = {};
+            var line = lines[i].trim();
+            if (!line) {
+                continue;
+            }
+            for (j=0; j < header.length; j++) {
+                var se = headerStartEnds[j];
+                entry[header[j]] = line.substring(se[0], se[1]).trim();
+            }
+            entries.push(entry);
+            //console.log('entry: ', entry);
+        }
+
+        common.done(t, callback, err, entries);
+        return;
+    });
+}
+
+
+/**
+ * `docker delete <opts.args>`
+ */
+function cliRm(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('rm ' + opts.args, function (err, stdout, stderr) {
+        var id;
+
+        t.ifErr(err, 'docker rm ' + opts.args);
+        t.equal(stderr, '', 'stderr');
+
+        callback(err);
+    });
+}
+
+
 module.exports = {
     get accountUuid() {
         return ALICE.account.uuid;
@@ -266,6 +351,8 @@ module.exports = {
     },
     pull: cliPull,
     port: cliPort,
+    ps: cliPs,
+    rm: cliRm,
     rmAllCreated: cliRmAllCreated,
     run: cliRun
 };

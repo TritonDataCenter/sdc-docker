@@ -15,6 +15,7 @@
 var cli = require('../lib/cli');
 var vm = require('../lib/vm');
 var test = require('tape');
+var vasync = require('vasync');
 
 
 
@@ -22,6 +23,7 @@ var test = require('tape');
 
 
 var CLIENTS = {};
+var CONTAINER_PREFIX = 'sdcdockertest_link_';
 
 
 // --- Helpers
@@ -38,16 +40,46 @@ test('setup', function (tt) {
 });
 
 
+test('delete old vms', function (tt) {
+
+    tt.test('remove old containers', function (t) {
+        cli.ps(t, {args: '-a'}, function (err, entries) {
+            t.ifErr(err, 'docker ps');
+
+            var oldContainers = entries.filter(function (entry) {
+                return (entry.names.substr(0, CONTAINER_PREFIX.length)
+                        === CONTAINER_PREFIX);
+            });
+
+            vasync.forEachParallel({
+                inputs: entries,
+                func: function _delOne(entry, cb) {
+                    cli.rm(t, {args: '-f ' + entry.container_id}, function (err) {
+                        t.ifErr(err, 'rm container ' + entry.container_id);
+                        cb();
+                    });
+                }
+            }, function () {
+                t.end();
+            });
+        });
+    });
+});
+
+
 test('linked env', function (tt) {
 
+    var nginxName = CONTAINER_PREFIX + 'nginx';
     tt.test('linked env: create custom nginx -p 80:80', function (t) {
-        cli.run(t, { args: '-d --name nginx_custom -e FOO=BAR -e BAT=BAZZA'
+        cli.run(t, { args: '-d --name ' + nginxName + ' -e FOO=BAR -e BAT=BAZZA'
                     + ' -p 80:80 nginx' });
     });
 
 
+    var bboxName = CONTAINER_PREFIX + 'bbox';
     tt.test('linked env: create busybox with nginx link', function (t) {
-        cli.run(t, { args: '-d --name bbx --link nginx_custom:ngx'
+        cli.run(t, { args: '-d --name ' + bboxName
+                    + ' --link ' + nginxName + ':ngx'
                     + ' busybox top' });
     });
 
@@ -69,7 +101,7 @@ test('linked env', function (tt) {
             var linkEnv = JSON.parse(im['docker:linkEnv'] || '[]');
 
             var expectedLinkEnv = [
-                'NGX_NAME=/bbx/ngx',
+                'NGX_NAME=/' + bboxName + '/ngx',
                 'NGX_ENV_FOO=BAR',
                 'NGX_ENV_BAT=BAZZA'
             ];
@@ -105,7 +137,7 @@ test('linked env', function (tt) {
             // Regular expressions:
             var expectedHosts = [
                 '\\b' + 'ngx' + '\\b',
-                '\\b' + 'nginx_custom' + '\\b'
+                '\\b' + nginxName + '\\b'
             ];
             expectedHosts.forEach(function (e) {
                 if (!linkHosts.match(e)) {
@@ -120,11 +152,11 @@ test('linked env', function (tt) {
 
     tt.test('link inspect', function (t) {
         cli.inspect(t, {
-            id: 'bbx',
+            id: bboxName,
             partialExp: {
                 HostConfig: {
                     Links: [
-                        '/nginx_custom:/bbx/ngx'
+                        '/' + nginxName + ':/' + bboxName + '/ngx'
                     ]
                 }
             }
@@ -133,11 +165,11 @@ test('linked env', function (tt) {
 
 
     tt.test('link removal', function (t) {
-        cli.docker('rm --link /bbx/ngx', function (err, stdout, stderr) {
+        cli.docker('rm --link /' + bboxName + '/ngx', function (err, stdout, stderr) {
             t.ifErr(err, 'docker rm --link');
 
             cli.inspect(t, {
-                id: 'bbx',
+                id: bboxName,
                 partialExp: {
                     HostConfig: {
                         Links: null
@@ -151,29 +183,35 @@ test('linked env', function (tt) {
 
 test('link rename', function (tt) {
 
+    var targName = CONTAINER_PREFIX + 'target';
+    var contName = CONTAINER_PREFIX + 'link_container';
+    var targNameRenamed = targName + '_r';
+    var contNameRenamed = contName + '_r';
+
     tt.test(' create link_target', function (t) {
-        cli.run(t, { args: '-d --name link_target busybox top' });
+        cli.run(t, { args: '-d --name ' + targName + ' busybox top' });
     });
 
 
     tt.test(' create link_container', function (t) {
-        cli.run(t, { args: '-d --name link_container --link link_target:target'
+        cli.run(t, { args: '-d --name ' + contName
+                    + ' --link ' + targName + ':target'
                     + ' busybox top' });
     });
 
 
     tt.test(' rename target', function (t) {
-        cli.docker('rename link_target link_target_renamed',
+        cli.docker('rename ' + targName + ' ' + targNameRenamed,
                     function (err, stdout, stderr)
         {
             t.ifErr(err, 'docker rename');
 
             cli.inspect(t, {
-                id: 'link_container',
+                id: contName,
                 partialExp: {
                     HostConfig: {
                         Links: [
-                            '/link_target_renamed:/link_container/target'
+                            '/' + targNameRenamed + ':/' + contName + '/target'
                         ]
                     }
                 }
@@ -183,18 +221,18 @@ test('link rename', function (tt) {
 
 
     tt.test(' rename container', function (t) {
-        cli.docker('rename link_container link_container_renamed',
+        cli.docker('rename ' + contName + ' ' + contNameRenamed,
                     function (err, stdout, stderr)
         {
             t.ifErr(err, 'docker rename');
 
             cli.inspect(t, {
-                id: 'link_container_renamed',
+                id: contNameRenamed,
                 partialExp: {
                     HostConfig: {
                         Links: [
-                            '/link_target_renamed:'
-                            + '/link_container_renamed/target'
+                            '/' + targNameRenamed + ':'
+                            + '/' + contNameRenamed + '/target'
                         ]
                     }
                 }
@@ -204,27 +242,27 @@ test('link rename', function (tt) {
 
 
     tt.test(' restart container', function (t) {
-        cli.docker('restart link_container_renamed',
+        cli.docker('restart ' + contNameRenamed,
                     function (err, stdout, stderr)
         {
             t.ifErr(err, 'docker restart');
 
-            cli.docker('exec link_container_renamed sh -c export',
+            cli.docker('exec ' + contNameRenamed + ' sh -c export',
                         function (err2, stdout2, stderr2)
             {
                 t.ifErr(err2, 'docker exec export');
 
-                var envName = 'TARGET_NAME=\'/link_container_renamed/target\'';
+                var envName = 'TARGET_NAME=\'/' + contNameRenamed + '/target\'';
                 if (stdout2.indexOf(envName) === -1) {
                     t.fail('env var ' + envName + ' not found in\n' + stdout2);
                 }
 
-                cli.docker('exec link_container_renamed cat /etc/hosts',
+                cli.docker('exec ' + contNameRenamed + ' cat /etc/hosts',
                             function (err3, stdout3, stderr3)
                 {
                     t.ifErr(err3, 'docker exec cat');
 
-                    var hostName = 'link_target_renamed';
+                    var hostName = targNameRenamed;
                     if (stdout3.indexOf(hostName) === -1) {
                         t.fail('host ' + hostName + ' not found in\n'
                                 + stdout3);
