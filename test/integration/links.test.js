@@ -52,10 +52,12 @@ test('delete old vms', function (tt) {
             });
 
             vasync.forEachParallel({
-                inputs: entries,
+                inputs: oldContainers,
                 func: function _delOne(entry, cb) {
-                    cli.rm(t, {args: '-f ' + entry.container_id}, function (err) {
-                        t.ifErr(err, 'rm container ' + entry.container_id);
+                    cli.rm(t, {args: '-f ' + entry.container_id},
+                            function (err2)
+                    {
+                        t.ifErr(err2, 'rm container ' + entry.container_id);
                         cb();
                     });
                 }
@@ -165,7 +167,9 @@ test('linked env', function (tt) {
 
 
     tt.test('link removal', function (t) {
-        cli.docker('rm --link /' + bboxName + '/ngx', function (err, stdout, stderr) {
+        cli.docker('rm --link /' + bboxName + '/ngx',
+                    function (err, stdout, stderr)
+        {
             t.ifErr(err, 'docker rm --link');
 
             cli.inspect(t, {
