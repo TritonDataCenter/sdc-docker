@@ -273,7 +273,7 @@ function cliPs(t, opts, callback) {
     assert.optionalString(opts.args, 'opts.args');
 
     ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
-        var id;
+        var i, j;
 
         t.ifErr(err, 'docker ps');
         t.equal(stderr, '', 'stderr');
@@ -298,13 +298,13 @@ function cliPs(t, opts, callback) {
         //console.log('header:', header, 'startEnds', headerStartEnds);
 
         // Split the output lines:
-        for (var i=1; i < lines.length; i++) {
+        for (i = 1; i < lines.length; i++) {
             var entry = {};
             var line = lines[i].trim();
             if (!line) {
                 continue;
             }
-            for (j=0; j < header.length; j++) {
+            for (j = 0; j < header.length; j++) {
                 var se = headerStartEnds[j];
                 entry[header[j]] = line.substring(se[0], se[1]).trim();
             }
@@ -327,8 +327,6 @@ function cliRm(t, opts, callback) {
     assert.string(opts.args, 'opts.args');
 
     ALICE.docker('rm ' + opts.args, function (err, stdout, stderr) {
-        var id;
-
         t.ifErr(err, 'docker rm ' + opts.args);
         t.equal(stderr, '', 'stderr');
 

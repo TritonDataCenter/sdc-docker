@@ -91,7 +91,7 @@ test-integration-in-coal: | $(TAPE)
 
 .PHONY: git-hooks
 git-hooks:
-	[[ -e .git/hooks/pre-commit ]] || ln -s ../../tools/pre-commit.sh .git/hooks/pre-commit
+	[[ -e .git/hooks/pre-commit ]] || ln -s ./tools/pre-commit.sh .git/hooks/pre-commit
 
 
 #
