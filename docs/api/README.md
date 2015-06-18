@@ -25,7 +25,7 @@ Please [install or upgrade](https://docs.docker.com/installation/#installation) 
 
 Each data center is a single Docker API endpoint. [CloudAPI](https://apidocs.joyent.com/cloudapi/) is used as a helper to configure the client to connect to the Docker Remote API. Determining the correct CloudAPI URL depends on which data center you're connecting to.
 
-Joyent operates a number of data centers around the world, each has its own CloudAPI endpoint. Please consult the Joyent Elastic Container Service documentation for the correct URL for that service. 
+Joyent operates a number of data centers around the world, each has its own CloudAPI endpoint. Please consult the Joyent Elastic Container Service documentation for the correct URL for that service.
 
 Private cloud implementations will offer different CloudAPI URLs, please consult the private cloud operator for the correct URL.
 
@@ -34,6 +34,7 @@ Private cloud implementations will offer different CloudAPI URLs, please consult
 User accounts in Triton require one or more SSH keys. The keys are used to identify and secure SSH access to containers and other resources in Triton.
 
 SDC Docker uses Docker's TLS authentication scheme both to identify the requesting user and secure the API endpoint. The SDC Docker helper script will generates a TLS certificate using your SSH key and write it to a directory in your user account.
+
 
 ### The helper script
 
@@ -48,20 +49,33 @@ curl -O https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-doc
 Now execute the script, substituting the correct values:
 
 ```bash
-sh sdc-docker-setup.sh <CLOUDAPI_URL> <ACCOUNT_USERNAME> ~/.ssh/<PRIVATE_KEY_FILE>
+bash sdc-docker-setup.sh <CLOUDAPI_URL> <ACCOUNT_USERNAME> ~/.ssh/<PRIVATE_KEY_FILE>
 ```
+
+Possible values for `<CLOUDAPI_URL>` include any of Joyent's data centers
+which are hosting Triton or another CloudAPI, e.g. one running in a [Cloud on a
+Laptop (CoaL)](https://github.com/joyent/sdc#cloud-on-a-laptop-coal) development
+VMware VM.
+
+| CLOUDAPI_URL | Description |
+| ------------ | ----------- |
+| https://us-east-1.api.joyent.com | Joyent's us-east-1 data center. |
+| https://us-east-1.api.joyent.com | Joyent's us-sw-1 data center. |
+| https://eu-ams-1.api.joyent.com | Joyent's eu-ams-1 (Amsterdam) data center. |
+| coal | Special name to indicate the CloudAPI in a development CoaL VMware VM |
+
 
 For example, if you created an account on Joyent's Triton service with the username "jill" and a key file "~/.ssh/sdc-docker.id_rsa", and you're connecting to the US East 3B data center:
 
 ```bash
-sh sdc-docker-setup.sh https://us-east-3b.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
+bash sdc-docker-setup.sh https://us-east-1.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
 ```
 
 That should output something like the following:
 
 ```bash
 Setting up Docker client for SDC using:
-	CloudAPI:        https://us-east-3b.api.joyent.com
+	CloudAPI:        https://us-east-1.api.joyent.com
 	Account:         jill
 	Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
 
@@ -76,13 +90,13 @@ writing RSA key
 Wrote certificate files to /Users/localuser/.sdc/docker/jill
 
 Get Docker host endpoint from cloudapi.
-Docker service endpoint is: tcp://us-east-3b.docker.joyent.com:2376
+Docker service endpoint is: tcp://us-east-1.docker.joyent.com:2376
 
 * * *
-Success. Set your environment as follows: 
+Success. Set your environment as follows:
 
 	export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-	export DOCKER_HOST=tcp://us-east-3b.docker.joyent.com:2376
+	export DOCKER_HOST=tcp://us-east-1.docker.joyent.com:2376
 	export DOCKER_TLS_VERIFY=1
 ```
 
@@ -100,7 +114,7 @@ Storage Driver: sdc
  SDCAccount: jill
 Execution Driver: sdc-0.1.0
 Operating System: SmartDataCenter
-Name: us-east-3b
+Name: us-east-1
 ```
 ## Troubleshooting API connection problems
 

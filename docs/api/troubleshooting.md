@@ -68,4 +68,4 @@ Result:
      SDCAccount: jill
     Execution Driver: sdc-0.1.0
     Operating System: SmartDataCenter
-    Name: us-east-3b
+    Name: us-east-1
