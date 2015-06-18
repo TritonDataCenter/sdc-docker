@@ -314,7 +314,7 @@ shift $((OPTIND - 1))
 promptedUser=
 cloudapiUrl=$1
 if [[ -z "$cloudapiUrl" ]]; then
-    defaultCloudapiUrl=https://us-east-3b.api.joyent.com
+    defaultCloudapiUrl=https://us-east-1.api.joyent.com
     #info "Enter the SDC Docker hostname. Press enter for the default."
     printf "SDC CloudAPI URL [$defaultCloudapiUrl]: "
     read cloudapiUrl
