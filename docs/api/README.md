@@ -65,7 +65,9 @@ VMware VM.
 | coal | Special name to indicate the CloudAPI in a development CoaL VMware VM |
 
 
-For example, if you created an account on Joyent's Triton service with the username "jill" and a key file "~/.ssh/sdc-docker.id_rsa", and you're connecting to the US East 3B data center:
+For example, if you created an account on [Joyent's hosted Triton
+service](https://www.joyent.com/triton), with the username "jill", SSH key file
+"~/.ssh/sdc-docker.id_rsa", and connecting to the US East-1 data center:
 
 ```bash
 bash sdc-docker-setup.sh https://us-east-1.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
