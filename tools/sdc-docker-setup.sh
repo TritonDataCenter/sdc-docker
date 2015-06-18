@@ -108,22 +108,20 @@ function dockerInfo
         --url $dockerUrl/v1.16/info
 }
 
-
-
 # Return ssh fingerprint in the form "he:xh:ex:he:xh:..."
 # OpenSSH_6.8 changes the "-l" flag output.
 function sshGetMD5Fingerprint() {
     local sshPubKeyPath=$1
     local s
-    s=$(ssh-keygen -E md5 -l -f "$sshPubKeyPath" 2> /dev/null)
-    if [[ $? -eq  0 ]]; then
-        echo "$s" | awk '{print $2}' | tr -d '\n' | cut -d: -f2-;
+    if s=$(ssh-keygen -E md5 -l -f "$sshPubKeyPath" 2> /dev/null); then
+        if [[ $? -eq  0 ]]; then
+            echo "$s" | awk '{print $2}' | tr -d '\n' | cut -d: -f2-;
+        fi
     else
-        # OpenSSH version < 6.8
-        ssh-keygen -l -f "$sshPubKeyPath" | awk '{print $2}' | tr -d '\n';
+            # OpenSSH version < 6.8
+            ssh-keygen -l -f "$sshPubKeyPath" | awk '{print $2}' | tr -d '\n';
     fi
 }
-
 
 function cloudapiVerifyAccount() {
     local cloudapiUrl account sshPrivKeyPath sshKeyId now signature response
