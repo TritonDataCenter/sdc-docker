@@ -268,6 +268,12 @@ function sdcEnvConfiguration()
 
 # ---- mainline
 
+# This script currently requires Bash-isms, so guard for that.
+if [ "$POSIXLY_CORRECT" = "y" ]; then
+    fatal "This script requires Bash running in *non*-posix mode.
+Please re-run with 'bash sdc-docker-setup.sh ...'."
+fi
+
 optQuiet=
 optForce=
 optInsecure=
