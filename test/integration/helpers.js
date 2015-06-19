@@ -279,6 +279,24 @@ function loadConfig(callback) {
 
 // --- vasync.pipeline "step" funcs (they expect and set vars on `state`)
 
+function stepSysinfo(state, cb) {
+    if (state.sysinfo) {
+        return cb();
+    }
+    var cmd = '/usr/bin/sysinfo';
+    exec(cmd, function (err, stdout, stderr) {
+        if (err) {
+            return cb(err);
+        }
+        try {
+            state.sysinfo = JSON.parse(stdout);
+        } catch (parseErr) {
+            return cb(parseErr);
+        }
+        cb();
+    });
+}
+
 function stepSdcConfig(state, cb) {
     if (state.sdcConfig) {
         return cb();
@@ -456,17 +474,18 @@ function _stepCreateClientZone(state_, cb) {
                         pkgs.length, payload.package_name)));
                 }
                 var pkg = pkgs[0];
-                payload.cpu_shares = pkg.max_physical_memory;
-                payload.cpu_cap = pkg.cpu_cap;
-                payload.zfs_io_priority = pkg.zfs_io_priority;
-                payload.max_lwps = pkg.max_lwps;
-                payload.max_physical_memory = pkg.max_physical_memory;
-                payload.max_swap = pkg.max_swap;
-                payload.quota = (pkg.quota / 1024).toFixed(0);
-                payload.package_version = pkg.version;
                 payload.billing_id = pkg.uuid;
                 next();
             });
+        },
+
+        // Create the client zone on the local CN (typically the headnode)
+        // because we are getting failures, at least in nightly, when one
+        // of the CNs is used.
+        stepSysinfo,
+        function payloadServerUuid(state, next) {
+            payload.server_uuid = state.sysinfo.UUID;
+            next();
         },
 
         function createClientZone(state, next) {
@@ -540,6 +559,7 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
     var newKey = false;
 
     vasync.pipeline({arg: state_, funcs: [
+        stepSysinfo,
         stepSdcConfig,
         stepClientZone,
 
