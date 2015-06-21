@@ -60,7 +60,7 @@ VMware VM.
 | CLOUDAPI_URL | Description |
 | ------------ | ----------- |
 | https://us-east-1.api.joyent.com | Joyent's us-east-1 data center. |
-| https://us-east-1.api.joyent.com | Joyent's us-sw-1 data center. |
+| https://us-sw-1.api.joyent.com | Joyent's us-sw-1 data center. |
 | https://eu-ams-1.api.joyent.com | Joyent's eu-ams-1 (Amsterdam) data center. |
 | coal | Special name to indicate the CloudAPI in a development CoaL VMware VM |
 
