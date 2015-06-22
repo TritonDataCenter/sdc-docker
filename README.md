@@ -308,3 +308,11 @@ for this repo:
         var Link = require('.../models/link');
 
 
+## Naming
+
+Some variable/function naming patterns in this repo.
+
+| *Pattern* | *Description* |
+| --------- | ------------- |
+| `req*`    | A restify handler that operates (primarily) on a request and adds a request param. E.g. `reqClientApiVersion` adds `req.clientApiVersion`. |
+
