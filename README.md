@@ -23,6 +23,32 @@ an SDC Docker stand up, but not administering it, please see the
 *development* of sdc-docker.
 
 
+# Docker Version
+
+Offical supported version: 1.19 (equivalent to docker client version 1.7)
+
+Supported version range: 1.16 - 1.19 (docker client version 1.4 to 1.7)
+
+When a client makes a remote API call to sdc-docker and it does not specify a
+version, then sdc-docker will default to the official supported version.
+
+Older versions of the docker remote API are also supported, back to 1.16
+(equivalent to docker client 1.4), though it is better to use the docker client
+and associated docker tools that target the offical sdc-docker version.
+
+Newer clients may also continue to work, but until we've officially tested and
+marked a newer version as officially supported, then it's best to use an older
+and officially supported version.
+
+Devs: When updating the sdc-docker server official version, you'll need to
+be sure to update the following:
+
+1. update SERVER_VERSION version in lib/common.js
+2. update the test client version in test/integration/helpers.js
+3. update the docker cli test client version in
+   globe-theatre/bin/nightly-test-docker-integration-cli
+
+
 # Current State
 
 Many commands are currently at least partially implemented. See
