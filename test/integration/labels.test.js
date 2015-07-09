@@ -41,7 +41,6 @@ test('setup', function (tt) {
 
 
 test('labels', function (tt) {
-
     var containerId;
 
     tt.test('simple label', function (t) {
@@ -64,6 +63,67 @@ test('labels', function (tt) {
                     Labels: {
                         'foo': 'bar',
                         'elem': 'something with a space'
+                    }
+                }
+            }
+        });
+    });
+});
+
+
+test('labels on container', function (tt) {
+
+    var containerId;
+
+    tt.test('container label', function (t) {
+        cli.run(t, { args: '-d --label foo=bar '
+                        + 'toddw/mybusybox sleep 3600' }, function (err, id)
+        {
+            t.ifErr(err, 'docker run --label foo=bar toddw/mybusybox');
+            containerId = id;
+            t.end();
+        });
+    });
+
+
+    tt.test('container label check', function (t) {
+        cli.inspect(t, {
+            id: containerId,
+            partialExp: {
+                Config: {
+                    Labels: {
+                        'foo': 'bar',
+                        'todd': 'cool'
+                    }
+                }
+            }
+        });
+    });
+});
+
+
+test('labels conflict', function (tt) {
+
+    var containerId;
+
+    tt.test('conflicting label', function (t) {
+        cli.run(t, { args: '-d --label todd=notcool '
+                        + 'toddw/mybusybox sleep 3600' }, function (err, id)
+        {
+            t.ifErr(err, 'docker run --label todd=notcool toddw/mybusybox');
+            containerId = id;
+            t.end();
+        });
+    });
+
+
+    tt.test('conflicting label check', function (t) {
+        cli.inspect(t, {
+            id: containerId,
+            partialExp: {
+                Config: {
+                    Labels: {
+                        'todd': 'notcool'
                     }
                 }
             }
