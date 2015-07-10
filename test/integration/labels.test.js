@@ -130,3 +130,53 @@ test('labels conflict', function (tt) {
         });
     });
 });
+
+
+test('labels image filtering', function (tt) {
+    // Ensure the mybusybox image is available.
+    tt.test('conflicting label', function (t) {
+        cli.run(t, { args: '-d toddw/mybusybox sleep 3600' },
+            function (err, id)
+        {
+            t.ifErr(err, 'docker run toddw/mybusybox');
+            t.end();
+        });
+    });
+
+
+    tt.test('filter on image label', function (t) {
+        cli.docker('images --filter label=todd=cool',
+                    function (err, stdout, stderr)
+        {
+            t.ifErr(err, 'docker images --filter');
+            var lines = stdout.split('\n');
+            var imageName = 'toddw/mybusybox';
+
+            if (lines.filter(function (line) {
+                return line.substr(0, imageName.length) === imageName;
+                }).length === 0)
+            {
+                t.fail('Filter did not return the expected image: ' + stdout);
+            }
+            t.end();
+        });
+    });
+
+    tt.test('filter on bogus image label', function (t) {
+        cli.docker('images --filter label=todd=notcool',
+                    function (err, stdout, stderr)
+        {
+            t.ifErr(err, 'docker images --filter');
+            var lines = stdout.split('\n');
+            var imageName = 'toddw/mybusybox';
+
+            if (lines.filter(function (line) {
+                return line.substr(0, imageName.length) === imageName;
+                }).length !== 0)
+            {
+                t.fail('Filter returned an expected image: ' + stdout);
+            }
+            t.end();
+        });
+    });
+});
