@@ -456,7 +456,6 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--cpuset` (controls which CPUs to run on) are ignored. See [resource allocation](../features/resources.md).
 * `--device` (mounts host device into container) is ignored.
 * `--ipc` is ignored.
-* `--label` and `--label-file` are currently unsupported, but follow [DOCKER-359](http://smartos.org/bugview/DOCKER-359) for progress.
 * `--log-driver` which is unsupported
 * `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
