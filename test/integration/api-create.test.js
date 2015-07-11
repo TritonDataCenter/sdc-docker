@@ -19,12 +19,14 @@ var exec = require('child_process').exec;
 var test = require('tape');
 var util = require('util');
 
+var configLoader = require('../../lib/config-loader.js');
+
 var h = require('./helpers');
 
 
 
 // --- Globals
-
+var BYTES_IN_MB = 1024 * 1024;
 var ALICE;
 var BOB;
 var DOCKER_ALICE;
@@ -32,6 +34,7 @@ var DOCKER_BOB;
 var STATE = {
     log: require('../lib/log')
 };
+var CONFIG = configLoader.loadConfigSync({log: STATE.log});
 var VMAPI;
 
 
@@ -105,6 +108,15 @@ test('api: create', function (tt) {
         }
     });
 
+    tt.test('docker rm', function (t) {
+        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
     tt.test('docker create without approved_for_provisioning', function (t) {
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -130,6 +142,148 @@ test('api: create', function (tt) {
         }
 
         function stub() {}
+    });
+
+    tt.test('docker create without memory override', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.ram, CONFIG.defaultMemory,
+                    'VM with default memory specs should be created with '
+                    + CONFIG.defaultMemory + ' MBs of RAM');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm', function (t) {
+        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('docker create with memory spec at root of payload', function (t) {
+        var MEMORY_IN_MBS = CONFIG.defaultMemory * 2;
+        var memory = MEMORY_IN_MBS * BYTES_IN_MB;
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'Memory': memory }
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.ram, MEMORY_IN_MBS,
+                    'VM should be created with ' + MEMORY_IN_MBS
+                    + 'MBs of RAM');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm', function (t) {
+        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('docker create with invalid memory spec at root', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'Memory': 'Foo' }
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.ram, CONFIG.defaultMemory,
+                    'VM should be created with ' + CONFIG.defaultMemory
+                    + 'MBs of RAM');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm', function (t) {
+        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('docker create with memory at HostConfig.Memory', function (t) {
+        // Since version v1.18 of the Docker remote API, Memory is
+        // in HostConfig.Memory, not at the root of the object.
+        // We want to make sure we also support that.
+
+        var MEMORY_IN_MBS = CONFIG.defaultMemory * 2;
+        var memory = MEMORY_IN_MBS * BYTES_IN_MB;
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'Memory': undefined, 'HostConfig.Memory': memory },
+            apiVersion: 'v1.18'
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.ram, MEMORY_IN_MBS,
+                    'VM should be created with ' + MEMORY_IN_MBS
+                    + 'MBs of RAM');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm', function (t) {
+        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+
+        function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('docker create with invalid memory at HostConfig.Memory',
+            function (t) {
+        // Since version v1.18 of the Docker remote API, Memory is
+        // in HostConfig.Memory, not at the root of the object.
+        // We want to make sure we also support that.
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'Memory': undefined, 'HostConfig.Memory': 'Foo' },
+            apiVersion: 'v1.18'
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.ram, CONFIG.defaultMemory,
+                    'VM should be created with ' + CONFIG.defaultMemory
+                    + 'MBs of RAM');
+            t.end();
+        }
     });
 
     tt.test('docker rm', function (t) {

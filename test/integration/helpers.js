@@ -1119,6 +1119,7 @@ function createDockerContainer(opts, callback) {
     var t = opts.test;
     var log = dockerClient.log;
     var response = {};
+    var apiVersion = opts.apiVersion || 'v1.16';
 
     if (opts.extra) {
         for (var e in opts.extra) {
@@ -1165,7 +1166,8 @@ function createDockerContainer(opts, callback) {
 
         function (next) {
             // Post create request
-            dockerClient.post('/v1.16/containers/create', payload, onpost);
+            dockerClient.post('/' + apiVersion + '/containers/create',
+                              payload, onpost);
             function onpost(err, res, req, body) {
                 if (opts.expectedErr) {
                     common.expErr(t, err, opts.expectedErr, callback);
