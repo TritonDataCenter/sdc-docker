@@ -1166,8 +1166,8 @@ function createDockerContainer(opts, callback) {
 
         function (next) {
             // Post create request
-            dockerClient.post('/' + apiVersion + '/containers/create',
-                              payload, onpost);
+            dockerClient.post(
+                '/' + apiVersion + '/containers/create', payload, onpost);
             function onpost(err, res, req, body) {
                 if (opts.expectedErr) {
                     common.expErr(t, err, opts.expectedErr, callback);
