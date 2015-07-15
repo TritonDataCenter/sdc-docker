@@ -50,11 +50,11 @@ test('setup', function (tt) {
 
 
     tt.test('docker client init', function (t) {
-        h.createDockerRemoteClient(ALICE, function (err, client) {
+        h.createDockerRemoteClient({user: ALICE}, function (err, client) {
             t.ifErr(err, 'docker client init');
             DOCKER_ALICE = client;
 
-            h.createDockerRemoteClient(BOB, function (err2, client2) {
+            h.createDockerRemoteClient({user: BOB}, function (err2, client2) {
                 t.ifErr(err2, 'docker client init for bob');
                 DOCKER_BOB = client2;
 

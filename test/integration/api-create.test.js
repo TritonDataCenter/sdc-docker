@@ -18,6 +18,7 @@ var fmt  = require('util').format;
 var exec = require('child_process').exec;
 var test = require('tape');
 var util = require('util');
+var vasync = require('vasync');
 
 var configLoader = require('../../lib/config-loader.js');
 
@@ -56,16 +57,28 @@ test('setup', function (tt) {
 
 
     tt.test('docker client init', function (t) {
-        h.createDockerRemoteClient(ALICE, function (err, client) {
-            t.ifErr(err, 'docker client init for alice');
-            DOCKER_ALICE = client;
-
-            h.createDockerRemoteClient(BOB, function (err2, client2) {
-                t.ifErr(err2, 'docker client init for bob');
-                DOCKER_BOB = client2;
-
-                t.end();
-            });
+        vasync.parallel({ funcs: [
+            function createAliceJson(done) {
+                h.createDockerRemoteClient({user: ALICE},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for alice');
+                        done(err, client);
+                    }
+                );
+            },
+            function createBobJson(done) {
+                h.createDockerRemoteClient({user: BOB},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for bob');
+                        return done(err, client);
+                    }
+                );
+            }
+        ]}, function allDone(err, results) {
+            t.ifError(err, 'docker client init should be successful');
+            DOCKER_ALICE = results.operations[0].result;
+            DOCKER_BOB = results.operations[1].result;
+            t.end();
         });
     });
 
