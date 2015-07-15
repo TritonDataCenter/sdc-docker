@@ -1001,9 +1001,39 @@ function getDockerEnv(t, state_, opts, cb) {
 
 /**
  * Get a simple restify JSON client to the SDC Docker Remote API.
+ *
+ * @param options {Object} An object with several properties:
+ *   - user {Object} A user object as returned from initDockerEnv's callback.
+ *   - clientType {String} Optional. A value that represents the type of
+ *     restify client to create. Values can be either 'http', 'json' or
+ *     'string'.
+ *     Refer to restify's documentation for more details about the differences
+ *     between them. If no clientType is passed, a JSON resitfy client is
+ *     created.
+ *
+ * @param callback {Function} A function that will be called when the docker
+ *  remote client is ready. Its first argument is an error object if an error
+ *  occured, and otherwise its second argument is an instance of a restify
+ *  client. The type of restify client returned as the second argument of
+ *  this callback depends on the options.clientType parameter that was passed.
+ *  By default, it is a restify JSON client.
  */
-function createDockerRemoteClient(user, callback) {
+function createDockerRemoteClient(options, callback) {
+    assert.object(options, 'options');
+
+    assert.func(callback, 'callback');
+
+    var clientType = options.clientType;
+    assert.ok(clientType === undefined || typeof (clientType) === 'string');
+
+    var user = options.user;
     assert.object(user, 'user');
+
+    var clientFactories = {
+        'http': restify.createHttpClient,
+        'json': restify.createJsonClient,
+        'string': restify.createStringClient
+    };
 
     createClientOpts('docker', function (err, opts) {
         if (err) {
@@ -1016,7 +1046,11 @@ function createDockerRemoteClient(user, callback) {
         // Necessary for self-signed server certs:
         opts.rejectUnauthorized = false;
 
-        callback(null, restify.createJsonClient(opts));
+        var clientFactory = restify.createJsonClient;
+        if (clientType)
+            clientFactory = clientFactories[clientType];
+
+        callback(null, clientFactory.call(clientFactory, opts));
         return;
     });
 }
@@ -1061,6 +1095,86 @@ function assertInfo(t, info) {
 //     t.equal(info.NGoroutines, 42, 'Totally have 42 goroutines');
 }
 
+
+/*
+ * Builds a docker container using the context passed in opts.tarballPath
+ */
+function buildDockerContainer(opts, callback) {
+    var tarballPath = opts.tarballPath;
+    assert.string(tarballPath, 'tarballPath');
+
+    assert.object(opts, 'opts');
+    assert.func(callback, 'callback');
+
+    var dockerClient = opts.dockerClient;
+    var log = dockerClient.log;
+
+    var headers = {
+        'Content-Type': 'application/tar',
+        'Accept-Encoding': 'gzip',
+        'Transfer-Encoding': 'chunked'
+    };
+
+    if (opts.extraHeaders) {
+        for (var header in opts.extraHeaders) {
+            if (header in headers) {
+                var errorMsg = 'Extra header [%s] already set, you should '
+                + 'not override it';
+                errorMsg = fmt(errorMsg, header);
+                throw new Error(errorMsg);
+            }
+
+            headers[header] = opts.extraHeaders[header];
+        }
+    }
+
+    dockerClient.post({
+        path: '/v1.19/build',
+        headers: headers
+    }, onpost);
+
+    function onpost(connectErr, req) {
+        var buildResult = {};
+
+        if (connectErr)
+            return callback(connectErr, buildResult);
+
+        req.on('result', function onResponse(err, res) {
+            buildResult.body = '';
+
+            res.on('data', function onResData(data) {
+                buildResult.body += data.toString();
+            });
+
+            res.on('end', function onEnd() {
+                removeDockerTarStreamListeners();
+                return callback(err, buildResult);
+            });
+        });
+
+        req.on('error', function onReqError(err) {
+            log.error({err: err}, 'Error when sending build context');
+            removeDockerTarStreamListeners();
+            return callback(err);
+        });
+
+        var tarStream = fs.createReadStream(tarballPath);
+        tarStream.pipe(req);
+
+        tarStream.on('error', function onDockerTarError(err) {
+            log.error({err: err}, 'Error when reading build context');
+            req.end();
+        });
+
+        tarStream.on('end', function onDockerTarEnd() {
+            req.end();
+        });
+
+        function removeDockerTarStreamListeners() {
+            tarStream.removeAllListeners();
+        }
+    }
+}
 
 /**
  * Create a nginx VM fixture
@@ -1245,6 +1359,118 @@ function listContainers(opts, callback) {
 }
 
 
+/*
+ * Takes a docker zone ID as first argument, and calls "callback"
+ * with an error object as first argument, and the path to the SDC-docker
+ * log file (usable from the GZ) as second argument.
+ */
+function getServiceLogFilePath(dockerZoneId, callback) {
+    assert.string(dockerZoneId, 'dockerZoneId');
+    assert.func(callback, 'callback');
+
+    var cmdLine = 'zlogin ' + dockerZoneId + ' svcs -L docker';
+    exec(cmdLine, onExec);
+    function onExec(err, stdout, stderr) {
+        var zonePath = path.join('/zones', dockerZoneId);
+        return callback(err, path.join(zonePath, 'root', stdout.trim()));
+    }
+}
+
+/*
+ * Calls callback with an error object as first argument,
+ * and the ID of the docker zone as second argument.
+ */
+function getDockerZoneId(callback) {
+    assert.func(callback, 'callback');
+
+    var cmdLine = 'vmadm lookup -1 alias=docker0';
+    exec(cmdLine, onExec);
+    function onExec(err, stdout, stderr) {
+        if (err === null && stdout) {
+            stdout = stdout.trim();
+            var outputLines = stdout.split(os.EOL);
+            if (outputLines.length !== 1)
+                err = new Error('vmadm output must be in 1 line, '
+                    + 'actual output: ' + stdout);
+        }
+
+        return callback(err, stdout);
+    }
+}
+
+/*
+ * Given a log file path, a request ID and a restify handler name,
+ * calls back "callback" with an error object and a boolean set to true
+ * if the restify handler "handlerName" ran when the latest request with
+ * ID reqId was served, and false otherwise.
+ */
+function findHandlerTimerInLogs(logFilePath, reqId, handlerName, callback) {
+    assert.string(logFilePath, 'logFilePath');
+    assert.string(reqId, 'reqId');
+    assert.string(handlerName, 'handlerName');
+    assert.func(callback, 'callback');
+
+    var handlerTimerFound = false;
+
+    var cmdLine = 'cat ' + logFilePath
+    // filter non-JSON data
+    + ' | grep -v \'^[^{]\''
+    // filter records for the request ID passed as input
+    // and output with one line per record
+    + ' | json -ga -o jsony-0 -c this.req_id==' + reqId
+    // grab the latest request
+    + ' | tail -1'
+    // filter handlers timers info
+    + ' | json -o jsony-0 req.timers'
+    // Filter requests that made the body parser handler run
+    + ' | grep ' + handlerName;
+
+    exec(cmdLine, onExecDone);
+    function onExecDone(err, stdout, stderr) {
+        // if grep exits with no error, it means it found
+        // a match, and so the handler with name "handlerName" ran
+        if (err === null || err.code === 0)
+            handlerTimerFound = true;
+
+        // If there's an error when running grep, there are two different
+        // cases:
+        //
+        // 1. if it exits with a status code that is not 1,
+        // it's an actual error.
+        //
+        // 2. if it exits with a status code of 1, it means no match was
+        // found, but it's not an error per se.
+        if (err && err.code === 1)
+            err = null;
+
+        return callback(err, handlerTimerFound);
+    }
+}
+
+/*
+ * Checks in sdc-docker logs if the restify handler with name "handlerName"
+ * was executed for the latest request with ID "reqId". Calls back callback
+ * with an error object as first argument, and a boolean that is true if the
+ * handler ran, and false otherwise.
+ */
+function didRestifyHandlerRun(reqId, handlerName, callback) {
+    assert.string(reqId, 'reqId');
+    assert.string(handlerName, 'handlerName');
+
+    // check in the docker service's logs if the last
+    // log entry with the same request ID
+    // doesn't have a req.timers entry for handlerName, which would
+    // mean the handler was executed.
+    vasync.waterfall([
+        getDockerZoneId,
+        getServiceLogFilePath,
+        function (logFilePath, next) {
+            findHandlerTimerInLogs(logFilePath, reqId, handlerName, next);
+        }
+    ], function allDone(err, handlerTimerFound) {
+        return callback(err, handlerTimerFound);
+    });
+}
 
 // --- exports
 
@@ -1256,8 +1482,11 @@ module.exports = {
     initDockerEnv: initDockerEnv,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
+    buildDockerContainer: buildDockerContainer,
 
     getDockerEnv: getDockerEnv,
+
+    didRestifyHandlerRun: didRestifyHandlerRun,
 
     ifErr: common.ifErr,
     assertInfo: assertInfo

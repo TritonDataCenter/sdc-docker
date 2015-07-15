@@ -37,11 +37,13 @@ test('setup', function (tt) {
     tt.test('docker env', function (t) {
         h.initDockerEnv(t, STATE, {}, function (err, accounts) {
             t.ifErr(err);
-            h.createDockerRemoteClient(accounts.alice, function (err2, client) {
-                t.ifErr(err2, 'docker client init');
-                DOCKER_ALICE = client;
-                t.end();
-            });
+            h.createDockerRemoteClient({user: accounts.alice},
+                function (err2, client) {
+                    t.ifErr(err2, 'docker client init');
+                    DOCKER_ALICE = client;
+                    t.end();
+                }
+            );
         });
     });
 
