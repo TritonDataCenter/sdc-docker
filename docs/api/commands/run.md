@@ -6,12 +6,14 @@
 
       -a, --attach=[]            Attach to STDIN, STDOUT or STDERR
       --add-host=[]              Add a custom host-to-IP mapping (host:ip)
+      --blkio-weight=0           Block IO weight (relative weight)
       -c, --cpu-shares=0         CPU shares (relative weight)
       --cap-add=[]               Add Linux capabilities
       --cap-drop=[]              Drop Linux capabilities
       --cidfile=""               Write the container ID to the file
       --cpuset-cpus=""           CPUs in which to allow execution (0-3, 0,1)
       --cpuset-mems=""           Memory nodes (MEMs) in which to allow execution (0-3, 0,1)
+      --cpu-period=0             Limit the CPU CFS (Completely Fair Scheduler) period
       --cpu-quota=0              Limit the CPU CFS (Completely Fair Scheduler) quota
       -d, --detach=false         Run container in background and print container ID
       --device=[]                Add a host device to the container
@@ -27,6 +29,7 @@
       --ipc=""                   IPC namespace to use
       --link=[]                  Add link to another container
       --log-driver=""            Logging driver for container
+      --log-opt=[]               Log driver specific options
       --lxc-conf=[]              Add custom lxc options
       -m, --memory=""            Memory limit
       -l, --label=[]             Set metadata on the container (e.g., --label=com.example.key=value)
@@ -35,6 +38,7 @@
       --memory-swap=""           Total memory (memory + swap), '-1' to disable swap
       --name=""                  Assign a name to the container
       --net="bridge"             Set the Network mode for the container
+      --oom-kill-disable=false   Whether to disable OOM Killer for the container or not
       -P, --publish-all=false    Publish all exposed ports to random ports
       -p, --publish=[]           Publish a container's port(s) to the host
       --pid=""                   PID namespace to use
@@ -46,6 +50,7 @@
       --sig-proxy=true           Proxy received signals to the process
       -t, --tty=false            Allocate a pseudo-TTY
       -u, --user=""              Username or UID (format: <name|uid>[:<group|gid>])
+      --uts=""                   UTS namespace to use
       -v, --volume=[]            Bind mount a volume
       --volumes-from=[]          Mount volumes from the specified container(s)
       -w, --workdir=""           Working directory inside the container
@@ -450,21 +455,25 @@ set on the daemon.
 Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
 * `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md). 
+* `--blkio-weight` (block IO weight) is unsupported.
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
 * `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
 * `--cap-add` and `--cap-drop` (Linux capabilities) are ignored. See [security](../features/security.md).
-* `--cpuset` (controls which CPUs to run on) are ignored. See [resource allocation](../features/resources.md).
+* `--cpuset-cpus` and `--cpuset-mems` (controls which CPUs and memory nodes to run on) are ignored. See [resource allocation](../features/resources.md).
+* `--cpu-period` and `--cpu-quota` (limit the CPU CFS settings) are ignored. See [resource allocation](../features/resources.md).
 * `--device` (mounts host device into container) is ignored.
 * `--ipc` is ignored.
-* `--log-driver` which is unsupported
+* `--log-driver` and `--log-opt` are currently unimplemented, follow [DOCKER-279](http://smartos.org/bugview/DOCKER-279) for updates.
 * `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
 * `--net` (controls how networking is attached) is currently unsupported. See [networking](../features/networks.md). Joyent is working with the Docker community to improve how network configuration is specified in the Docker API.
+* `--oom-kill-disable` (whether to disable OOM killer) is unsupported.
 * `--pid=host` is unsupported.
 * `-P`, `--publish-all`, `-p`, and `--publish` behave slightly differently thanks to each container having a complete IP stack with one or more virtual NICs. See [networking](../features/networks.md).
 * `--privileged` (extended privileges for containers) is ignored. See [security](../features/security.md).
 * `--read-only` is currently unimplemented, follow [DOCKER-158](http://smartos.org/bugview/DOCKER-158) for updates.
 * `--security-opt` which is unsupported (Security Options)
+* `--uts` (UTS namespace to use) is unsupported.
 * `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).  
 
 ## Related
