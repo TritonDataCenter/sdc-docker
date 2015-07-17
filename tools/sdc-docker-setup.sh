@@ -463,6 +463,7 @@ sdcEnvConfiguration envInfo ""
 envInfo "export DOCKER_CERT_PATH=$certDir"
 if [[ -n "$dockerService" ]]; then
     envInfo "export DOCKER_HOST=$dockerService"
+    envInfo "export DOCKER_CLIENT_TIMEOUT=300"
     if [[ $dockerHost =~ ^[0-9]+ ]]; then
         # IP address - let them know a FQDN is needed to use DOCKER_TLS_VERIFY.
         dockerHostname="my.sdc-docker"
@@ -476,6 +477,7 @@ if [[ -n "$dockerService" ]]; then
         sdcEnvConfiguration info "    "
         info "    export DOCKER_CERT_PATH=$certDir"
         info "    export DOCKER_HOST=tcp://${dockerHostname}:${dockerPort}"
+        info "    export DOCKER_CLIENT_TIMEOUT=300"
         info "    export DOCKER_TLS_VERIFY=1"
     else
         # Fully qualified domain name... assume the cert is already setup.
@@ -484,6 +486,7 @@ if [[ -n "$dockerService" ]]; then
 else
     envInfo "# See the product docs for the value to use for DOCKER_HOST."
     envInfo "export DOCKER_HOST='tcp://<HOST>:2376'"
+    envInfo "export DOCKER_CLIENT_TIMEOUT=300"
 fi
 info ""
 info "Then you should be able to run 'docker info' and see your account"
