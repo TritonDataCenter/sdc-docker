@@ -37,6 +37,9 @@ CERT_BASE_DIR=$HOME/.sdc/docker
 
 CURL_OPTS=" -H user-agent:sdc-docker-setup/$VERSION"
 
+PROFILE_NAME_RE='^[a-z][a-z0-9\._-]+$'
+
+
 
 # ---- support functions
 
@@ -92,6 +95,10 @@ function usage
     echo "          for development)."
     echo "  -s      Include SDC_* environment variables for setting up SDC CLI."
     echo "          Otherwise, only the 'docker' env vars are emitted."
+    echo "  -p PROFILE"
+    echo "          The profile name for this Docker host and account."
+    echo "          Profile info is stored under '~/.sdc/docker/$profile/'."
+    echo "          It defaults to the ACCOUNT, it must match '${PROFILE_NAME_RE}'."
     # TODO: examples
 }
 
@@ -278,7 +285,8 @@ optQuiet=
 optForce=
 optInsecure=
 optSdcSetup=
-while getopts "hVqfks" opt; do
+optProfileName=
+while getopts "hVqfksp:" opt; do
     case "$opt" in
         h)
             usage
@@ -299,6 +307,12 @@ while getopts "hVqfks" opt; do
             ;;
         s)
             optSdcSetup=true
+            ;;
+        p)
+            if [[ -z $(echo "$OPTARG" | (egrep "$PROFILE_NAME_RE" || true)) ]]; then
+                fatal "profile name, '$OPTARG', does not match '$PROFILE_NAME_RE'"
+            fi
+            optProfileName=$OPTARG
             ;;
         *)
             usage
@@ -418,7 +432,11 @@ fi
 
 
 info "Generating client certificate from SSH private key."
-certDir="$CERT_BASE_DIR/$account"
+profileName=$optProfileName
+if [[ -z "$profileName" ]]; then
+    profileName=$account
+fi
+certDir="$CERT_BASE_DIR/$profileName"
 keyPath=$certDir/key.pem
 certPath=$certDir/cert.pem
 csrPath=$certDir/csr.pem
