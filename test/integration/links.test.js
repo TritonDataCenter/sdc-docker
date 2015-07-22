@@ -125,9 +125,23 @@ test('linked env', function (tt) {
                 'NGX_PORT_443_TCP_PORT=443',
                 'NGX_PORT_443_TCP_PROTO=tcp'
             ];
+            var privateIpRegex = new RegExp('(^10\\.)'
+                                        + '|(^172\\.1[6-9]\\.)'
+                                        + '|(^172\\.2[0-9]\\.)'
+                                        + '|(^172\\.3[0-1]\\.)'
+                                        + '|(^192\\.168\\.)');
             expectedPortEnvNames.forEach(function (e) {
+                var match;
                 for (var i = 0; i < linkEnv.length; i++) {
-                    if (linkEnv[i].match(e)) {
+                    match = linkEnv[i].match(e);
+                    if (match) {
+                        // Check that the the tcp address is internal.
+                        if ((e.indexOf('tcp://') > 0)
+                            && (!match[1].match(privateIpRegex)))
+                        {
+                            t.fail('linked env is not using a private ip: '
+                                    + linkEnv[i]);
+                        }
                         return;
                     }
                 }
