@@ -101,6 +101,20 @@ test('docker images', function (tt) {
     });
 
 
+    // Ensure an image can be inspected when the name is uri decoded/encoded.
+    tt.test('inspect ubuntu image', function (t) {
+        var url = '/v1.15/images/ubuntu:latest/json';
+        DOCKER_ALICE.get(url, function (err, req, res) {
+            t.error(err, 'get ubuntu:latest image');
+            url = url.replace(':', '%3A');
+            DOCKER_ALICE.get(url, function (err2, req2, res2) {
+                t.error(err2, 'get encoded ubuntu%3Alatest image');
+                t.end();
+            });
+        });
+    });
+
+
     tt.test('delete image', function (t) {
         DOCKER_ALICE.del('/v1.15/images/ubuntu', ondel);
         function ondel(err, req, res) {
