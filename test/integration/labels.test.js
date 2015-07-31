@@ -74,6 +74,10 @@ test('labels', function (tt) {
 test('labels on container', function (tt) {
 
     var containerId;
+    var expectedLabels = {
+        'foo': 'bar',  // from the command line
+        'todd': 'cool' // from the image
+    };
 
     tt.test('container label', function (t) {
         cli.run(t, { args: '-d --label foo=bar '
@@ -91,12 +95,23 @@ test('labels on container', function (tt) {
             id: containerId,
             partialExp: {
                 Config: {
-                    Labels: {
-                        'foo': 'bar',
-                        'todd': 'cool'
-                    }
+                    Labels: expectedLabels
                 }
             }
+        });
+    });
+
+
+    tt.test('label ps check', function (t) {
+        cli.ps(t, {args: '-a'}, function (err, entries) {
+            t.ifErr(err, 'docker ps');
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].Id === containerId) {
+                    t.deepEqual(entries[i], expectedLabels);
+                    break;
+                }
+            }
+            t.end();
         });
     });
 });
