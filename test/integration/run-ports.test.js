@@ -25,6 +25,9 @@ var test = require('tape');
 
 // --- Globals
 
+// match backends/sdc/containers.js
+var MAX_EXPOSED_PORTS = 128;
+var MAX_PORTS_PER_RULE = 8;
 
 var EXPOSED_PORTS = {};
 var CLIENTS = {};
@@ -488,8 +491,13 @@ test('-p range', function (tt) {
     var p;
     var ports = [];
 
-    tt.test('docker run -p 50-81:50-81', function (t) {
-        cli.run(t, { args: '-p 50-81:50-81 -d nginx:latest' });
+    var START_PORT = 50;
+    var END_PORT = START_PORT + MAX_EXPOSED_PORTS - 1;
+
+    tt.test(fmt('docker run -p %d-%d:%d-%d', START_PORT, END_PORT,
+        START_PORT, END_PORT), function (t) {
+        cli.run(t, { args: fmt('-p %d-%d:%d-%d/tcp -d nginx:latest', START_PORT,
+            END_PORT, START_PORT, END_PORT) });
     });
 
 
@@ -509,7 +517,7 @@ test('-p range', function (tt) {
             }
         };
 
-        for (p = 50; p <= 81; p++) {
+        for (p = START_PORT; p <= END_PORT; p++) {
             partial.Config.ExposedPorts[p + '/tcp'] = {};
             partial.HostConfig.PortBindings[p + '/tcp'] = portBindingsPort(p);
             partial.NetworkSettings.Ports[p + '/tcp'] = netSettingsPort(p);
@@ -522,28 +530,43 @@ test('-p range', function (tt) {
         });
     });
 
-
     tt.test('-p range:80: expose firewall rules created', function (t) {
+        // odd implementation details here:
+        // FWAPI supports 8 ports per rule, and rules are returned in
+        // lexicographic order. Port groupings are also determined by
+        // lexicographic order, however, port ordering within the rule
+        // is by numeric order.
+        //
+        // example, 50-177 results in:
+        // 100-107, 108-115, etc, until we reach the point where lex order
+        // differs from numeric order producing the group:
+        //     [172, 173, 174, 175, 176, 177, 50, 51]
+        // which results in the rule:
+        // 'FROM any TO vm 0cc75764-eed2-4353-9928-87e525e05dca ALLOW tcp
+        // (PORT 50 AND PORT 51 AND PORT 172 AND PORT 173 AND PORT 174...
+        ports.sort();
+        var expectedRules = [];
+        for (var i = 0; i < ports.length; i += MAX_PORTS_PER_RULE) {
+            expectedRules.push(exposeRule('tcp', cli.lastCreated,
+                ports.slice(i, i + MAX_PORTS_PER_RULE).sort(function (a, b) {
+                    return a > b;
+                })));
+        }
+        expectedRules.sort();
+
         listFwRules(t, {
             filter: {
                 owner_uuid: cli.accountUuid,
                 vm: h.dockerIdToUuid(cli.lastCreated)
             },
-            expected: [
-                exposeRule('tcp', cli.lastCreated,
-                    [50, 51, 52, 53, 54, 55, 56, 57]),
-                exposeRule('tcp', cli.lastCreated,
-                    [58, 59, 60, 61, 62, 63, 64, 65]),
-                exposeRule('tcp', cli.lastCreated,
-                    [66, 67, 68, 69, 70, 71, 72, 73]),
-                exposeRule('tcp', cli.lastCreated,
-                    [74, 75, 76, 77, 78, 79, 80, 81])
-            ]
+            expected: expectedRules
         });
     });
 
 
     tt.test('-p range: VMAPI metadata', function (t) {
+        // expect lexicographic order.
+        ports.sort();
         vm.get(t, {
             id: cli.lastCreated,
             partialExp: {
@@ -561,7 +584,7 @@ test('-p range', function (tt) {
 
     tt.test('-P: port', function (t) {
         var exp = {};
-        for (p = 50; p <= 81; p++) {
+        for (p = START_PORT; p <= END_PORT; p++) {
             exp[p + '/tcp'] = zeroAddr(p);
         }
 
@@ -573,11 +596,13 @@ test('-p range', function (tt) {
 
 
     // Make sure the limit of 32 ports is enforced:
-    tt.test('docker run -p 50-81:50-82', function (t) {
+    tt.test(fmt('docker run -p %d-%d:%d-%d', START_PORT, END_PORT + 1,
+        START_PORT, END_PORT + 1), function (t) {
         cli.run(t, {
-            args: '-p 50-82:50-82 -d nginx:latest',
+            args: fmt('-p %d-%d:%d-%d -d nginx:latest', START_PORT,
+                END_PORT + 1, START_PORT, END_PORT + 1),
             expectedErr: 'Error response from daemon: publish port: '
-                + 'only support exposing 32 TCP ports'
+                + fmt('only support exposing %d TCP ports', MAX_EXPOSED_PORTS)
         });
     });
 
