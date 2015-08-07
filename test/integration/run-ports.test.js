@@ -15,6 +15,7 @@
 var assert = require('assert-plus');
 var cli = require('../lib/cli');
 var common = require('../lib/common');
+var constants = common.constants;
 var extend = require('xtend');
 var fmt = require('util').format;
 var h = require('./helpers');
@@ -24,9 +25,6 @@ var test = require('tape');
 
 
 // --- Globals
-
-// match backends/sdc/containers.js
-var MAX_EXPOSED_PORTS = 128;
 var MAX_PORTS_PER_RULE = 8;
 
 var EXPOSED_PORTS = {};
@@ -492,7 +490,7 @@ test('-p range', function (tt) {
     var ports = [];
 
     var START_PORT = 50;
-    var END_PORT = START_PORT + MAX_EXPOSED_PORTS - 1;
+    var END_PORT = START_PORT + constants.MAX_EXPOSED_PORTS - 1;
 
     tt.test(fmt('docker run -p %d-%d:%d-%d', START_PORT, END_PORT,
         START_PORT, END_PORT), function (t) {
@@ -602,7 +600,8 @@ test('-p range', function (tt) {
             args: fmt('-p %d-%d:%d-%d -d nginx:latest', START_PORT,
                 END_PORT + 1, START_PORT, END_PORT + 1),
             expectedErr: 'Error response from daemon: publish port: '
-                + fmt('only support exposing %d TCP ports', MAX_EXPOSED_PORTS)
+                + fmt('only support exposing %d TCP ports',
+                    constants.MAX_EXPOSED_PORTS)
         });
     });
 

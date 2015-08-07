@@ -10,6 +10,7 @@
 
 var p = console.log;
 
+var constants = require('../lib/common').constants;
 var fmt = require('util').format;
 var test = require('tape');
 var util = require('util');
@@ -29,7 +30,6 @@ var FMT = {
     obj: '(Validation) "%s" must be an object',
     str: '(Validation) "%s" must be a string'
 };
-var MAX_PORTS = 32;
 var STATE = {
     log: require('../lib/log')
 };
@@ -40,8 +40,10 @@ var STR = {
         + 'must be "number/protocol"',
     proto: '(Validation) HostConfig.PortBindings: unknown protocol: '
         + 'must be tcp or udp',
-    tcp: fmt('publish port: only support exposing %d TCP ports', MAX_PORTS),
-    udp: fmt('publish port: only support exposing %d UDP ports', MAX_PORTS)
+    tcp: fmt('publish port: only support exposing %d TCP ports',
+        constants.MAX_EXPOSED_PORTS),
+    udp: fmt('publish port: only support exposing %d UDP ports',
+        constants.MAX_EXPOSED_PORTS)
 };
 
 
@@ -55,7 +57,7 @@ var STR = {
 function maxPorts(proto) {
     var ports = {};
 
-    for (var i = 0; i <= MAX_PORTS; i++) {
+    for (var i = 0; i <= constants.MAX_EXPOSED_PORTS; i++) {
         ports[(30 + i).toString() + '/' + proto] = {};
     }
 

@@ -103,6 +103,10 @@ function execPlus(args, cb) {
     });
 }
 
+var constants = {
+    // canonical value is lib/backends/sdc/containers.js
+    MAX_EXPOSED_PORTS: 128
+};
 
 /**
  * Does a deep equal of opts.expected and obj
@@ -210,9 +214,8 @@ function partialExp(t, opts, obj) {
     }
 }
 
-
-
 module.exports = {
+    constants: constants,
     done: done,
     execPlus: execPlus,
     expected: expectedDeepEqual,
