@@ -127,7 +127,7 @@ See our [guide to common API connection problems](./troubleshooting.md).
 SDC Docker offers a number of features unique to Triton's container-native infrastructure, including:
 
 1. [Placement: automatic placement of containers across the entire data center](features/placement.md).
-1. [Networking: one or more real IP addresses for each container](features/networking.md).
+1. [Networking: one or more real IP addresses for each container](features/networks.md).
 1. [Resource allocation: specify RAM, CPU, and storage for each container](features/resources.md).
 1. [Volumes: container-native volume management](features/volumes.md).
 1. [Private repositories: image repository management](features/repos.md)
