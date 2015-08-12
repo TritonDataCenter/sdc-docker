@@ -12,11 +12,9 @@
  * Integration tests for docker client version handling.
  */
 
-var common = require('../../lib/common');
-var cli = require('../lib/cli');
+var constants = require('../../lib/constants');
 var h = require('./helpers');
 var test = require('tape');
-var vasync = require('vasync');
 
 
 
@@ -57,7 +55,7 @@ test('apiversion', function (tt) {
         var infoPath = verPrefix + '/info';
         var containersPath = verPrefix + '/containers/json';
         var imagesPath = verPrefix + '/images/json';
-        var pingPath = verPrefix + '/_ping';
+        var versionPath = verPrefix + '/version';
 
         tt.test('apiversion ' + infoPath, function (t) {
             // docker info
@@ -104,26 +102,27 @@ test('apiversion', function (tt) {
             });
         });
 
-        tt.test('apiversion ' + pingPath, function (t) {
-            // docker ping
-            DOCKER_ALICE.get(pingPath,
-                    function (err, req, res, ping) {
+        tt.test('apiversion ' + versionPath, function (t) {
+            // docker version
+            DOCKER_ALICE.get(versionPath,
+                    function (err, req, res, verInfo) {
                 if (opts && opts.shouldFail) {
                     t.ok(err, 'expected request to fail');
                     t.end();
                     return;
                 }
-                t.ifError(err, 'apiversion ' + pingPath);
-                t.ok(ping, 'ping response');
+                t.ifError(err, 'apiversion ' + versionPath);
+                t.ok(verInfo, 'version response');
                 t.end();
             });
         });
     }
 
     testVersionHandling();        // no version
-    testVersionHandling('v1.15'); // old version
-    testVersionHandling('v' + common.SERVER_VERSION); // current server version
+    testVersionHandling('v1.14', { shouldFail: true }); // unsupported version
+    testVersionHandling('v' + constants.MIN_API_VERSION); // min ver
+    testVersionHandling('v' + constants.API_VERSION); // current ver
     testVersionHandling('v9.99'); // future version
-    testVersionHandling('1.15', { shouldFail: true });   // invalid version
+    testVersionHandling('1.14', { shouldFail: true });   // invalid version
     testVersionHandling('golden', { shouldFail: true }); // invalid version
 });
