@@ -24,6 +24,7 @@ var vasync = require('vasync');
 
 var common = require('../lib/common');
 var sdcCommon = require('../../lib/common');
+var constants = require('../../lib/constants');
 
 
 // --- globals
@@ -36,6 +37,7 @@ var CONFIG = {
 var p = console.error;
 var UA = 'sdcdockertest';
 
+var dockerVersion = constants.SERVER_VERSION;
 
 var CLIENT_ZONE_PAYLOAD = {
     'alias': 'sdcdockertest_client',
@@ -58,6 +60,7 @@ var CLIENT_ZONE_PAYLOAD = {
         'user-script': [
             '#!/bin/bash',
             '',
+            'DOCKER_VERSION="' + dockerVersion + '"',
             'if [[ ! -d /root/bin ]]; then',
             '    mkdir -p /root/bin',
             '    echo \'export PATH=/root/bin:$PATH\' >>/root/.profile',
@@ -69,13 +72,12 @@ var CLIENT_ZONE_PAYLOAD = {
             '    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh',
             '    chmod +x sdc-docker-setup.sh',
             'fi',
-            'if [[ ! -x docker-1.7.0 ]]; then',
-            '    curl -sSO https://us-east.manta.joyent.com/trent.mick/public/all-the-dockers/docker-1.7.0',
-            '    chmod +x docker-1.7.0',
+            'if [[ ! -x docker-${DOCKER_VERSION} ]]; then',
+            '    curl -sSO https://us-east.manta.joyent.com/trent.mick/public/all-the-dockers/docker-${DOCKER_VERSION}',
+            '    chmod +x docker-${DOCKER_VERSION}',
             'fi',
-            'if [[ ! -f docker ]]; then',
-            '    ln -s docker-1.7.0 docker',
-            'fi',
+            'rm -f docker',
+            'ln -s docker-${DOCKER_VERSION} docker',
             '',
             'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
         ].join('\n')
@@ -1233,7 +1235,7 @@ function createDockerContainer(opts, callback) {
     var t = opts.test;
     var log = dockerClient.log;
     var response = {};
-    var apiVersion = opts.apiVersion || 'v1.16';
+    var apiVersion = opts.apiVersion || ('v' + constants.API_VERSION);
 
     if (opts.extra) {
         for (var e in opts.extra) {

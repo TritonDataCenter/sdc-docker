@@ -43,9 +43,8 @@ and officially supported version.
 Devs: When updating the sdc-docker server official version, you'll need to
 be sure to update the following:
 
-1. update SERVER_VERSION version in lib/common.js
-2. update the test client version in test/integration/helpers.js
-3. update the docker cli test client version in
+1. update both *API_VERSION* and *SERVER_VERSION* version in lib/constants.js
+2. update the docker cli test client version in
    globe-theatre/bin/nightly-test-docker-integration-cli
 
 
