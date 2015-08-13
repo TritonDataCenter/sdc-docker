@@ -4,7 +4,8 @@
 
     Pull an image or a repository from the registry
 
-      -a, --all-tags=false    Download all tagged images in the repository
+      -a, --all-tags=false             Download all tagged images in the repository
+      --disable-content-trust=true     Skip image verification
 
 Most of your images will be created on top of a base image from the
 [Docker Hub](https://hub.docker.com) registry.
@@ -40,7 +41,8 @@ use `docker pull`:
 
 ## Divergence
 
-`docker pull -a` is currently unsupported.
+`docker pull -a` and `--disable-content-trust=true` are currently unsupported.
+Follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531) for updates.
 
 Limited support for pulling from private registries. The current state: You can
 'docker login' and pull from private Docker Hub repos. There are a couple issues

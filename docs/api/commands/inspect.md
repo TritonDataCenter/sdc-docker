@@ -4,7 +4,9 @@
 
     Return low-level information on a container or image
 
-      -f, --format=""    Format the output using the given go template
+      -f, --format=""            Format the output using the given go template
+      --type=container|image     Return JSON for specified type, permissible 
+                                 values are "image" or "container"
 
 By default, this will render all results in a JSON array. If a format is
 specified, the given template will be executed for each result.
@@ -62,15 +64,18 @@ section contains complex JSON object, so to grab it as JSON, you use
 
 ## Divergence
 
-Some fields, including the following, are irrelevent to containers on Trito and are never populated.
+Some fields, including the following, are irrelevent to containers on Triton and are never populated.
 
 - AppArmorProfile
-- CapAdd
-- CapDrop
-- Cpuset
-- IpcMode
-- LxcConf
-- SecurityOpt 
+- Config: Cpuset, CpuPeriod, CpusetCpus, CpusetMems, CpuQuota, BlkioWeight, ConsoleSize, GroupAdd, LogConfig, 
+  MemorySwappiness, OomKillDisable, Privileged, PortBindings, Ulimits, VolumeDriver
+- GraphicDriver: All
+- HostConfig: CapAdd, CapDrop, IpcMode, LxcConf, PublishService, SecurityOpt
+- Mounts: All
+- NetworkSettings: EndpointID, GlobalIPv6Address, GlobalIPv6PrefixLen, HairpinMode, IPv6Gateway,
+  LinkLocalIPv6Address, LinkLocalIPv6PrefixLen, NetworkID, PortMapping, SandboxKey
+  SecondaryIPAddresses, SecondaryIPv6Addresses
+- State: Dead, OOMKilled
 
 Read more about container [security on Triton](features/security.md) and see [notes about exit status](../divergence.md).
 

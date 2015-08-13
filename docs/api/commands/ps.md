@@ -7,6 +7,7 @@
       -a, --all=false       Show all containers (default shows just running)
       --before=""           Show only container created before Id or Name
       -f, --filter=[]       Filter output based on conditions provided
+      --format=[]           Pretty-print containers using a Go template
       -l, --latest=false    Show the latest created container, include non-running
       -n=-1                 Show n last created containers, include non-running
       --no-trunc=false      Don't truncate output

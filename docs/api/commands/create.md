@@ -6,46 +6,57 @@ Creates a new container.
 
     Create a new container
 
-      -a, --attach=[]            Attach to STDIN, STDOUT or STDERR
-      --add-host=[]              Add a custom host-to-IP mapping (host:ip)
-      -c, --cpu-shares=0         CPU shares (relative weight)
-      --cap-add=[]               Add Linux capabilities
-      --cap-drop=[]              Drop Linux capabilities
-      --cgroup-parent=""         Optional parent cgroup for the container
-      --cidfile=""               Write the container ID to the file
-      --cpuset-cpus=""           CPUs in which to allow execution (0-3, 0,1)
-      --cpuset-mems=""           Memory nodes (MEMs) in which to allow execution (0-3, 0,1)
-      --cpu-quota=0              Limit the CPU CFS (Completely Fair Scheduler) quota
-      --device=[]                Add a host device to the container
-      --dns=[]                   Set custom DNS servers
-      --dns-search=[]            Set custom DNS search domains
-      -e, --env=[]               Set environment variables
-      --entrypoint=""            Overwrite the default ENTRYPOINT of the image
-      --env-file=[]              Read in a file of environment variables
-      --expose=[]                Expose a port or a range of ports
-      -h, --hostname=""          Container host name
-      -i, --interactive=false    Keep STDIN open even if not attached
-      --ipc=""                   IPC namespace to use
-      -l, --label=[]             Set metadata on the container (e.g., --label=com.example.key=value)
-      --label-file=[]            Read in a line delimited file of labels
-      --link=[]                  Add link to another container
-      --log-driver=""            Logging driver for container
-      --lxc-conf=[]              Add custom lxc options
-      -m, --memory=""            Memory limit
-      --mac-address=""           Container MAC address (e.g. 92:d0:c6:0a:29:33)
-      --name=""                  Assign a name to the container
-      --net="bridge"             Set the Network mode for the container
-      -P, --publish-all=false    Publish all exposed ports to random ports
-      -p, --publish=[]           Publish a container's port(s) to the host
-      --privileged=false         Give extended privileges to this container
-      --read-only=false          Mount the container's root filesystem as read only
-      --restart="no"             Restart policy (no, on-failure[:max-retry], always)
-      --security-opt=[]          Security options
-      -t, --tty=false            Allocate a pseudo-TTY
-      -u, --user=""              Username or UID
-      -v, --volume=[]            Bind mount a volume
-      --volumes-from=[]          Mount volumes from the specified container(s)
-      -w, --workdir=""           Working directory inside the container
+      -a, --attach=[]                  Attach to STDIN, STDOUT or STDERR
+      --add-host=[]                    Add a custom host-to-IP mapping (host:ip)
+      --blkio-weight=0                 Block IO weight (relative weight)
+      -c, --cpu-shares=0               CPU shares (relative weight)
+      --cap-add=[]                     Add Linux capabilities
+      --cap-drop=[]                    Drop Linux capabilities
+      --cgroup-parent=""               Optional parent cgroup for the container
+      --cidfile=""                     Write the container ID to the file
+      --cpuset-cpus=""                 CPUs in which to allow execution (0-3, 0,1)
+      --cpuset-mems=""                 Memory nodes (MEMs) in which to allow execution (0-3, 0,1)
+      --cpu-period=0                   Limit the CPU CFS (Completely Fair Scheduler) period
+      --cpu-quota=0                    Limit the CPU CFS (Completely Fair Scheduler) quota
+      --device=[]                      Add a host device to the container
+      --disable-content-trust=true     Skip image verification
+      --dns=[]                         Set custom DNS servers
+      --dns-search=[]                  Set custom DNS search domains
+      -e, --env=[]                     Set environment variables
+      --entrypoint=""                  Overwrite the default ENTRYPOINT of the image
+      --env-file=[]                    Read in a file of environment variables
+      --expose=[]                      Expose a port or a range of ports
+      -h, --hostname=""                Container host name
+      --help=false                     Print usage
+      -i, --interactive=false          Keep STDIN open even if not attached
+      --ipc=""                         IPC namespace to use
+      --link=[]                        Add link to another container
+      --log-driver=""                  Logging driver for container
+      --log-opt=[]                     Log driver specific options
+      --lxc-conf=[]                    Add custom lxc options
+      -l, --label=[]                   Set metadata on the container (e.g., --label=com.example.key=value)
+      --label-file=[]                  Read in a file of labels (EOL delimited)
+      -m, --memory=""                  Memory limit
+      --mac-address=""                 Container MAC address (e.g. 92:d0:c6:0a:29:33)
+      --memory-swap=""                 Total memory (memory + swap), '-1' to disable swap
+      --memory-swappiness=""           Tune a container's memory swappiness behavior. Accepts an integer between 0 and 100
+      --name=""                        Assign a name to the container
+      --net="bridge"                   Set the Network mode for the container
+      --oom-kill-disable=false         Whether to disable OOM Killer for the container or not
+      -P, --publish-all=false          Publish all exposed ports to random ports
+      -p, --publish=[]                 Publish a container's port(s) to the host
+      --pid=""                         PID namespace to use
+      --privileged=false               Give extended privileges to this container
+      --read-only=false                Mount the container's root filesystem as read only
+      --restart="no"                   Restart policy (no, on-failure[:max-retry], always)
+      --security-opt=[]                Security Options
+      -t, --tty=false                  Allocate a pseudo-TTY
+      -u, --user=""                    Username or UID (format: <name|uid>[:<group|gid>])
+      --ulimit=[]                      Ulimit options
+      --uts=""                         UTS namespace to use
+      -v, --volume=[]                  Bind mount a volume
+      --volumes-from=[]                Mount volumes from the specified container(s)
+      -w, --workdir=""                 Working directory inside the container
 
 The `docker create` command creates a writeable container layer over
 the specified image and prepares it for running the specified command.
@@ -100,21 +111,28 @@ can then be used from the subsequent container:
 Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
 * `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md). 
+* `--blkio-weight` (block IO weight) is unsupported.
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
 * `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
 * `--cap-add` and `--cap-drop` (Linux capabilities) are ignored. See [security](../features/security.md).
-* `--cpuset` (controls which CPUs to run on) are ignored. See [resource allocation](../features/resources.md).
+* `--cpuset-cpus` and `--cpuset-mems` (controls which CPUs and memory nodes to run on) are ignored. See [resource allocation](../features/resources.md).
+* `--cpu-period` and `--cpu-quota` (limit the CPU CFS settings) are ignored. See [resource allocation](../features/resources.md).
+* `--disable-content-trust` (skip image verification) is ignored, follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531).
 * `--device` (mounts host device into container) is ignored.
 * `--ipc` is ignored.
-* `--log-driver` which is unsupported
+* `--log-driver` and `--log-opt` are currently unimplemented, follow [DOCKER-279](http://smartos.org/bugview/DOCKER-279) for updates.
 * `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
+* `--memory-swap` and `--memory-swappiness` (disabling swap and tuning memory swappiness) are unsupported.
 * `--net` (controls how networking is attached) is currently unsupported. See [networking](../features/networks.md). Joyent is working with the Docker community to improve how network configuration is specified in the Docker API.
+* `--oom-kill-disable` (whether to disable OOM killer) is unsupported.
 * `--pid=host` is unsupported.
 * `-P`, `--publish-all`, `-p`, and `--publish` behave slightly differently thanks to each container having a complete IP stack with one or more virtual NICs. See [networking](../features/networks.md).
 * `--privileged` (extended privileges for containers) is ignored. See [security](../features/security.md).
 * `--read-only` is currently unimplemented, follow [DOCKER-158](http://smartos.org/bugview/DOCKER-158) for updates.
-* `--security-opt` which is unsupported (Security Options)
+* `--security-opt` (security options) is unsupported.
+* `--ulimit` (ulimit options) is unsupported.
+* `--uts` (UTS namespace to use) is unsupported.
 * `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).  
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.

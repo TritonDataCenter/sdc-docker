@@ -99,6 +99,7 @@ Success. Set your environment as follows:
 
 	export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
 	export DOCKER_HOST=tcp://us-east-1.docker.joyent.com:2376
+	export DOCKER_CLIENT_TIMEOUT=300
 	export DOCKER_TLS_VERIFY=1
 ```
 
@@ -114,9 +115,14 @@ Containers: 0
 Images: 0
 Storage Driver: sdc
  SDCAccount: jill
-Execution Driver: sdc-0.1.0
+Execution Driver: sdc-0.3.0
+Logging Driver: json-file
+Kernel Version: 3.12.0-1-amd64
 Operating System: SmartDataCenter
+CPUs: 0
+Total Memory: 0 B
 Name: us-east-1
+ID: 65698e31-2754-4e86-9d05-bfc881037812
 ```
 ## Troubleshooting API connection problems
 
