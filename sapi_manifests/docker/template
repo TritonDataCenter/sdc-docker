@@ -53,6 +53,7 @@
     },
 
     "httpProxy": "{{{http_proxy}}}",
+    "dockerRegistryInsecure": {{^docker_registry_insecure}}false{{/docker_registry_insecure}}{{#docker_registry_insecure}}{{{docker_registry_insecure}}}{{/docker_registry_insecure}},
 
     "useTls": {{^USE_TLS}}false{{/USE_TLS}}{{#USE_TLS}}{{{USE_TLS}}}{{/USE_TLS}},
     "tls": {
