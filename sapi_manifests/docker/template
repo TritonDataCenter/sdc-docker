@@ -52,6 +52,8 @@
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
 
+    "httpProxy": "{{{http_proxy}}}",
+
     "useTls": {{^USE_TLS}}false{{/USE_TLS}}{{#USE_TLS}}{{{USE_TLS}}}{{/USE_TLS}},
     "tls": {
         "requestCert": true,
