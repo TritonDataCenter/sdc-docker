@@ -91,7 +91,7 @@ expect it to get shorter by the day:
 
 `docker build`, `docker commit`, `docker diff`, `docker events`, `docker export`,
 `docker import`, `docker load`, `docker pause`, `docker push`, `docker save`,
-`docker stats`, `docker tag`, `docker unpause`
+`docker tag`, `docker unpause`
 
 ## Images and private registries
 
