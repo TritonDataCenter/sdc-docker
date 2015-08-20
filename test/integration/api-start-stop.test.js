@@ -91,7 +91,7 @@ test('api: create', function (tt) {
 
     tt.test('start container', function (t) {
         // Attempt to start new container
-        DOCKER.post('/v1.16/containers/' + id + '/start', onpost);
+        DOCKER.post('/containers/' + id + '/start', onpost);
         function onpost(err, res, req, body) {
             t.error(err);
             t.end(err);
@@ -128,7 +128,7 @@ test('api: create', function (tt) {
 
     tt.test('stop container', function (t) {
         // Attempt to stop new container
-        DOCKER.post('/v1.16/containers/' + id + '/stop', onpost);
+        DOCKER.post('/containers/' + id + '/stop', onpost);
         function onpost(err, res, req, body) {
             t.error(err);
             t.end(err);
@@ -162,7 +162,7 @@ test('api: create', function (tt) {
 
 
     tt.test('delete container', function (t) {
-        DOCKER.del('/v1.15/containers/' + id, ondel);
+        DOCKER.del('/containers/' + id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');

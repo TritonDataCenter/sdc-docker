@@ -99,7 +99,7 @@ test('api: create', function (tt) {
     var created;
 
     tt.test('pull nginx image', function (t) {
-        var url = '/v1.15/images/create?fromImage=nginx%3Alatest';
+        var url = '/images/create?fromImage=nginx%3Alatest';
         DOCKER_ALICE.post(url, function (err, req, res) {
             t.error(err, 'should be no error posting image create request');
 
@@ -122,7 +122,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -175,7 +175,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -206,7 +206,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -234,7 +234,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -269,7 +269,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -302,7 +302,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('docker rm', function (t) {
-        DOCKER_ALICE.del('/v1.15/containers/' + created.id, ondel);
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
             t.ifErr(err, 'rm container');
@@ -311,7 +311,7 @@ test('api: create', function (tt) {
     });
 
     tt.test('delete nginx image', function (t) {
-        DOCKER_ALICE.del('/v1.15/images/nginx', ondel);
+        DOCKER_ALICE.del('/images/nginx', ondel);
         function ondel(err, req, res) {
             t.error(err, 'should be no error deleting nginx');
             t.end();

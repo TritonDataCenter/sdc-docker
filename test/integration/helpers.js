@@ -1131,7 +1131,7 @@ function buildDockerContainer(opts, callback) {
     }
 
     dockerClient.post({
-        path: '/v1.19/build',
+        path: '/build',
         headers: headers
     }, onpost);
 
@@ -1257,7 +1257,7 @@ function createDockerContainer(opts, callback) {
             // There is a dependency here, in order to create a nginx container,
             // the nginx image must first be downloaded.
             log.debug('Checking for nginx docker image');
-            dockerClient.get('/v1.15/images/json',
+            dockerClient.get('/images/json',
                     function (err, req, res, images) {
 
                 t.error(err, 'check for nginx image - should be no error');
@@ -1267,7 +1267,7 @@ function createDockerContainer(opts, callback) {
                 }).length === 0) {
                     // Urgh, it doesn't exist... go get it then.
                     log.debug('Fetching nginx image');
-                    var url = '/v1.15/images/create?fromImage=nginx%3Alatest';
+                    var url = '/images/create?fromImage=nginx%3Alatest';
 
                     dockerClient.post(url, function (err2, req2, res2) {
                         t.error(err2, 'pull nginx image - should be no error');
@@ -1300,7 +1300,7 @@ function createDockerContainer(opts, callback) {
         function (next) {
             // Attempt to get new container
             dockerClient.get(
-                '/v1.16/containers/' + response.id + '/json', onget);
+                '/containers/' + response.id + '/json', onget);
             function onget(err, res, req, body) {
                 t.error(err);
                 response.inspect = body;
@@ -1311,7 +1311,7 @@ function createDockerContainer(opts, callback) {
         function (next) {
             // Attempt to stop the container
             dockerClient.get(
-                '/v1.16/containers/' + response.id + '/json', onget);
+                '/containers/' + response.id + '/json', onget);
             function onget(err, res, req, body) {
                 t.error(err);
                 response.inspect = body;
@@ -1345,7 +1345,7 @@ function listContainers(opts, callback) {
         function (next) {
             // Post create request
             dockerClient.get(
-                '/v1.16/containers/json'
+                '/containers/json'
                 + (opts.all ? '?all=1' : ''), onget);
             function onget(err, res, req, body) {
                 t.error(err);

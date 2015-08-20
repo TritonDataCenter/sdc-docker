@@ -69,7 +69,7 @@ test('setup', function (tt) {
 test('docker images', function (tt) {
 
     tt.test('list images', function (t) {
-        DOCKER_ALICE.get('/v1.15/images/json',
+        DOCKER_ALICE.get('/images/json',
                 function (err, req, res, images) {
             t.ok(images, 'images array');
             t.end();
@@ -78,7 +78,7 @@ test('docker images', function (tt) {
 
 
     tt.test('pull ubuntu image', function (t) {
-        var url = '/v1.15/images/create?fromImage=ubuntu%3Alatest';
+        var url = '/images/create?fromImage=ubuntu%3Alatest';
         DOCKER_ALICE.post(url, function (err, req, res) {
             t.error(err, 'should be no error posting image create request');
 
@@ -88,7 +88,7 @@ test('docker images', function (tt) {
 
 
     tt.test('ensure ubuntu image is in the list', function (t) {
-        DOCKER_ALICE.get('/v1.15/images/json',
+        DOCKER_ALICE.get('/images/json',
                 function (err, req, res, images) {
             t.error(err, 'should be no error retrieving images');
             t.ok(images.length, 'images array should not be empty');
@@ -103,7 +103,7 @@ test('docker images', function (tt) {
 
     // Ensure an image can be inspected when the name is uri decoded/encoded.
     tt.test('inspect ubuntu image', function (t) {
-        var url = '/v1.15/images/ubuntu:latest/json';
+        var url = '/images/ubuntu:latest/json';
         DOCKER_ALICE.get(url, function (err, req, res) {
             t.error(err, 'get ubuntu:latest image');
             url = url.replace(':', '%3A');
@@ -116,7 +116,7 @@ test('docker images', function (tt) {
 
 
     tt.test('delete image', function (t) {
-        DOCKER_ALICE.del('/v1.15/images/ubuntu', ondel);
+        DOCKER_ALICE.del('/images/ubuntu', ondel);
         function ondel(err, req, res) {
             t.error(err, 'should be no error retrieving images');
             t.end();
@@ -125,7 +125,7 @@ test('docker images', function (tt) {
 
 
     tt.test('ensure image is gone', function (t) {
-        DOCKER_ALICE.get('/v1.15/images/json',
+        DOCKER_ALICE.get('/images/json',
                 function (err, req, res, images) {
             t.error(err, 'should be no error retrieving images');
 
@@ -143,7 +143,7 @@ test('docker images', function (tt) {
     });
 
     tt.test('pull image without approved_for_provisioning', function (t) {
-        var url = '/v1.15/images/create?fromImage=ubuntu%3Alatest';
+        var url = '/images/create?fromImage=ubuntu%3Alatest';
         DOCKER_BOB.post(url, function (err, req, res) {
             t.ok(err, 'should not pull without approved_for_provisioning');
 

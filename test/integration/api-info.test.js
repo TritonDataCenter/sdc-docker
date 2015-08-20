@@ -59,16 +59,16 @@ test('setup', function (tt) {
 
 
 test('api: info', function (tt) {
-    tt.test('/v1.15/info', function (t) {
-        CLIENT.get('/v1.15/info', function (err, res, req, body) {
+    tt.test('/info', function (t) {
+        CLIENT.get('/info', function (err, res, req, body) {
             h.assertInfo(t, body);
             t.end();
         });
     });
 
 
-    tt.test('/v1.16/info', function (t) {
-        CLIENT.get('/v1.16/info', function (err, res, req, body) {
+    tt.test('/info', function (t) {
+        CLIENT.get('/info', function (err, res, req, body) {
             h.assertInfo(t, body);
             t.end();
         });
