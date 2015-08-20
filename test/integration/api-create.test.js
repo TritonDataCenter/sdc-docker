@@ -191,7 +191,8 @@ test('api: create', function (tt) {
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
-            extra: { 'Memory': memory }
+            extra: { 'Memory': memory },
+            apiVersion: 'v1.17'
         }, oncreate);
 
         function oncreate(err, result) {
@@ -218,7 +219,8 @@ test('api: create', function (tt) {
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
-            extra: { 'Memory': 'Foo' }
+            extra: { 'Memory': 'Foo' },
+            apiVersion: 'v1.17'
         }, oncreate);
 
         function oncreate(err, result) {
