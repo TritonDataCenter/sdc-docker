@@ -195,3 +195,6 @@ test('labels image filtering', function (tt) {
         });
     });
 });
+
+
+test('teardown', cli.rmAllCreated);
