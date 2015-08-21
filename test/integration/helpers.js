@@ -73,7 +73,7 @@ var CLIENT_ZONE_PAYLOAD = {
             '    chmod +x sdc-docker-setup.sh',
             'fi',
             'if [[ ! -x docker-${DOCKER_VERSION} ]]; then',
-            '    curl -sSO https://us-east.manta.joyent.com/trent.mick/public/all-the-dockers/docker-${DOCKER_VERSION}',
+            '    curl -sSO https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}',
             '    chmod +x docker-${DOCKER_VERSION}',
             'fi',
             'rm -f docker',
