@@ -458,7 +458,7 @@ set on the daemon.
 
 Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
-* `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md). 
+* `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md).
 * `--blkio-weight` (block IO weight) is unsupported.
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
 * `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
@@ -468,7 +468,7 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--disable-content-trust` (skip image verification) is ignored, follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531).
 * `--device` (mounts host device into container) is ignored.
 * `--ipc` is ignored.
-* `--log-driver` and `--log-opt` are currently unimplemented, follow [DOCKER-279](http://smartos.org/bugview/DOCKER-279) for updates.
+* `--log-driver` and `--log-opt` work somewhat differently on sdc-docker. See [log drivers](../features/logdrivers.md).
 * `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
 * `--memory-swap` and `--memory-swappiness` (disabling swap and tuning memory swappiness) are unsupported.
@@ -481,7 +481,7 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--security-opt` (security options) is unsupported.
 * `--ulimit` (ulimit options) is unsupported.
 * `--uts` (UTS namespace to use) is unsupported.
-* `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).  
+* `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).
 
 ## Related
 

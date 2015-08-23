@@ -10,6 +10,7 @@
 
     "backend": "sdc",
     "defaultMemory": {{#DEFAULT_MEMORY}}{{{DEFAULT_MEMORY}}}{{/DEFAULT_MEMORY}}{{^DEFAULT_MEMORY}}1024{{/DEFAULT_MEMORY}},
+    "enabledLogDrivers": "{{#ENABLED_LOG_DRIVERS}}{{{ENABLED_LOG_DRIVERS}}}{{/ENABLED_LOG_DRIVERS}}{{^ENABLED_LOG_DRIVERS}}json-file{{/ENABLED_LOG_DRIVERS}}",
     "packagePrefix": "{{#PACKAGE_PREFIX}}{{{PACKAGE_PREFIX}}}{{/PACKAGE_PREFIX}}{{^PACKAGE_PREFIX}}sample-{{/PACKAGE_PREFIX}}",
     "externalNetwork": "{{#EXTERNAL_NET}}{{{EXTERNAL_NET}}}{{/EXTERNAL_NET}}{{^EXTERNAL_NET}}external{{/EXTERNAL_NET}}",
     "overlay": {

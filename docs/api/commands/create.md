@@ -120,7 +120,7 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--disable-content-trust` (skip image verification) is ignored, follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531).
 * `--device` (mounts host device into container) is ignored.
 * `--ipc` is ignored.
-* `--log-driver` and `--log-opt` are currently unimplemented, follow [DOCKER-279](http://smartos.org/bugview/DOCKER-279) for updates.
+* `--log-driver` and `--log-opt` work somewhat differently on sdc-docker. See [log drivers](../features/logdrivers.md).
 * `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
 * `--memory-swap` and `--memory-swappiness` (disabling swap and tuning memory swappiness) are unsupported.
