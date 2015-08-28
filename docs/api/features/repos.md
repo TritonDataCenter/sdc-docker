@@ -1,44 +1,77 @@
-# Private repositories
+# Private registries
 
-SDC-Docker supports the use of Docker images maintained in Docker Hub's public
-or private repos, or in self-hosted Docker repos in your own application
-environment. Images are uniquely identified by the repo endpoint and namespace,
-i.e. [REPOHOST_OR_NAMESPACE/]IMAGE_NAME[:TAG]. You may connect to multiple repos
-at the same time and pull images from them without having to switch from one to
-another.
+SDC-Docker supports the use of Docker images maintained in the following registries:
 
-## Using images in Docker Hub private repo
+    - Docker Hub's public registry
+    - Docker Hub's private registry
+    - Self-hosted v1 Docker registry
+    - quay.io v1 Docker registry
+    - jFrog Artifactory v1 Docker registry
 
-If no server is specified, "https://index.docker.io/v1/" is the default. For example:
+You can connect to multiple registries at the same time and pull images from them
+without having to switch from one to another.
 
-    $ docker login
+## Logging into private registries
+
+Before searching for or pulling images from the private registries, authenticate to
+the registry using the `docker login` command:
+
+    $ docker login [$registryEndpoint]
     Username: myrepo
     Password:
     Email: user@example.com
+
+When no endpoint is specified, "https://index.docker.io/v1/" is the assumed target.
+
+Docker client saves your login information in a local configuration file so that
+you can keep using the registry without re-authenticating every time.
+
+For docker client v1.7 or earlier, the registry configurations are located in $HOME/.dockercfg.
+For docker client v1.8 or later, the registry configurations are located in $HOME/.docker/config.json.
+
+When you no longer need a certain registry, you may want to log out from it to erase
+the registry configuration to prevent unauthorized use. 
+
+    $ docker logout [$registryEndpoint]
+    Remove login credentials for https://index.docker.io/v1/
+
+Note that some third-party registries may not have full support for `docker login`
+which generates the docker configuration file on your client machine. In those cases,
+you will have to add the configuration on your own, modeling after the json format and
+hashing scheme for credentials created by `docker login` for docker.io, e.g.
+
+    {
+        "https://myrepo.artifactoryonline.com/v1/": {
+                "auth": "YFNrZm9u99k6cm9qbzA3",
+                "email": "user@example.com"
+        },
+        "https://index.docker.io/v1/": {
+                "auth": "YFNrZm9u99k6cm9qbzA3",
+                "email": "user@example.com"
+        }
+    }
+
+## Using images in private registries
+
+An image is uniquely identified by the registry endpoint, repo/image name and tag.
+When the registry name is omitted, the image lookup is made in the Docker Hub
+public and private registries.
 
     $ docker pull myrepo/busybox
     Pulling repository docker.io/myrepo/busybox
     ...
 
-    $ docker run -it myrepo/busybox bash
+    $ docker run -d quay.io/coreos/etcd
+    Unable to find image 'quay.io/coreos/etcd:latest' locally
+    latest: Pulling from quay.io/coreos/etcd
+    ...
 
-    $ docker logout
-    Remove login credentials for https://index.docker.io/v1/
-
-`docker pull` and `docker run` operations go across Docker Hub's public repo and
-the private repos you have logged in. `docker search` operation is confined to
-only the public repo, as with Docker Inc. docker.
-
-## Using images in self-hosted private repo
+## Using images in self-hosted registries
 
 All self-hosted private repos should have a fully qualified domain name and an
-authority-signed certificate. The end-point should be referenced in the image
-name when using docker pull/run/create operations.
+authority-signed certificate for production use. If you need to work with a
+test registry that has only a self-signed certificate during the development
+cycle, you can do so by enabling the insecure registry setting:
 
-    $ docker login myrepo.example.com
-
-    $ docker pull myrepo.example.com/busybox
-
-    $ docker run -it myrepo.example.com/busybox bash
-
-    $ docker logout myrepo.example.com
+    sapiadm update $(sdc-sapi /services?name=docker | json -Ha uuid) 
+        metadata.docker_registry_insecure=true

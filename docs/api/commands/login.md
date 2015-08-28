@@ -21,14 +21,10 @@ the server name.
 
 ## Divergence
 
-The SDC Docker implementation does not support third-party registries at this
-time. Follow [DOCKER-380](https://smartos.org/bugview/DOCKER-380) for progress
-updates. As well, currently only Docker Registry v1 is supported. Follow
+Only Docker Registry v1 is supported at this time. Follow
 [DOCKER-112](https://smartos.org/bugview/DOCKER-112) for progress updates.
 
-Self-hosted private repos that use self-signed certificates are not supported.
-Follow [DOCKER-382](https://smartos.org/bugview/DOCKER-382) for progress
-updates. See also [Private repositories](../features/repos.md).
+See also [Private registries](../features/repos.md) for more information.
 
 Please contact Joyent support or file a ticket if you discover any additional
 divergence.

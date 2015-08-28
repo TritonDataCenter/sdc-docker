@@ -44,16 +44,7 @@ use `docker pull`:
 `docker pull -a` and `--disable-content-trust=true` are currently unsupported.
 Follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531) for updates.
 
-Limited support for pulling from private registries. The current state: You can
-'docker login' and pull from private Docker Hub repos. There are a couple issues
-with other private registries
-([DOCKER-381](http://smartos.org/bugview/DOCKER-381)). There is a known issue
-with pulling from quay.io ([DOCKER-380](http://smartos.org/bugview/DOCKER-380)).
-sdc-docker requires a registry to be HTTPS *and* to have a verifiable cert (i.e.
-not self-signed certs). See [DOCKER-382](http://smartos.org/bugview/DOCKER-382)
-for allowing specifying per-user private registry certs. Only pulls from Docker
-Registry v1 is supported at this time
-([DOCKER-112](http://smartos.org/bugview/DOCKER-112) for v2 support).
+Only Registry v1 is supported at this time (follow [DOCKER-112](http://smartos.org/bugview/DOCKER-112) for v2 support).
 
 The first status line from a `docker pull` shows a UUID:
 

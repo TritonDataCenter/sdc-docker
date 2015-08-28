@@ -7,7 +7,7 @@ Joyent's implementation of the Docker Remote API has some added features as well
 - [CPU and memory resource allocation](features/resources.md)
 - [Overlay networks](features/networks.md)
 - [Volumes](features/volumes.md)
-- [Private repositories](features/repos.md)
+- [Private registries](features/repos.md)
 
 ## Container behavior and contents
 
@@ -95,8 +95,8 @@ expect it to get shorter by the day:
 
 ## Images and private registries
 
-SDC Docker supports the integration with Docker Hub repositories through Docker's
-Registry v1 API. The use of the short or long Image ID may not uniquely identify
+SDC Docker supports the integration with Docker Hub and third party registries through
+Docker's Registry v1 API. The use of the short or long Image ID may not uniquely identify
 an image if images of the same ID exist in more than one repo. To work around this
 Registry v1 API limitation in such rare case, use the repo, image and tag name in
 the image management API methods (e.g. `docker pull`, `docker inspect`) instead of
