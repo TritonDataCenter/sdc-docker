@@ -110,7 +110,7 @@ can then be used from the subsequent container:
 
 Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
-* `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md). 
+* `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md).
 * `--blkio-weight` (block IO weight) is unsupported.
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
 * `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
@@ -133,7 +133,7 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--security-opt` (security options) is unsupported.
 * `--ulimit` (ulimit options) is unsupported.
 * `--uts` (UTS namespace to use) is unsupported.
-* `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).  
+* `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.
 

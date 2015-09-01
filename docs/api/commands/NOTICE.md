@@ -2,15 +2,15 @@ sdc-docker is subject to the terms of the Mozilla Public License,
 v. 2.0. If a copy of the MPL was not distributed with this file,
 You can obtain one at http://mozilla.org/MPL/2.0/.
 
-The sdc-docker API method and CLI command documentation includes content 
+The sdc-docker API method and CLI command documentation includes content
 written by third parties. The following third party content is included,
 and carry their own copyright notices and license terms:
 
-* The documentation for API methods and CLI commands includes content 
-  from or derived from content copyrighted by Docker, Inc. and 
-  developed by Docker, Inc. and contributors. That content is found 
-  in docs/api/commands/ within this distribution. Content there is 
-  redistributed under the terms of the Apache 2.0 license as noted in 
+* The documentation for API methods and CLI commands includes content
+  from or derived from content copyrighted by Docker, Inc. and
+  developed by Docker, Inc. and contributors. That content is found
+  in docs/api/commands/ within this distribution. Content there is
+  redistributed under the terms of the Apache 2.0 license as noted in
   the source repo (https://github.com/docker/docker):
 
    Copyright 2013-2015 Docker, Inc.

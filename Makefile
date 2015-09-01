@@ -94,6 +94,13 @@ git-hooks:
 	[[ -e .git/hooks/pre-commit ]] || ln -s ./tools/pre-commit.sh .git/hooks/pre-commit
 
 
+.PHONY: check-docs
+check-docs:
+	@./tools/check-docs.sh
+
+check:: check-docs
+
+
 #
 # Packaging targets
 #

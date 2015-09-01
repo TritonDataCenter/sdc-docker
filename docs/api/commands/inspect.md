@@ -5,7 +5,7 @@
     Return low-level information on a container or image
 
       -f, --format=""            Format the output using the given go template
-      --type=container|image     Return JSON for specified type, permissible 
+      --type=container|image     Return JSON for specified type, permissible
                                  values are "image" or "container"
 
 By default, this will render all results in a JSON array. If a format is
@@ -67,7 +67,7 @@ section contains complex JSON object, so to grab it as JSON, you use
 Some fields, including the following, are irrelevent to containers on Triton and are never populated.
 
 - AppArmorProfile
-- Config: Cpuset, CpuPeriod, CpusetCpus, CpusetMems, CpuQuota, BlkioWeight, ConsoleSize, GroupAdd, LogConfig, 
+- Config: Cpuset, CpuPeriod, CpusetCpus, CpusetMems, CpuQuota, BlkioWeight, ConsoleSize, GroupAdd, LogConfig,
   MemorySwappiness, OomKillDisable, Privileged, PortBindings, Ulimits, VolumeDriver
 - GraphicDriver: All
 - HostConfig: CapAdd, CapDrop, IpcMode, LxcConf, PublishService, SecurityOpt
