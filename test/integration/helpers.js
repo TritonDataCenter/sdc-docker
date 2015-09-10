@@ -51,10 +51,13 @@ var CLIENT_ZONE_PAYLOAD = {
         'sdcdockertest': true
     },
 
-    package_name: 'sdc_128',
+    package_name: 'sample-1G',
     // billing_id: '(to be filled in)',
     // ... package vars
 
+    // Currently Docker v1.7.1 is a fixed version for the Docker CLI tests due
+    // to package issues in v1.8.0. All other tests use the dockerVersion
+    // variable
     customer_metadata: {
         /* BEGIN JSSTYLED */
         'user-script': [
@@ -78,6 +81,69 @@ var CLIENT_ZONE_PAYLOAD = {
             'fi',
             'rm -f docker',
             'ln -s docker-${DOCKER_VERSION} docker',
+            '',
+            '# Get go',
+            'which go || (',
+            '    curl -sSL -O https://storage.googleapis.com/golang/go1.4.1.linux-amd64.tar.gz',
+            '    tar -C /usr/local -xzf go1.4.1.linux-amd64.tar.gz',
+            '    echo \'export PATH=$PATH:/usr/local/go/bin\' >> /root/.profile',
+            '    source /root/.profile',
+            '    which go',
+            ')',
+            '',
+            '# Needed build tools',
+            'which gcc || (',
+            '    apt-get update',
+            '    apt-get -y install build-essential',
+            ')',
+            'which git || (',
+            '    apt-get -y install git',
+            ')',
+            'which hg || (',
+            '    apt-get -y install mercurial',
+            ')',
+            '',
+            '# Make a GOROOT directory and checkout docker into that location. This is so go',
+            '# will find docker pkg depenencies inside the docker/vendor directory.',
+            '',
+            'if [[ ! -d /root/bin/goroot ]]; then',
+            '    echo \'export GOPATH=/root/bin/goroot\' >> /root/.profile',
+            '    source /root/.profile',
+            'fi',
+            '[[ -d \$GOPATH/src/github.com/kr/pty ]] \\',
+            '    || go get github.com/kr/pty',
+            '[[ -d \$GOPATH/src/github.com/Sirupsen/logrus ]] \\',
+            '    || go get github.com/Sirupsen/logrus',
+            '[[ -d \$GOPATH/src/github.com/docker/libcontainer/user ]] \\',
+            '    || go get github.com/docker/libcontainer/user',
+            '[[ -d \$GOPATH/src/github.com/docker/libtrust ]] \\',
+            '    || go get github.com/docker/libtrust',
+            '[[ -d \$GOPATH/src/github.com/docker/libnetwork/resolvconf ]] \\',
+            '    || go get github.com/docker/libnetwork/resolvconf',
+            '[[ -d \$GOPATH/src/github.com/godbus/dbus ]] \\',
+            '    || go get github.com/godbus/dbus',
+            '[[ -d \$GOPATH/src/code.google.com/p/go.net/websocket ]] \\',
+            '    || go get code.google.com/p/go.net/websocket',
+            'if [[ ! -d \$GOPATH/src/github.com/go-check/check ]]; then',
+            '    mkdir -p \$GOPATH/src/github.com/go-check',
+            '    cd \$GOPATH/src/github.com/go-check',
+            '    git clone https://github.com/go-check/check.git',
+            '    cd check',
+            '    go install',
+            'fi',
+            '',
+            'mkdir -p /root/bin/goroot/src/github.com/docker',
+            'cd /root/bin/goroot/src/github.com/docker',
+            '',
+            'if [[ ! -d docker ]]; then',
+            '    git clone https://github.com/docker/docker.git',
+            'fi',
+            '',
+            'cd docker',
+            'git checkout v1.7.1',
+            '# Create the auto-generated code parts (if scripts exists).',
+            '[[ -f hack/make/.go-autogen ]] &&',
+            '    sh hack/make/.go-autogen',
             '',
             'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
         ].join('\n')
@@ -392,6 +458,28 @@ function stepCloudapiPublicIp(state, cb) {
     });
 }
 
+function stepSdcDockerPublicIp(state, cb) {
+    var cmd = 'vmadm lookup -1 -j alias=docker0';
+    if (state.runningFrom === 'remote') {
+        cmd = 'ssh ' + state.headnodeSsh + ' ' + cmd;
+    }
+    common.execPlus({
+        command: cmd,
+        log: state.log
+    }, function (err, stdout, stderr) {
+        if (err) {
+            return cb(err);
+        }
+        var vm = JSON.parse(stdout)[0];
+        for (var i = 0; i < vm.nics.length; i++) {
+            var nic = vm.nics[i];
+            if (nic.nic_tag === 'external') {
+                state.sdcDockerPublicIp = nic.ip;
+                cb();
+            }
+        }
+    });
+}
 
 /*
  * Get (or create) and setup the test zone in which we can run the `docker`
@@ -634,21 +722,91 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
             stepCloudapiPublicIp(state, next);
         },
 
+        function getSdcDockerPublicIp(state, next) {
+            if (!newKey) {
+                return next();
+            }
+            stepSdcDockerPublicIp(state, next);
+        },
+
         function sdcDockerSetup(state, next) {
             if (!newKey) {
                 return next();
             }
 
             p('# Running "sdc-docker-setup.sh" for "%s" account', self.login);
-            var cmd = fmt(
-                '/root/bin/sdc-docker-setup.sh -k %s %s /root/.ssh/%s.id_rsa',
-                state.cloudapiPublicIp,
-                self.login,
-                self.login);
-            self.exec(cmd, next);
+            self.exec(
+                fmt(
+                    '/root/bin/sdc-docker-setup.sh -k %s %s '
+                        + '/root/.ssh/%s.id_rsa',
+                    state.cloudapiPublicIp,
+                    self.login,
+                    self.login
+                ), next);
+        },
+
+        function sdcDockerTestSetup(state, next) {
+            if (!newKey) {
+                return next();
+            }
+
+            var dockerCertPath = '/root/.sdc/docker/' + self.login;
+            var tlsEnv = '/root/.sdc/docker/' + self.login + '/tls_env.sh';
+            var dockerHostname = 'my.sdc-docker';
+            self.exec(
+                fmt(
+                    'echo \"%s    %s\" >> /etc/hosts',
+                    state.sdcDockerPublicIp,
+                    dockerHostname
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_CERT_PATH=%s\" >> %s',
+                    dockerCertPath,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_HOST=tcp://%s:2376\" >> %s',
+                    dockerHostname,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_TEST_HOST=tcp://%s:2376\" >> %s',
+                    dockerHostname,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_TLS_VERIFY=1\" >> %s',
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_CLIENT_TIMEOUT=300\" >> %s',
+                    tlsEnv
+                ), next);
         }
 
     ]}, cb);
+};
+
+/*
+ * Run go test -v -test.timeout 1h -check.f '$test' as this user.
+ *
+ * @param test {String} The name of the test to run run. E.g. 'TestCreateArgs'.
+ * @param opts {Object} Optional. Nothing yet.
+ * @param cb {Function} `function (err, stdout, stderr)`
+ */
+GzDockerEnv.prototype.dockerTest = function denvDockerTest(test, opts, cb) {
+    var dockerTestCmd = fmt(
+        '(source ~/.sdc/docker/%s/tls_env.sh; '
+            + 'source ~/.profile;'
+            + 'cd ~/bin/goroot/src/github.com/docker/docker/integration-cli; '
+            + 'go test -v -test.timeout 1h -check.f %s)',
+        this.login, test);
+    this.exec(dockerTestCmd, opts, cb);
 };
 
 /*
@@ -811,9 +969,63 @@ LocalDockerEnv.prototype.init = function ldenvInit(t, state_, cb) {
                 command: cmd,
                 log: state.log
             }, next);
+        },
+
+        function sdcDockerTestSetup(state, next) {
+            if (!newKey) {
+                return next();
+            }
+
+            var dockerCertPath = '~/.sdc/docker/' + self.login;
+            var tlsEnv = '~/.sdc/docker/' + self.login + '/tls_env.sh';
+            var dockerHostname = 'my.sdc-docker';
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_CERT_PATH=%s\" >> %s',
+                    dockerCertPath,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_HOST=tcp://%s:2376\" >> %s',
+                    dockerHostname,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_TEST_HOST=tcp://%s:2376\" >> %s',
+                    dockerHostname,
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_TLS_VERIFY=1\" >> %s',
+                    tlsEnv
+                ), function () {});
+            self.exec(
+                fmt(
+                    'echo \"export DOCKER_CLIENT_TIMEOUT=300\" >> %s',
+                    tlsEnv
+                ), next);
         }
 
     ]}, cb);
+};
+
+/*
+ * Run go test -v -test.timeout 1h -check.f '$test' as this user.
+ *
+ * @param test {String} The name of the test to run run. E.g. 'TestCreateArgs'.
+ * @param opts {Object} Optional. Nothing yet.
+ * @param cb {Function} `function (err, stdout, stderr)`
+ */
+LocalDockerEnv.prototype.dockerTest = function ldenvDockerTest(test, opts, cb) {
+    var dockerTestCmd = fmt(
+        '(source ~/.sdc/docker/%s/tls_env.sh; '
+            + 'cd $GOROOT; '
+            + 'go test -v -test.timeout 1h -check.f %s)',
+        this.login, test);
+    this.exec(dockerTestCmd, opts, cb);
 };
 
 /*
