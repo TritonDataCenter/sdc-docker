@@ -28,7 +28,8 @@ rules are automatically created that allow incoming traffic to the appropriate
 ports from any IP address. For `-P`, this means all ports that the VM's image
 exposes. For `-p`, this means all ports specified as arguments, up to a limit
 of 128 TCP ports and 128 UDP ports. Remapping ports with `-p` (eg, `-p 80:8080`)
-is not supported at this time.
+is not supported at this time. Follow [DOCKER-341](http://smartos.org/bugview/DOCKER-341)
+for updates.
 
 If fabric networking is not enabled, all docker containers are provisioned with
 a nic on the 'external' network by default.

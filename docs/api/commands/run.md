@@ -16,7 +16,7 @@
       --cpuset-mems=""                 Memory nodes (MEMs) in which to allow execution (0-3, 0,1)
       --cpu-period=0                   Limit the CPU CFS (Completely Fair Scheduler) period
       --cpu-quota=0                    Limit the CPU CFS (Completely Fair Scheduler) quota
-      -d, --detach=false 	       Run container in background and print container ID
+      -d, --detach=false               Run container in background and print container ID
       --device=[]                      Add a host device to the container
       --disable-content-trust=true     Skip image verification
       --dns=[]                         Set custom DNS servers

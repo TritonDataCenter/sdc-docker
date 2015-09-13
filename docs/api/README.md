@@ -1,10 +1,19 @@
 # Docker Remote API implementation for Triton
 
-Introductory text. This document assumes some familiarity with Docker....
+This document explains how to set up your Docker client tools to manage the
+lifecycle of Docker images and containers in Triton's SDC Docker solution.
+Some familiarity with Docker is assumed. If you are new to Docker, you
+may want to read the [Docker User Guide](https://docs.docker.com/userguide)
+to understand some of the basic concepts before you start using Triton.
+
+SDC, short for SmartDataCenter, works as one big Docker host backed by
+the physical infrastructure of the entire data center. Because of this, you
+do not have to manage your own hosts. Your Docker client applications only
+have to interact with a single API endpoint for a given SDC implementation.
 
 ## Connecting to the API
 
-Docker client applications, including the Docker CLI can connect to the SDC Docker remote API endpoint to launch and control Docker containers across an entire Triton data center.
+Docker client applications, including the Docker CLI and Docker Compose, can connect to the SDC Docker remote API endpoint to launch and control Docker containers across an entire Triton data center.
 
 Connecting to the API requires an account on the Triton data center, SSH key, and the CloudAPI URL for that data center, as well as the Docker CLI or some other Docker client. Joyent provides a helper script to configure a Docker client, including the Docker CLI.
 
