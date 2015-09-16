@@ -40,6 +40,13 @@ test('docker-integration-cli', function (tt) {
         });
     });
 
+    tt.test('Pull official busybox', function (t) {
+        alice.docker('pull busybox', function (err, stdout, stderr) {
+            t.ifErr(err);
+            t.end();
+        });
+    });
+
     tt.test('TestAttachTtyWithoutStdin', function (t) {
         alice.dockerTest('TestAttachTtyWithoutStdin',
             function (err, stdout, stderr) {
