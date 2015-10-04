@@ -2,11 +2,11 @@
 
 SDC-Docker supports the use of Docker images maintained in the following registries:
 
-    - Docker Hub's public registry
-    - Docker Hub's private registry
-    - Self-hosted v1 Docker registry
-    - quay.io v1 Docker registry
-    - jFrog Artifactory v1 Docker registry
+- Docker Hub's public registry
+- Docker Hub's private registry
+- Self-hosted v1 and v2 Docker registry, including Docker Trusted Registry
+- quay.io v1 Docker registry
+- jFrog Artifactory v1 and v2 Docker registry
 
 You can connect to multiple registries at the same time and pull images from them
 without having to switch from one to another.
@@ -36,7 +36,7 @@ the registry configuration to prevent unauthorized use.
     Remove login credentials for https://index.docker.io/v1/
 
 Note that some third-party registries may not have full support for `docker login`
-which generates the docker configuration file on your client machine. In those cases,
+which generates the docker configuration on your client machine. In those cases,
 you will have to add the configuration on your own, modeling after the json format and
 hashing scheme for credentials created by `docker login` for docker.io, e.g.
 
@@ -71,7 +71,7 @@ public and private registries.
 All self-hosted private repos should have a fully qualified domain name and an
 authority-signed certificate for production use. If you need to work with a
 test registry that has only a self-signed certificate during the development
-cycle, you can do so by enabling the insecure registry setting:
+cycle, you can do so by enabling the insecure registry setting on your SDC:
 
-    sapiadm update $(sdc-sapi /services?name=docker | json -Ha uuid) 
+    sapiadm update $(sdc-sapi /applications?name=sdc | json -Ha uuid) 
         metadata.docker_registry_insecure=true

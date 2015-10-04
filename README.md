@@ -25,9 +25,9 @@ an SDC Docker stand up, but not administering it, please see the
 
 # Docker Version
 
-Offical supported version: 1.19 (equivalent to docker client version 1.7)
+Offical supported version: 1.20 (equivalent to docker client version 1.8)
 
-Supported version range: 1.16 - 1.19 (docker client version 1.4 to 1.7)
+Supported version range: 1.18 - 1.20 (docker client version 1.6 to 1.8)
 
 When a client makes a remote API call to sdc-docker and it does not specify a
 version, then sdc-docker will default to the official supported version.

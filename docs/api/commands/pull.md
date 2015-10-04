@@ -44,7 +44,7 @@ use `docker pull`:
 `docker pull -a` and `--disable-content-trust=true` are currently unsupported.
 Follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531) for updates.
 
-Only Registry v1 is supported at this time (follow [DOCKER-112](http://smartos.org/bugview/DOCKER-112) for v2 support).
+Identifying a repo version by digest is not supported at this time. Use tag instead.
 
 The first status line from a `docker pull` shows a UUID:
 

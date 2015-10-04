@@ -19,15 +19,13 @@ the server name.
 
     $ docker login myrepo.example.com
 
-## Divergence
-
-Only Docker Registry v1 is supported at this time. Follow
-[DOCKER-112](https://smartos.org/bugview/DOCKER-112) for progress updates.
-
 See also [Private registries](../features/repos.md) for more information.
 
-Please contact Joyent support or file a ticket if you discover any additional
-divergence.
+## Divergence
+
+There is no known divergence between the Triton SDC Docker and Docker Inc.
+implementations of this method. Please contact Joyent support or file a ticket
+if you discover any.
 
 ## Related
 
