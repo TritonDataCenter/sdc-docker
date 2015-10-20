@@ -49,7 +49,8 @@ test('docker search', function (tt) {
         });
     });
 
-    tt.test(' docker search quay.io/quay/elasticsearch', function (t) {
+    // DOCKER-604 skip this test for now, quay.io search is busted.
+    tt.skip(' docker search quay.io/quay/elasticsearch', function (t) {
         alice.docker('search quay.io/quay/elasticsearch',
                 function (err, stdout, stderr) {
             t.ifErr(err);
