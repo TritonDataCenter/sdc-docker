@@ -342,6 +342,9 @@ module.exports = {
     get docker() {
         return ALICE.docker.bind(ALICE);
     },
+    get exec() {
+        return ALICE.exec.bind(ALICE);
+    },
     init: cliInit,
     inspect: cliInspect,
     get lastCreated() {

@@ -838,11 +838,13 @@ GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
     }
     assert.object(opts, 'opts');
     assert.func(cb, 'cb');
+    assert.optionalObject(opts.execOpts, 'opts.execOpts');
 
     common.execPlus({
         // TODO: escaping single-quotes
         command: fmt('zlogin %s \'%s\'', this.clientZone.uuid, cmd),
-        log: this.log
+        log: this.log,
+        execOpts: opts.execOpts
     }, cb);
 };
 
