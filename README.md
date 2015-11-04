@@ -25,18 +25,15 @@ an SDC Docker stand up, but not administering it, please see the
 
 # Docker Version
 
-Offical supported version: 1.20 (equivalent to docker client version 1.8)
+Offical supported version: 1.21 (equivalent to docker client version 1.9)
 
-Supported version range: 1.18 - 1.20 (docker client version 1.6 to 1.8)
+Supported version range: 1.18 - 1.21 (docker client version 1.6 to 1.9,
+docker compose version 1.3 to 1.5)
 
 When a client makes a remote API call to sdc-docker and it does not specify a
 version, then sdc-docker will default to the official supported version.
 
-Older versions of the docker remote API are also supported, back to 1.16
-(equivalent to docker client 1.4), though it is better to use the docker client
-and associated docker tools that target the offical sdc-docker version.
-
-Newer clients may also continue to work, but until we've officially tested and
+Newer clients may continue to work, but until we've officially tested and
 marked a newer version as officially supported, then it's best to use an older
 and officially supported version.
 
@@ -116,6 +113,10 @@ You should now able to get `docker info` and see "SDCAccount: jill":
     Execution Driver: sdc-0.1.0
     Operating System: SmartDataCenter
     Name: coal
+
+Docker Compose uses different environment variables across different versions
+to configure timeout. If you receive any warning about the DOCKER_CLIENT_TIMEOUT
+environment variable being deprecated, simply unset it and remove it from env.sh.
 
 # Using custom TLS server certificates for SDC Docker
 
