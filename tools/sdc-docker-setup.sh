@@ -322,6 +322,31 @@ while getopts "hVqfksp:" opt; do
 done
 shift $((OPTIND - 1))
 
+# Ping the URL passed as the first positional parameter and outputs one
+# of three possible strings:
+# - "available" if the ping endpoint responded with an OK status to the ping
+# request
+# - "maintenance" if the ping endpoint responded with a 503 status code to
+# the ping request.
+# - "unavailable" if the ping endpoint responded with any other response
+function pingCloudAPIUrl()
+{
+    local cloudApiUrl=$1
+    local response status
+    response=$(curl -sSi $cloudApiUrl/--ping)
+    status=$(echo "$response" | head -1 | awk '{print $2}')
+    case "$status" in
+        200)
+            echo "available"
+            ;;
+        503)
+            echo "maintenance"
+            ;;
+        *)
+            echo "unavailable"
+            ;;
+    esac
+}
 
 # Get the cloudapi URL. Default to the cloudapi for the current pre-release
 # docker service. Eventually can default to the user's SDC_URL setting.
@@ -332,30 +357,52 @@ shift $((OPTIND - 1))
 #       https://$dc.api.joyent.com
 # - if given without 'https://' prefix: add that automatically
 promptedUser=
+
+# While the URL passed on the command line is not a valid cloudapi URL,
+# prompt for a new one.
 cloudapiUrl=$1
-if [[ -z "$cloudapiUrl" ]]; then
-    defaultCloudapiUrl=https://us-east-1.api.joyent.com
-    #info "Enter the SDC Docker hostname. Press enter for the default."
-    printf "SDC CloudAPI URL [$defaultCloudapiUrl]: "
-    read cloudapiUrl
-    promptedUser=true
-fi
-if [[ -z "$cloudapiUrl" ]]; then
-    portalUrl=https://my.joyent.com
-    cloudapiUrl=$defaultCloudapiUrl
-elif [[ "$cloudapiUrl" == "coal" ]]; then
-    coal=true
-    cloudapiUrl=https://$(ssh -o ConnectTimeout=5 root@10.99.99.7 "vmadm lookup -j alias=cloudapi0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
+while true; do
     if [[ -z "$cloudapiUrl" ]]; then
-        fatal "could not find the cloudapi0 zone IP in CoaL"
+        defaultCloudapiUrl=https://us-east-1.api.joyent.com
+        #info "Enter the SDC Docker hostname. Press enter for the default."
+        printf "SDC CloudAPI URL [$defaultCloudapiUrl]: "
+        read cloudapiUrl
+        promptedUser=true
     fi
-elif [[ "${cloudapiUrl/./X}" == "$cloudapiUrl" ]]; then
-    portalUrl=https://my.joyent.com
-    cloudapiUrl=https://$cloudapiUrl.api.joyent.com
-elif [[ "${cloudapiUrl:0:8}" != "https://" ]]; then
-    cloudapiUrl=https://$cloudapiUrl
-fi
-debug "cloudapiUrl: $cloudapiUrl"
+
+    if [[ -z "$cloudapiUrl" ]]; then
+        portalUrl=https://my.joyent.com
+        cloudapiUrl=$defaultCloudapiUrl
+    elif [[ "$cloudapiUrl" == "coal" ]]; then
+        coal=true
+        cloudapiUrl=https://$(ssh -o ConnectTimeout=5 root@10.99.99.7 "vmadm lookup -j alias=cloudapi0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
+        if [[ -z "$cloudapiUrl" ]]; then
+            fatal "could not find the cloudapi0 zone IP in CoaL"
+        fi
+    elif [[ "${cloudapiUrl/./X}" == "$cloudapiUrl" ]]; then
+        portalUrl=https://my.joyent.com
+        cloudapiUrl=https://$cloudapiUrl.api.joyent.com
+    elif [[ "${cloudapiUrl:0:8}" != "https://" ]]; then
+        cloudapiUrl=https://$cloudapiUrl
+    fi
+    debug "cloudapiUrl: $cloudapiUrl"
+
+    cloudApiUrlStatus=$(pingCloudAPIUrl "$cloudapiUrl")
+    if [[ "$cloudApiUrlStatus" == "maintenance" ]]; then
+        printf "\"$cloudapiUrl\" is currently in maintenance, please try another SDC CloudAPI URL\n"
+    elif [[ "$cloudApiUrlStatus" == "unavailable" ]]; then
+        printf "Cannot ping \"$cloudapiUrl\", are you sure it is a valid SDC CloudAPI URL?\n"
+    elif [[ "$cloudApiUrlStatus" == "available" ]]; then
+        break
+    else
+        fatal "There was an error when checking $cloudapiUrl's status\n"
+    fi
+
+    # Even if cloudapiUrl was set on the command line, reset it so that
+    # we prompt for a new one because the one passed on the command line
+    # was invalid.
+    cloudapiUrl=
+done
 
 
 # Get the account to use.
