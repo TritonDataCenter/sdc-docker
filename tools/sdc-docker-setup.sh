@@ -333,7 +333,13 @@ function pingCloudAPIUrl()
 {
     local cloudApiUrl=$1
     local response status
-    response=$(curl -sSi $cloudApiUrl/--ping)
+
+    local curlOpts
+    if [[ $coal == "true" || $optInsecure == "true" ]]; then
+        curlOpts=" -k"
+    fi
+
+    response=$(curl -sSi $curlOpts $cloudApiUrl/--ping)
     status=$(echo "$response" | head -1 | awk '{print $2}')
     case "$status" in
         200)
@@ -562,4 +568,3 @@ info ""
 info "Note: If you receive any docker compose warning about the"
 info "DOCKER_CLIENT_TIMEOUT environment variable being deprecated,"
 info "simply unset it and remove it from env.sh."
-
