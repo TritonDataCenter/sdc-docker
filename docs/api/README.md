@@ -3,7 +3,7 @@
 This document explains how to set up your Docker client tools to manage the
 lifecycle of Docker images and containers in Triton's SDC Docker solution.
 Some familiarity with Docker is assumed. If you are new to Docker, you
-may want to read the [Docker User Guide](https://docs.docker.com/userguide)
+may want to read the [Docker User Guide](https://docs.docker.com/engine/userguide/)
 to understand some of the basic concepts before you start using Triton.
 
 SDC, short for SmartDataCenter, works as one big Docker host backed by
