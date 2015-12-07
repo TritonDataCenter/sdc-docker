@@ -73,6 +73,10 @@
     "fluentd_host": "{{{experimental_fluentd_host}}}",
 {{/experimental_fluentd_host}}
 
+{{#FWRULE_VERSION}}
+    "fwrule_version": {{{FWRULE_VERSION}}},
+{{/FWRULE_VERSION}}
+
     "ufds": {
         "url": "ldaps://{{{ufds_domain}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",
