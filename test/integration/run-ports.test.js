@@ -26,6 +26,7 @@ var test = require('tape');
 
 // --- Globals
 var MAX_PORTS_PER_RULE = 8;
+var FWRULE_VERSION = 1;
 
 var EXPOSED_PORTS = {};
 var CLIENTS = {};
@@ -48,6 +49,16 @@ function exposeRule(proto, vmID, ports) {
         (ports.length === 1 ? '' : '('),
         ports.join(' AND PORT '),
         (ports.length === 1 ? '' : ')'));
+}
+
+function exposeRange(proto, vmID, start, end) {
+    var ruleVM = vmID;
+    if (ruleVM.length > 36) {
+        ruleVM = h.dockerIdToUuid(vmID);
+    }
+
+    return fmt('FROM any TO vm %s ALLOW %s PORTS %s - %s',
+        ruleVM, proto, start, end);
 }
 
 
@@ -123,6 +134,26 @@ test('setup', function (tt) {
         });
     });
 
+    tt.test('sapi client', function (t) {
+        h.createSapiClient(function (err, client) {
+            t.error(err, 'Error creating SAPI client');
+            CLIENTS.sapi = client;
+            t.end();
+            return;
+        });
+    });
+
+    tt.test('FWRULE_VERSION', function (t) {
+        CLIENTS.sapi.getConfig(process.env.DOCKER_UUID, {},
+            function (err, config) {
+
+            t.error(err, 'Error getting Docker config');
+            if (config.metadata.hasOwnProperty('FWRULE_VERSION')) {
+                FWRULE_VERSION = config.metadata.FWRULE_VERSION;
+            }
+            t.end();
+        });
+    });
 
     tt.test('pull nginx image', function (t) {
         cli.pull(t, {
@@ -185,7 +216,7 @@ test('no port args', function (tt) {
             partialExp: {
                 firewall_enabled: true,
                 internal_metadata: {
-                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
+                    'docker:tcp_unpublished_ports': JSON.stringify([ 443, 80 ])
                 },
                 tags: {
                     sdc_docker: true
@@ -242,7 +273,10 @@ test('-P', function (tt) {
                 ExposedPorts: EXPOSED_PORTS
             },
             HostConfig: {
-                PortBindings: {},
+                PortBindings: {
+                    '80/tcp' : portBindingsPort(80),
+                    '443/tcp' : portBindingsPort(443)
+                },
                 PublishAllPorts: true
             },
             NetworkSettings: {
@@ -278,9 +312,7 @@ test('-P', function (tt) {
             partialExp: {
                 firewall_enabled: true,
                 internal_metadata: {
-                    'docker:publish_all_ports': true,
-                    'docker:tcp_published_ports': JSON.stringify([ 443, 80 ]),
-                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
+                    'docker:publish_all_ports': true
                 },
                 tags: {
                     sdc_docker: true
@@ -355,8 +387,7 @@ test('-p', function (tt) {
             partialExp: {
                 firewall_enabled: true,
                 internal_metadata: {
-                    'docker:tcp_published_ports': JSON.stringify([ 80 ]),
-                    'docker:tcp_all_ports': JSON.stringify([ 443, 80 ])
+                    'docker:tcp_unpublished_ports': JSON.stringify([ 443 ])
                 },
                 tags: {
                     sdc_docker: true
@@ -415,19 +446,7 @@ test('-P and -p', function (tt) {
             partialExp: {
                 firewall_enabled: true,
                 internal_metadata: {
-                    'docker:publish_all_ports': true,
-                    'docker:tcp_bound_ports':
-                        JSON.stringify([ 90 ]),
-                    'docker:tcp_published_ports':
-                        JSON.stringify([ 443, 80, 90 ]),
-                    'docker:tcp_all_ports':
-                        JSON.stringify([ 443, 80, 90]),
-                    'docker:udp_bound_ports':
-                        JSON.stringify([ 54 ]),
-                    'docker:udp_published_ports':
-                        JSON.stringify([ 54 ]),
-                    'docker:udp_all_ports':
-                        JSON.stringify([ 54 ])
+                    'docker:publish_all_ports': true
                 },
                 tags: {
                     sdc_docker: true
@@ -448,7 +467,9 @@ test('-P and -p', function (tt) {
             HostConfig: {
                 PortBindings: {
                     '54/udp': portBindingsPort(54),
-                    '90/tcp': portBindingsPort(90)
+                    '80/tcp': portBindingsPort(80),
+                    '90/tcp': portBindingsPort(90),
+                    '443/tcp': portBindingsPort(443)
                 },
                 PublishAllPorts: true
             },
@@ -485,7 +506,7 @@ test('-P and -p', function (tt) {
 
 
 test('-p range', function (tt) {
-
+    var large_range = '';
     var p;
     var ports = [];
 
@@ -542,15 +563,23 @@ test('-p range', function (tt) {
         // which results in the rule:
         // 'FROM any TO vm 0cc75764-eed2-4353-9928-87e525e05dca ALLOW tcp
         // (PORT 50 AND PORT 51 AND PORT 172 AND PORT 173 AND PORT 174...
-        ports.sort();
+        //
+        // If the API has been set up to make use of a new version of the
+        // firewall language, it will take advantage of port ranges and
+        // should therefore only make a single rule.
         var expectedRules = [];
-        for (var i = 0; i < ports.length; i += MAX_PORTS_PER_RULE) {
-            expectedRules.push(exposeRule('tcp', cli.lastCreated,
-                ports.slice(i, i + MAX_PORTS_PER_RULE).sort(function (a, b) {
-                    return a > b;
-                })));
+        if (FWRULE_VERSION > 1) {
+            expectedRules.push(
+                exposeRange('tcp', cli.lastCreated, START_PORT, END_PORT));
+        } else {
+            ports.sort();
+            for (var i = 0; i < ports.length; i += MAX_PORTS_PER_RULE) {
+                expectedRules.push(exposeRule('tcp', cli.lastCreated,
+                    ports.slice(i, i + MAX_PORTS_PER_RULE)
+                        .sort(function (a, b) { return a > b; })));
+            }
+            expectedRules.sort();
         }
-        expectedRules.sort();
 
         listFwRules(t, {
             filter: {
@@ -569,9 +598,7 @@ test('-p range', function (tt) {
             id: cli.lastCreated,
             partialExp: {
                 firewall_enabled: true,
-                internal_metadata: {
-                    'docker:tcp_published_ports': JSON.stringify(ports)
-                },
+                internal_metadata: {},
                 tags: {
                     sdc_docker: true
                 }
@@ -592,16 +619,18 @@ test('-p range', function (tt) {
         });
     });
 
+    for (p = 1; p < (constants.MAX_EXPOSED_PORTS + 1) * 2; p += 2) {
+        large_range += fmt(' -p %d:%d', p, p);
+    }
 
     // Make sure the limit of 32 ports is enforced:
-    tt.test(fmt('docker run -p %d-%d:%d-%d', START_PORT, END_PORT + 1,
-        START_PORT, END_PORT + 1), function (t) {
+    tt.test(fmt('docker run %s', large_range), function (t) {
         cli.run(t, {
-            args: fmt('-p %d-%d:%d-%d -d nginx:latest', START_PORT,
-                END_PORT + 1, START_PORT, END_PORT + 1),
+            args: fmt('%s -d nginx:latest', large_range),
             expectedErr: 'Error response from daemon: publish port: '
-                + fmt('only support exposing %d TCP ports',
-                    constants.MAX_EXPOSED_PORTS)
+                + fmt('only support exposing %d TCP %s',
+                    constants.MAX_EXPOSED_PORTS,
+                    FWRULE_VERSION > 1 ? 'port ranges' : 'ports')
         });
     });
 

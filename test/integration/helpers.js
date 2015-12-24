@@ -16,6 +16,7 @@ var assert = require('assert-plus');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
 var fs = require('fs');
+var mod_log = require('../lib/log');
 var os = require('os');
 var path = require('path');
 var sdcClients = require('sdc-clients');
@@ -32,6 +33,7 @@ var constants = require('../../lib/constants');
 var CONFIG = {
     docker_url: process.env.DOCKER_URL,
     fwapi_url: process.env.FWAPI_URL,
+    sapi_url: process.env.SAPI_URL,
     vmapi_url: process.env.VMAPI_URL
 };
 var p = console.error;
@@ -169,6 +171,7 @@ var CLIENT_ZONE_PAYLOAD = {
 function createClientOpts(name, callback) {
     var configVal = CONFIG[name + '_url'];
     var opts = {
+        log: mod_log,
         agent: false
     };
 
@@ -1273,7 +1276,7 @@ function createDockerRemoteClient(options, callback) {
 
 
 /**
- * Get a simple restify JSON client to VMAPI.
+ * Get a simple restify JSON client to FWAPI.
  */
 function createFwapiClient(callback) {
     createClientOpts('fwapi', function (err, opts) {
@@ -1285,6 +1288,21 @@ function createFwapiClient(callback) {
         return;
     });
 }
+
+/**
+ * Get a simple restify JSON client to SAPI.
+ */
+function createSapiClient(callback) {
+    createClientOpts('sapi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.SAPI(opts));
+        return;
+    });
+}
+
 
 
 /**
@@ -1692,6 +1710,7 @@ function didRestifyHandlerRun(reqId, handlerName, callback) {
 
 module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
+    createSapiClient: createSapiClient,
     createFwapiClient: createFwapiClient,
     createVmapiClient: createVmapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
