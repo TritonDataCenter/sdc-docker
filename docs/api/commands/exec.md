@@ -12,9 +12,11 @@
 The `docker exec` command runs a new command in a running container.
 
 The command started using `docker exec` only runs while the container's primary
-process (`PID 1`) is running, and it is not restarted if the container is restarted.
+process (`PID 1`) is running, and it is not restarted if the container is
+restarted.
 
-If the container is paused, then the `docker exec` command will fail with an error:
+If the container is paused, then the `docker exec` command will fail with an
+error:
 
     $ docker pause test
     test
@@ -43,7 +45,9 @@ This will create a new Bash session in the container `ubuntu_bash`.
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc.
+implementations of this method. Please contact Joyent support or file a ticket
+if you discover any.
 
 ## Related
 
