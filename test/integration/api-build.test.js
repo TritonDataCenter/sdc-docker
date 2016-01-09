@@ -5,11 +5,15 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
  * Integration tests for `docker build` using the Remote API directly.
+ *
+ * Note: There are only limited tests here, as we rely on the docker/docker
+ *       integration-cli tests to perform most of the sdc-docker build testing,
+ *       which are run separately (e.g. in nightly).
  */
 
 var path = require('path');
@@ -57,45 +61,51 @@ test('setup', function (tt) {
 
 test('api: build', function (tt) {
     tt.test('docker build with nginx build context', function (t) {
-        // Use an arbitrary request ID that we can use to track it
-        // in log files to extract some information about how it
-        // ran
-        var REQ_ID = '42';
+        var dockerImageId = null;
         var tarballPath = path.join(__dirname, 'fixtures',
-            'nginx-build-context.tar');
+            'busybox-build-context.tar');
 
         vasync.waterfall([
+
             function buildContainer(next) {
                 h.buildDockerContainer({
                     dockerClient: DOCKER_ALICE_HTTP,
                     test: t,
-                    tarballPath: tarballPath,
-                    extraHeaders: {
-                        'x-request-id': REQ_ID
-                    }
+                    tarballPath: tarballPath
                 }, onbuild);
 
                 function onbuild(err, result) {
-                    t.ok(err, 'should not build');
-                    t.ok(result.body.match(/\(NotImplemented\)/),
-                        'build should not be implemented');
-
-                    // Swallow previous error, because we're expecting that
-                    // error to happen
-                    return next();
+                    t.ifError(err, 'built successfully');
+                    next(err, result);
                 }
             },
-            function checkHandlerDidNotRun(next) {
-                // Now make sure that the bodyParser handler did not run
-                h.didRestifyHandlerRun(REQ_ID, 'parseBody', onResult);
-                function onResult(err, handlerDidRun) {
-                    t.ifErr(err);
-                    t.ok(handlerDidRun === false,
-                        'body parser handler should not run');
 
-                    return next(err);
+            function checkResults(result, next) {
+                if (!result || !result.body) {
+                    next(new Error('build generated no output!?'));
+                    return;
                 }
+
+                var output = result.body;
+                var hasLabel = output.indexOf('LABEL sdcdocker=true') >= 0;
+                t.ok(hasLabel, 'output contains LABEL sdcdocker=true');
+
+                var hasSuccess = output.indexOf('Successfully built') >= 0;
+                t.ok(hasSuccess, 'output contains Successfully built');
+
+                if (hasSuccess) {
+                    var reg = new RegExp('Successfully built (\\w+)');
+                    dockerImageId = output.match(reg)[1];
+                }
+
+                next();
+            },
+
+            function removeBuiltImage(next) {
+                t.ok(dockerImageId, 'Got the docker image id');
+                DOCKER_ALICE_HTTP.del('/images/' + dockerImageId, next);
             }
+
         ], function allDone(err) {
             t.ifErr(err);
 
