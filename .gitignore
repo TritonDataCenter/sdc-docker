@@ -1,7 +1,6 @@
 /node_modules
 /tmp
 /build
-/etc
 /smf/manifests/docker.xml
 .*.swp
 /docker-pkg*.tar.bz2
