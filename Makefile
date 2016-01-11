@@ -113,10 +113,11 @@ release: all
 	cp -R $(TOP)/deps/sdc-scripts/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	cp -R $(TOP)/boot/* $(RELSTAGEDIR)/root/opt/smartdc/boot/
 	# docker
-	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/{etc,build}
+	mkdir -p $(RELSTAGEDIR)/root/opt/smartdc/$(NAME)/build
 	cp -r \
 		$(TOP)/package.json \
 		$(TOP)/bin \
+		$(TOP)/etc \
 		$(TOP)/lib \
 		$(TOP)/node_modules \
 		$(TOP)/smf \
