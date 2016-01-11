@@ -41,8 +41,8 @@ read on for the settings for the standard Docker client.
 ## Current Status
 
 The Docker Engine for SDC is currently in alpha and under heavy development.
-The current focus is on stabilization and filling out support for *running*
-Docker containers. Support for building images (`docker build`) is forthcoming.
+The current focus is on stabilization and filling out support for *building* and
+*running* Docker containers.
 Please [report issues](https://github.com/joyent/sdc-docker/issues),
 give us feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
 

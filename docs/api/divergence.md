@@ -81,15 +81,12 @@ are working on, and intend to keep improving over time.
 
 In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see restart policies). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
 
-SDC Docker implements all the API methods necessary to deploy Docker containers in
-the cloud, but is notably missing methods necessary to build containers. For that,
-please continue using Docker on your laptop for now, though we definitely want to
-support those features in the future.
-
+SDC Docker implements all the API methods necessary to build and deploy Docker
+containers in the cloud, though there are some missing docker API methods.
 Here's the list of API methods currently unimplemented as of this writing, but
 expect it to get shorter by the day:
 
-`docker build`, `docker commit`, `docker diff`, `docker events`, `docker export`,
+`docker commit`, `docker diff`, `docker events`, `docker export`,
 `docker import`, `docker load`, `docker pause`, `docker push`, `docker save`,
 `docker tag`, `docker unpause`
 
