@@ -98,3 +98,38 @@ identify an image if images of the same ID exist in more than one repo. To work 
 this Registry API limitation in such rare case, use the repo, image and tag name in
 the image management API methods (e.g. `docker pull`, `docker inspect`) instead of
 the Image ID.
+
+### Container Logging
+
+SDC Docker implements most of the log driver functionality as described in
+[Docker's documentation](https://docs.docker.com/engine/reference/logging/overview/).
+The differences in behavior when using these drivers are documented in the [Log
+Drivers feature page](./features/logdrivers/).
+
+In addition to the divergence in the use of these drivers, SDC Docker handles
+logging differently than Docker. With Docker, logs are only written to the host
+when the log driver is set to 'json-file'. With SDC Docker the logs are written
+to the host for every log driver except 'none'. These logs are captured because
+while the network-based log drivers are good for real-time log analysis, they
+can potentially lose messages due to conditions like remote host unavailablity
+and race conditions in startup/shutdown. The host logs are written to local
+storage by the zoneadmd process that manages the zone and therefore avoids these
+problems.
+
+The storage for these log files will be within a container's quota but not
+visible from within the container itself. Operators will see these logs at
+/zones/:uuid/logs/stdio.log*. These will be rotated to another file in the same
+directory with a timestamp extension when they reach a max-size value. The
+max-size can be specified when using the json-file log driver. Otherwise the
+default (currently defaults to 50M) is set in the SDC configuration. This can
+be adjusted by an operator through the DEFAULT_MAX_LOG_SIZE property in the
+docker service's SAPI metadata.
+
+For the user of SDC Docker, this additional log when using a log driver other
+than json-file is not of much use yet, but are important to know about as they
+do use space from the user's container. In the future, these logs will be
+automatically consumed and uploaded to Manta which will free this space and give
+users access to all their logs.
+
+For the operator of SDC Docker these additional logs will require some cleanup
+process for long-lived containers when Manta support is not available.
