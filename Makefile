@@ -86,7 +86,7 @@ test: $(TAPE)
 #
 .PHONY: test-integration-in-coal
 test-integration-in-coal:
-	@ssh root@10.99.99.7 'LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f copy'
+	@ssh root@10.99.99.7 'LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests $(TEST_ARGS)'
 
 
 .PHONY: git-hooks
