@@ -335,6 +335,38 @@ function cliRm(t, opts, callback) {
 }
 
 
+/**
+ * `docker stop <opts.args>`
+ */
+function cliStop(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('stop ' + opts.args, function (err, stdout, stderr) {
+        t.ifErr(err, 'docker stop ' + opts.args);
+        t.equal(stderr, '', 'stderr');
+        callback(err);
+    });
+}
+
+
+/**
+ * `docker start <opts.args>`
+ */
+function cliStart(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('start ' + opts.args, function (err, stdout, stderr) {
+        t.ifErr(err, 'docker start ' + opts.args);
+        t.equal(stderr, '', 'stderr');
+        callback(err);
+    });
+}
+
+
 module.exports = {
     get accountUuid() {
         return ALICE.account.uuid;
@@ -355,5 +387,7 @@ module.exports = {
     ps: cliPs,
     rm: cliRm,
     rmAllCreated: cliRmAllCreated,
-    run: cliRun
+    run: cliRun,
+    stop: cliStop,
+    start: cliStart
 };
