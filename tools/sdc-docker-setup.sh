@@ -97,7 +97,7 @@ function usage
     echo "          Otherwise, only the 'docker' env vars are emitted."
     echo "  -p PROFILE"
     echo "          The profile name for this Docker host and account."
-    echo "          Profile info is stored under '~/.sdc/docker/$profile/'."
+    echo "          Profile info is stored under '~/.sdc/docker/\$profile/'."
     echo "          It defaults to the ACCOUNT, it must match '${PROFILE_NAME_RE}'."
     # TODO: examples
 }
@@ -538,14 +538,15 @@ if [[ -n "$dockerService" ]]; then
     envInfo "export COMPOSE_HTTP_TIMEOUT=300"
     if [[ $dockerHost =~ ^[0-9]+ ]]; then
         # IP address - let them know a FQDN is needed to use DOCKER_TLS_VERIFY.
-        dockerHostname="my.sdc-docker"
         envInfo "unset DOCKER_TLS_VERIFY"
         envInfo "alias docker=\"docker --tls\""
+        dockerHostname="my.triton"
         info ""
-        info "In order to run docker with TLS verification, you'll need to use"
-        info "a fully qualified hostname and set DOCKER_TLS_VERIFY=1, example:"
+        info "Your Docker host is not a DNS name, but an IP. If you want to run docker"
+        info "with TLS verification, you can configure to use a '${dockerHostname}' DNS"
+        info "name as follows (use this instead of the setup block above):"
         info ""
-        info "    echo '${dockerHost}    ${dockerHostname}' >> /etc/hosts"
+        info "    sudo sed -e '\$G; \$s/\$/${dockerHost} ${dockerHostname}/;' -i.bak /etc/hosts"
         sdcEnvConfiguration info "    "
         info "    export DOCKER_CERT_PATH=$certDir"
         info "    export DOCKER_HOST=tcp://${dockerHostname}:${dockerPort}"
