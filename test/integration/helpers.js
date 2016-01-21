@@ -558,16 +558,31 @@ function _stepCreateClientZone(state_, cb) {
 
         stepPapi,
         function getPkg(state, next) {
-            var filter = {name: payload.package_name};
+            var filter = {active: true};
             state.papi.list(filter, {}, function (err, pkgs) {
+                var pkg;
+
                 if (err) {
                     return next(err);
-                } else if (pkgs.length !== 1) {
-                    return next(new Error(fmt('%d "%s" packages found',
-                        pkgs.length, payload.package_name)));
                 }
-                var pkg = pkgs[0];
-                payload.billing_id = pkg.uuid;
+
+                // Pick the first non-private package between 1-2G memory
+                for (var i = 0; i < pkgs.length; i++) {
+                    pkg = pkgs[i];
+
+                    if (!pkg.owner_uuids || pkg.owner_uuids.length === 0) {
+                        // package is not private to owner(s)
+                        if (pkg.max_physical_memory >= 1024
+                            && pkg.max_physical_memory <= 2048) {
+                            // found a package that meets our criteria!
+                            p('# Using package %s', pkg.name);
+                            payload.billing_id = pkg.uuid;
+                            break;
+                        }
+                    }
+                }
+
+                assert.uuid(payload.billing_id, 'payload.billing_id');
                 next();
             });
         },
