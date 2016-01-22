@@ -20,9 +20,7 @@ TOP=$(cd $(dirname $0)/../; pwd)
 NODE=$1
 
 if [[ -z "$DOCKER_ZONE" ]]; then
-    DOCKER_ZONE=$(ssh $NODE "/opt/smartdc/bin/sdc-vmapi /vms" 2>/dev/null \
-        | json -H -c 'this.tags && this.tags.smartdc_role === "docker"' \
-            -c 'this.state === "running"' 0.uuid)
+    DOCKER_ZONE=$(ssh $NODE "vmadm lookup -1 alias=docker0" 2>/dev/null)
 fi
 echo "DOCKER_ZONE: $DOCKER_ZONE"
 
