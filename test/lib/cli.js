@@ -13,11 +13,12 @@
  */
 
 var assert = require('assert-plus');
-var common = require('./common');
 var fmt = require('util').format;
-var h = require('../integration/helpers');
 var vasync = require('vasync');
 
+var cli = require('../lib/cli');
+var common = require('./common');
+var h = require('../integration/helpers');
 
 
 // --- Globals
