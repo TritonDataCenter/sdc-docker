@@ -64,5 +64,14 @@ test('docker pull', function (tt) {
             t.end();
         });
     });
+    tt.test('docker pull nope.example.com/nope (error message)', function (t) {
+        cli.docker('pull nope.example.com/nope', function(err, stdout, stderr) {
+            t.ifError(err); // expect zero exit status, see above
+            // JSSTYLED
+            t.ok(/\(ENOTFOUND\) nope.example.com not found/.test(stdout),
+                'error message');
+            t.end();
+        });
+    });
 
 });
