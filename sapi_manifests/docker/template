@@ -6,6 +6,12 @@
     {{#DOCKER_READONLY}}
     "readOnly": true,
     {{/DOCKER_READONLY}}
+    {{#DC_MAINT_MESSAGE}}
+    "dcMaintMessage": "{{{DC_MAINT_MESSAGE}}}",
+    {{/DC_MAINT_MESSAGE}}
+    {{#DC_MAINT_ETA}}
+    "dcMaintEta": "{{{DC_MAINT_ETA}}}",
+    {{/DC_MAINT_ETA}}
     "datacenterName": "{{{datacenter_name}}}",
 
     "backend": "sdc",
