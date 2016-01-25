@@ -65,12 +65,10 @@ test('docker pull', function (tt) {
         });
     });
     tt.test('docker pull nope.example.com/nope (error message)', function (t) {
-        cli.docker('pull nope.example.com/nope',
-            function (err, stdout, stderr) {
-
+        cli.docker('pull nope.example.com/nope', function (err, stdout, _) {
             t.ifError(err); // expect zero exit status, see above
             // JSSTYLED
-            t.ok(/\(ENOTFOUND\) nope.example.com not found/.test(stdout),
+            t.ok(/\(ENOTFOUND\) nope.example.com host not found/.test(stdout),
                 'error message');
             t.end();
         });
