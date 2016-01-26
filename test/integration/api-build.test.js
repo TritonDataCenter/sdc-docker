@@ -18,6 +18,7 @@
 
 var path = require('path');
 
+var tar = require('tar-stream');
 var test = require('tape');
 var vasync = require('vasync');
 
@@ -28,6 +29,7 @@ var STATE = {
 };
 
 var ALICE;
+var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
 
 test('setup', function (tt) {
@@ -45,6 +47,22 @@ test('setup', function (tt) {
     tt.test('docker client init', function (t) {
         vasync.parallel({ funcs: [
             function createAliceHttp(done) {
+                h.createDockerRemoteClient({user: ALICE},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for alice');
+                        done(err, client);
+                    });
+            }
+        ]}, function allDone(err, results) {
+            t.ifError(err, 'docker client init should be successful');
+            DOCKER_ALICE = results.operations[0].result;
+            t.end();
+        });
+    });
+
+    tt.test('docker client http init', function (t) {
+        vasync.parallel({ funcs: [
+            function createAliceHttp(done) {
                 h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
                     function (err, client) {
                         t.ifErr(err, 'docker client init for alice/http');
@@ -52,7 +70,7 @@ test('setup', function (tt) {
                     });
             }
         ]}, function allDone(err, results) {
-            t.ifError(err, 'docker client init should be successful');
+            t.ifError(err, 'docker client http init should be successful');
             DOCKER_ALICE_HTTP = results.operations[0].result;
             t.end();
         });
@@ -70,6 +88,9 @@ test('api: build', function (tt) {
             function buildContainer(next) {
                 h.buildDockerContainer({
                     dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        'rm': 'true'  // Remove container after it's built.
+                    },
                     test: t,
                     tarballPath: tarballPath
                 }, onbuild);
@@ -103,7 +124,7 @@ test('api: build', function (tt) {
 
             function removeBuiltImage(next) {
                 t.ok(dockerImageId, 'Got the docker image id');
-                DOCKER_ALICE_HTTP.del('/images/' + dockerImageId, next);
+                DOCKER_ALICE.del('/images/' + dockerImageId, next);
             }
 
         ], function allDone(err) {
@@ -113,4 +134,130 @@ test('api: build', function (tt) {
         });
 
     });
+});
+
+
+function createTarStream(fileAndContents) {
+    var pack = tar.pack();
+
+    Object.keys(fileAndContents).forEach(function (name) {
+        pack.entry({ name: name }, fileAndContents[name]);
+    });
+
+    pack.finalize();
+
+    return pack;
+}
+
+/**
+ * DOCKER-662: Ensure no conflicts with same images in different repositories.
+ */
+test('api: build image conflicts', function (tt) {
+
+    var imageName1 = 'docker.io/toddw/triton_alpine_inherit_test:latest';
+    var imageName2 = 'quay.io/twhiteman/triton_alpine_inherit_test:latest';
+
+    // Pull the docker.io alpine image.
+    tt.test('pull docker.io alpine test image', function (t) {
+        var url = '/images/create?fromImage=' + encodeURIComponent(imageName1);
+        DOCKER_ALICE.post(url, function (err, req, res, body) {
+            t.error(err, 'getting docker.io alpine test image');
+            t.end();
+        });
+    });
+
+    // Pull something that uses the same alpine image in a different repository.
+    tt.test('pull quay.io alpine test image', function (t) {
+        var url = '/images/create?fromImage=' + encodeURIComponent(imageName2);
+        DOCKER_ALICE.post(url, function (err, req) {
+            t.error(err, 'getting quay.io alpine test image');
+            t.end();
+        });
+    });
+
+    // TODO: Assert two alpine images share the same history.
+
+    tt.test('docker build own alpine image', function (t) {
+        var dockerImageId = null;
+        var tarStream;
+
+        vasync.waterfall([
+
+            function createTar(next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM ' + imageName1 + '\n'
+                                + 'LABEL sdcdockertest_conflict=yes\n'
+                };
+                tarStream = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer(next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        'rm': 'true'  // Remove container after it's built.
+                    },
+                    test: t,
+                    tarball: tarStream
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifError(err, 'built successfully');
+                    next(err, result);
+                }
+            },
+
+            function checkResults(result, next) {
+                if (!result || !result.body) {
+                    next(new Error('build generated no output!?'));
+                    return;
+                }
+
+                var output = result.body;
+                var hasSuccess = output.indexOf('Successfully built') >= 0;
+                t.ok(hasSuccess, 'output should contain: Successfully built');
+
+                if (hasSuccess) {
+                    var reg = new RegExp('Successfully built (\\w+)');
+                    dockerImageId = output.match(reg)[1];
+                } else {
+                    t.fail('Output: ' + output);
+                }
+
+                next();
+            },
+
+            function removeBuiltImage(next) {
+                t.ok(dockerImageId, 'got the built docker image id');
+                DOCKER_ALICE.del('/images/' + dockerImageId, next);
+            }
+
+        ], function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+
+    });
+
+    // Cleanup images we pulled down.
+
+    tt.test('delete docker.io alpine test image', function (t) {
+        DOCKER_ALICE.del('/images/' + encodeURIComponent(imageName1),
+            function (err) {
+                t.ifErr(err);
+                t.end();
+            }
+        );
+    });
+
+    tt.test('delete quay.io alpine test image', function (t) {
+        DOCKER_ALICE.del('/images/' + encodeURIComponent(imageName2),
+            function (err) {
+                t.ifErr(err);
+                t.end();
+            }
+        );
+    });
+
 });

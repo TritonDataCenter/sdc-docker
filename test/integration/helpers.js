@@ -1333,17 +1333,31 @@ function assertInfo(t, info) {
 
 
 /*
- * Builds a docker container using the context passed in opts.tarballPath
+ * Builds a docker container using the context passed in opts.tarball.
+ *
+ * @param opts.tarball {String|Stream} The docker build context.
+ * @param opts.params {Object} Docker build query parameters.
  */
 function buildDockerContainer(opts, callback) {
-    var tarballPath = opts.tarballPath;
-    assert.string(tarballPath, 'tarballPath');
-
     assert.object(opts, 'opts');
+    assert.object(opts.dockerClient, 'opts.dockerClient');
     assert.func(callback, 'callback');
+    assert.optionalObject(opts.params, 'opts.params');
+
+    var tarStream = opts.tarball;
+    if (typeof (opts.tarball) !== 'object') {
+        assert.string(opts.tarball, 'opts.tarball must be a string or stream');
+        tarStream = fs.createReadStream(opts.tarball);
+    }
 
     var dockerClient = opts.dockerClient;
     var log = dockerClient.log;
+    var queryParams = '';
+    if (opts.params) {
+        queryParams = '?' + Object.keys(opts.params).map(function (q) {
+            return fmt('%s=%s', escape(q), escape(opts.params[q]));
+        }).join('&');
+    }
 
     var headers = {
         'Content-Type': 'application/tar',
@@ -1365,7 +1379,7 @@ function buildDockerContainer(opts, callback) {
     }
 
     dockerClient.post({
-        path: '/build',
+        path: '/build' + queryParams,
         headers: headers
     }, onpost);
 
@@ -1394,7 +1408,6 @@ function buildDockerContainer(opts, callback) {
             return callback(err);
         });
 
-        var tarStream = fs.createReadStream(tarballPath);
         tarStream.pipe(req);
 
         tarStream.on('error', function onDockerTarError(err) {
