@@ -104,7 +104,7 @@ the Image ID.
 SDC Docker implements most of the log driver functionality as described in
 [Docker's documentation](https://docs.docker.com/engine/reference/logging/overview/).
 The differences in behavior when using these drivers are documented in the [Log
-Drivers feature page](./features/logdrivers/).
+Drivers feature page](./features/logdrivers.md).
 
 In addition to the divergence in the use of these drivers, SDC Docker handles
 logging differently than Docker. With Docker, logs are only written to the host

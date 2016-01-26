@@ -18,9 +18,15 @@ Creates a new container.
       --cpuset-mems=""                 Memory nodes (MEMs) in which to allow execution (0-3, 0,1)
       --cpu-period=0                   Limit the CPU CFS (Completely Fair Scheduler) period
       --cpu-quota=0                    Limit the CPU CFS (Completely Fair Scheduler) quota
+      --detach-keys                    Override the key sequence for detaching a container
       --device=[]                      Add a host device to the container
+      --device-read-bps=[]             Limit read rate (bytes per second) from a device
+      --device-read-iops=[]            Limit read rate (IO per second) from a device
+      --device-write-bps=[]            Limit write rate (bytes per second) to a device
+      --device-write-iops=[]           Limit write rate (IO per second) to a device
       --disable-content-trust=true     Skip image verification
       --dns=[]                         Set custom DNS servers
+      --dns-opt=[]                     Set DNS options
       --dns-search=[]                  Set custom DNS search domains
       -e, --env=[]                     Set environment variables
       --entrypoint=""                  Overwrite the default ENTRYPOINT of the image
@@ -29,20 +35,26 @@ Creates a new container.
       -h, --hostname=""                Container host name
       --help=false                     Print usage
       -i, --interactive=false          Keep STDIN open even if not attached
+      --ip                             Container IPv4 address (e.g. 172.30.100.104)
+      --ip6                            Container IPv6 address (e.g. 2001:db8::33)
       --ipc=""                         IPC namespace to use
+      --isolation                      Container isolation level
+      --kernel-memory                  Kernel memory limit
       --link=[]                        Add link to another container
       --log-driver=""                  Logging driver for container
       --log-opt=[]                     Log driver specific options
-      --lxc-conf=[]                    Add custom lxc options
       -l, --label=[]                   Set metadata on the container (e.g., --label=com.example.key=value)
       --label-file=[]                  Read in a file of labels (EOL delimited)
       -m, --memory=""                  Memory limit
       --mac-address=""                 Container MAC address (e.g. 92:d0:c6:0a:29:33)
+      --memory-reservation             Memory soft limit
       --memory-swap=""                 Total memory (memory + swap), '-1' to disable swap
       --memory-swappiness=""           Tune a container's memory swappiness behavior. Accepts an integer between 0 and 100
       --name=""                        Assign a name to the container
-      --net="bridge"                   Set the Network mode for the container
+      --net=default                    Connect a container to a network
+      --net-alias=[]                   Add network-scoped alias for the container
       --oom-kill-disable=false         Whether to disable OOM Killer for the container or not
+      --oom-score-adj                  Tune host's OOM preferences (-1000 to 1000)
       -P, --publish-all=false          Publish all exposed ports to random ports
       -p, --publish=[]                 Publish a container's port(s) to the host
       --pid=""                         PID namespace to use
@@ -50,11 +62,14 @@ Creates a new container.
       --read-only=false                Mount the container's root filesystem as read only
       --restart="no"                   Restart policy (no, on-failure[:max-retry], always)
       --security-opt=[]                Security Options
+      --shm-size                       Size of /dev/shm, default value is 64MB
       -t, --tty=false                  Allocate a pseudo-TTY
+      --tmpfs=[]                       Mount a tmpfs directory
       -u, --user=""                    Username or UID (format: <name|uid>[:<group|gid>])
       --ulimit=[]                      Ulimit options
       --uts=""                         UTS namespace to use
       -v, --volume=[]                  Bind mount a volume
+      --volume-driver                  Optional volume driver for the container
       --volumes-from=[]                Mount volumes from the specified container(s)
       -w, --workdir=""                 Working directory inside the container
 
@@ -117,23 +132,30 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--cap-add` and `--cap-drop` (Linux capabilities) are ignored. See [security](../features/security.md).
 * `--cpuset-cpus` and `--cpuset-mems` (controls which CPUs and memory nodes to run on) are ignored. See [resource allocation](../features/resources.md).
 * `--cpu-period` and `--cpu-quota` (limit the CPU CFS settings) are ignored. See [resource allocation](../features/resources.md).
-* `--disable-content-trust` (skip image verification) is ignored, follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531).
+* `--detach-keys` is unsupported.
 * `--device` (mounts host device into container) is ignored.
+* `--device-read`, `--device-write` (device read/write rate limits) are unsupported.
+* `--disable-content-trust` (skip image verification) is ignored, follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531).
+* `--dns-opt` (DNS options) are unimplemented at this time.
+* `--group-add` is unsupported.
 * `--ipc` is ignored.
 * `--log-driver` and `--log-opt` work somewhat differently on sdc-docker. See [log drivers](../features/logdrivers.md).
-* `--lxc-conf` (LXC specific) is unsupported. See [security](../features/security.md).
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
+* `--kernel-memory` and `--memory-reservation` (memory limits) are unsupported. See [resource allocation](../features/resources.md) for more about memory allocation in Triton.
 * `--memory-swap` and `--memory-swappiness` (disabling swap and tuning memory swappiness) are unsupported.
-* `--net` (controls how networking is attached) is currently unsupported. See [networking](../features/networks.md). Joyent is working with the Docker community to improve how network configuration is specified in the Docker API.
-* `--oom-kill-disable` (whether to disable OOM killer) is unsupported.
+* `--net`, `--net-alias`, `--ip`, `--ip6` (controls network config and ip address assignment) are currently unsupported. See [networking](../features/networks.md).
+* `--oom-kill-disable` and `--oom-score-adj` (tunables for OOM behavior) are unsupported.
 * `--pid=host` is unsupported.
 * `-P`, `--publish-all`, `-p`, and `--publish` behave slightly differently thanks to each container having a complete IP stack with one or more virtual NICs. See [networking](../features/networks.md).
 * `--privileged` (extended privileges for containers) is ignored. See [security](../features/security.md).
 * `--read-only` is currently unimplemented, follow [DOCKER-158](http://smartos.org/bugview/DOCKER-158) for updates.
 * `--security-opt` (security options) is unsupported.
+* `--shm-size` (size of /dev/shm) is unsupported.
+* `--tmpfs` (mounting of tmpfs directory) is currently unimplemented, follow [DOCKER-667](http://smartos.org/bugview/DOCKER-667) for updates.
 * `--ulimit` (ulimit options) is unsupported.
 * `--uts` (UTS namespace to use) is unsupported.
 * `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).
+* `--volume-driver` and other `docker volume` commands are unimplemented at this time.
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.
 
