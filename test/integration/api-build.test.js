@@ -92,7 +92,7 @@ test('api: build', function (tt) {
                         'rm': 'true'  // Remove container after it's built.
                     },
                     test: t,
-                    tarballPath: tarballPath
+                    tarball: tarballPath
                 }, onbuild);
 
                 function onbuild(err, result) {
@@ -154,8 +154,8 @@ function createTarStream(fileAndContents) {
  */
 test('api: build image conflicts', function (tt) {
 
-    var imageName1 = 'docker.io/toddw/triton_alpine_inherit_test:latest';
-    var imageName2 = 'quay.io/twhiteman/triton_alpine_inherit_test:latest';
+    var imageName1 = 'docker.io/joyent/triton_alpine_inherit_test:latest';
+    var imageName2 = 'quay.io/joyent/triton_alpine_inherit_test:latest';
 
     // Pull the docker.io alpine image.
     tt.test('pull docker.io alpine test image', function (t) {

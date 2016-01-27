@@ -24,7 +24,7 @@ var vasync = require('vasync');
 
 var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_labels_';
-
+var IMAGE_NAME = 'joyent/busybox_with_label_test';
 
 // --- Helpers
 
@@ -81,9 +81,9 @@ test('labels on container', function (tt) {
 
     tt.test('container label', function (t) {
         cli.run(t, { args: '-d --label foo=bar '
-                        + 'toddw/mybusybox sleep 3600' }, function (err, id)
+                        + IMAGE_NAME + ' sleep 3600' }, function (err, id)
         {
-            t.ifErr(err, 'docker run --label foo=bar toddw/mybusybox');
+            t.ifErr(err, 'docker run --label foo=bar ' + IMAGE_NAME);
             containerId = id;
             t.end();
         });
@@ -123,9 +123,9 @@ test('labels conflict', function (tt) {
 
     tt.test('conflicting label', function (t) {
         cli.run(t, { args: '-d --label todd=notcool '
-                        + 'toddw/mybusybox sleep 3600' }, function (err, id)
+                        + IMAGE_NAME + ' sleep 3600' }, function (err, id)
         {
-            t.ifErr(err, 'docker run --label todd=notcool toddw/mybusybox');
+            t.ifErr(err, 'docker run --label todd=notcool ' + IMAGE_NAME);
             containerId = id;
             t.end();
         });
@@ -150,10 +150,10 @@ test('labels conflict', function (tt) {
 test('labels image filtering', function (tt) {
     // Ensure the mybusybox image is available.
     tt.test('conflicting label', function (t) {
-        cli.run(t, { args: '-d toddw/mybusybox sleep 3600' },
+        cli.run(t, { args: '-d ' + IMAGE_NAME + ' sleep 3600' },
             function (err, id)
         {
-            t.ifErr(err, 'docker run toddw/mybusybox');
+            t.ifErr(err, 'docker run ' + IMAGE_NAME);
             t.end();
         });
     });
@@ -165,10 +165,9 @@ test('labels image filtering', function (tt) {
         {
             t.ifErr(err, 'docker images --filter');
             var lines = stdout.split('\n');
-            var imageName = 'toddw/mybusybox';
 
             if (lines.filter(function (line) {
-                return line.substr(0, imageName.length) === imageName;
+                return line.substr(0, IMAGE_NAME.length) === IMAGE_NAME;
                 }).length === 0)
             {
                 t.fail('Filter did not return the expected image: ' + stdout);
@@ -183,10 +182,9 @@ test('labels image filtering', function (tt) {
         {
             t.ifErr(err, 'docker images --filter');
             var lines = stdout.split('\n');
-            var imageName = 'toddw/mybusybox';
 
             if (lines.filter(function (line) {
-                return line.substr(0, imageName.length) === imageName;
+                return line.substr(0, IMAGE_NAME.length) === IMAGE_NAME;
                 }).length !== 0)
             {
                 t.fail('Filter returned an expected image: ' + stdout);
