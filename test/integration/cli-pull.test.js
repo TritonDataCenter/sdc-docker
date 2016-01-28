@@ -65,7 +65,9 @@ test('docker pull', function (tt) {
         });
     });
     tt.test('docker pull nope.example.com/nope (error message)', function (t) {
-        cli.docker('pull nope.example.com/nope', function(err, stdout, stderr) {
+        cli.docker('pull nope.example.com/nope',
+            function (err, stdout, stderr) {
+
             var notFound;
 
             t.ifError(err); // expect zero exit status, see above
