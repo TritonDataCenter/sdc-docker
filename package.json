@@ -4,7 +4,7 @@
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
-    "assert-plus": "0.2.0",
+    "assert-plus": "1.0.0",
     "async": "0.9.0",
     "bunyan": "1.3.2",
     "docker-registry-client": "3.0.3",

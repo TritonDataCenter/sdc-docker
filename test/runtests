@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright (c) 2016, Joyent, Inc.
 #
 
 #
@@ -28,71 +28,7 @@ set -o pipefail
 
 
 
-#---- guard
-
-guard_file=/lib/sdc/.sdc-test-no-production-data
-if [[ $(uname) == "SunOS" && ! -f "$guard_file" ]]; then
-    cat <<EOF
-To run this test you must create the file:
-
-    $guard_file
-
-after ensuring you have no production data on this SDC.
-EOF
-    exit 2
-fi
-
-
-#---- ensure USE_TLS is set
-if [[ ! -x /opt/smartdc/bin/sapiadm || ! -x /opt/smartdc/bin/sdc-sapi ]]; then
-    echo "FATAL: need /opt/smartdc/bin/sapiadm and /opt/smartdc/bin/sdc-sapi"
-    exit 2
-fi
-
-USE_TLS=$(/opt/smartdc/bin/sapiadm get $(/opt/smartdc/bin/sdc-sapi \
-    /services?name=docker | json -H 0.uuid) | json metadata.USE_TLS)
-
-if [[ ${USE_TLS} != "true" ]]; then
-    cat >&2 <<EOF
-FATAL: You must have TLS enabled to run these tests. To enable, run:
-
-    /opt/smartdc/bin/sapiadm update \$(/opt/smartdc/bin/sdc-sapi \\
-        /services?name=docker | json -H 0.uuid) metadata.USE_TLS=true
-
-wait 60 seconds, and then try again.
-EOF
-    exit 2
-fi
-
-
-#---- ensure PACKAGE_PREFIX has been set, these tests won't work with default
-
-PACKAGE_PREFIX=$(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.metadata.PACKAGE_PREFIX)
-if [[ -z ${PACKAGE_PREFIX} || ${PACKAGE_PREFIX} == 'sdc_' ]]; then
-    cat >&2 <<EOF
-FATAL: You must set PACKAGE_PREFIX to run these tests. To do this, run:
-
-    /opt/smartdc/bin/sapiadm update \\
-       \$(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.uuid) \\
-       metadata.PACKAGE_PREFIX="<YOUR_PREFIX>"
-
-replacing <YOUR_PREFIX> with a package prefix that works for this DC. If you
-have no packages, you can create some 'sample-' packages with:
-
-    sdcadm post-setup dev-sample-data
-
-and then use metadata.PACKAGE_PREFIX="sample-" in the command above.
-EOF
-    exit 2
-fi
-
 #---- support functions
-
-function fatal
-{
-    echo "$(basename $0): fatal error: $*"
-    exit 1
-}
 
 function usage
 {
@@ -103,7 +39,6 @@ function usage
     echo "  -f FILTER   Filter pattern (substring match) for test files to run."
     echo "  -s          Stop on first error."
 }
-
 
 
 #---- mainline
@@ -117,18 +52,8 @@ OUTPUT_DIR=/var/tmp/${API}test
 TAPE=$TOP/node_modules/.bin/tape
 FAILING_LIST=$OUTPUT_DIR/failing-tests.txt
 
-export DOCKER_UUID="$(vmadm lookup -j alias=docker0 | json 0.uuid)"
-export DOCKER_URL="https://$(vmadm lookup -j alias=docker0 | json 0.nics | json -c 'this.nic_tag==="external"' 0.ip):2376"
-export FWAPI_URL="http://$(vmadm lookup -j alias=fwapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
-export VMAPI_URL="http://$(vmadm lookup -j alias=vmapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
-export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics | json -c 'this.nic_tag==="admin"' 0.ip)"
-
-echo "# Test config:"
-echo "#  DOCKER_UUID=${DOCKER_UUID}"
-echo "#  DOCKER_URL=${DOCKER_URL}"
-echo "#  FWAPI_URL=${FWAPI_URL}"
-echo "#  VMAPI_URL=${VMAPI_URL}"
-echo "#  SAPI_URL=${SAPI_URL}"
+# Include common functions (eg. fatal) and perform sanity checks
+source $(dirname $0)/runtest.common
 
 # Options.
 opt_test_pattern=

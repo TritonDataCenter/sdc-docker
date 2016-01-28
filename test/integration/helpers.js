@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -1385,8 +1385,10 @@ function buildDockerContainer(opts, callback) {
     function onpost(connectErr, req) {
         var buildResult = {};
 
-        if (connectErr)
+        if (connectErr) {
+            log.error({err: connectErr}, 'error connecting for POST /build');
             return callback(connectErr, buildResult);
+        }
 
         req.on('result', function onResponse(err, res) {
             buildResult.body = '';
@@ -1397,6 +1399,9 @@ function buildDockerContainer(opts, callback) {
 
             res.on('end', function onEnd() {
                 removeDockerTarStreamListeners();
+                if (err) {
+                    log.error({err: err}, 'error at end of result');
+                }
                 return callback(err, buildResult);
             });
         });
