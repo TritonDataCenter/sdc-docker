@@ -7,6 +7,7 @@
       -a, --all=false      Show all images (default hides intermediate images)
       --digests=false      Show digests
       -f, --filter=[]      Filter output based on conditions provided
+      --format             Pretty-print images using a Go template
       --help=false         Print usage
       --no-trunc=false     Don't truncate output
       -q, --quiet=false    Only show numeric IDs

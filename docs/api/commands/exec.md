@@ -5,7 +5,9 @@
     Run a command in a running container
 
       -d, --detach=false         Detached mode: run command in the background
+      --detach-keys              Override the key sequence for detaching a container
       -i, --interactive=false    Keep STDIN open even if not attached
+      --privileged               Give extended privileges to the command
       -t, --tty=false            Allocate a pseudo-TTY
       -u, --user=                Username or UID (format: <name|uid>[:<group|gid>])
 
@@ -43,7 +45,8 @@ This will create a new Bash session in the container `ubuntu_bash`.
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+* `--detach-keys` is unsupported.
+* `--privileged` is unsupported.
 
 ## Related
 

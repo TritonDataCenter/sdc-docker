@@ -5,11 +5,12 @@
     Start one or more stopped containers
 
       -a, --attach=false         Attach STDOUT/STDERR and forward signals
+      --detach-keys              Override the key sequence for detaching a container
       -i, --interactive=false    Attach container's STDIN
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+* `--detach-keys` is unsupported.
 
 ## Related
 

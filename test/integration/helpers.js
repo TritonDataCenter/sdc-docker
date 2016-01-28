@@ -112,20 +112,6 @@ var CLIENT_ZONE_PAYLOAD = {
             '    echo \'export GOPATH=/root/bin/goroot\' >> /root/.profile',
             '    source /root/.profile',
             'fi',
-            '[[ -d \$GOPATH/src/github.com/kr/pty ]] \\',
-            '    || go get github.com/kr/pty',
-            '[[ -d \$GOPATH/src/github.com/Sirupsen/logrus ]] \\',
-            '    || go get github.com/Sirupsen/logrus',
-            '[[ -d \$GOPATH/src/github.com/docker/libcontainer/user ]] \\',
-            '    || go get github.com/docker/libcontainer/user',
-            '[[ -d \$GOPATH/src/github.com/docker/libtrust ]] \\',
-            '    || go get github.com/docker/libtrust',
-            '[[ -d \$GOPATH/src/github.com/docker/libnetwork/resolvconf ]] \\',
-            '    || go get github.com/docker/libnetwork/resolvconf',
-            '[[ -d \$GOPATH/src/github.com/godbus/dbus ]] \\',
-            '    || go get github.com/godbus/dbus',
-            '[[ -d \$GOPATH/src/code.google.com/p/go.net/websocket ]] \\',
-            '    || go get code.google.com/p/go.net/websocket',
             'if [[ ! -d \$GOPATH/src/github.com/go-check/check ]]; then',
             '    mkdir -p \$GOPATH/src/github.com/go-check',
             '    cd \$GOPATH/src/github.com/go-check',
@@ -139,6 +125,7 @@ var CLIENT_ZONE_PAYLOAD = {
             '',
             'if [[ ! -d docker ]]; then',
             '    git clone https://github.com/docker/docker.git',
+            '    echo \'export GOPATH=$GOPATH:/root/bin/goroot/src/github.com/docker/docker/vendor\' >> /root/.profile',
             'fi',
             '',
             'cd docker',
@@ -1346,17 +1333,31 @@ function assertInfo(t, info) {
 
 
 /*
- * Builds a docker container using the context passed in opts.tarballPath
+ * Builds a docker container using the context passed in opts.tarball.
+ *
+ * @param opts.tarball {String|Stream} The docker build context.
+ * @param opts.params {Object} Docker build query parameters.
  */
 function buildDockerContainer(opts, callback) {
-    var tarballPath = opts.tarballPath;
-    assert.string(tarballPath, 'tarballPath');
-
     assert.object(opts, 'opts');
+    assert.object(opts.dockerClient, 'opts.dockerClient');
     assert.func(callback, 'callback');
+    assert.optionalObject(opts.params, 'opts.params');
+
+    var tarStream = opts.tarball;
+    if (typeof (opts.tarball) !== 'object') {
+        assert.string(opts.tarball, 'opts.tarball must be a string or stream');
+        tarStream = fs.createReadStream(opts.tarball);
+    }
 
     var dockerClient = opts.dockerClient;
     var log = dockerClient.log;
+    var queryParams = '';
+    if (opts.params) {
+        queryParams = '?' + Object.keys(opts.params).map(function (q) {
+            return fmt('%s=%s', escape(q), escape(opts.params[q]));
+        }).join('&');
+    }
 
     var headers = {
         'Content-Type': 'application/tar',
@@ -1378,7 +1379,7 @@ function buildDockerContainer(opts, callback) {
     }
 
     dockerClient.post({
-        path: '/build',
+        path: '/build' + queryParams,
         headers: headers
     }, onpost);
 
@@ -1412,7 +1413,6 @@ function buildDockerContainer(opts, callback) {
             return callback(err);
         });
 
-        var tarStream = fs.createReadStream(tarballPath);
         tarStream.pipe(req);
 
         tarStream.on('error', function onDockerTarError(err) {
