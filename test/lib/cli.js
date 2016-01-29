@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -42,7 +42,7 @@ var state = {
 function cliInit(t) {
     h.getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
             function (err, env) {
-        t.ifErr(err);
+        t.ifErr(err, 'expect no error loading docker env');
         t.ok(env, 'have a DockerEnv for alice');
         ALICE = env;
 
@@ -62,9 +62,10 @@ function cliInspect(t, opts, callback) {
 
     ALICE.docker('inspect ' + opts.id, function (err, stdout, stderr) {
         var obj;
+        var pe;
 
-        t.ifErr(err, 'docker inspect');
-        t.equal(stderr, '', 'stderr');
+        t.ifErr(err, 'docker inspect ' + opts.id);
+        t.equal(stderr, '', 'stderr should be empty');
 
         // XXX: allow setting opts.expectedErr
         if (err) {
@@ -85,6 +86,25 @@ function cliInspect(t, opts, callback) {
         } catch (parseErr) {
             common.done(t, callback, parseErr);
             return;
+        }
+
+        // Special case for Labels, if we have opts.partialExp including a label
+        // with a value '*', we'll replace that with the value for that label
+        // from 'obj' since in that case we're just trying to confirm the label
+        // exists and don't care about the value. By setting it as the
+        // partialExp value, the objects will not differ on this field.
+        if (obj && obj.Config && obj.Config.Labels && opts) {
+            pe = opts.partialExp;
+
+            if (pe && pe.Config && pe.Config.Labels) {
+                Object.keys(pe.Config.Labels).forEach(
+                    function _fixWildcardLabels(l) {
+                        if (pe.Config.Labels[l] === '*') {
+                            pe.Config.Labels[l] = obj.Config.Labels[l];
+                        }
+                    }
+                );
+            }
         }
 
         common.partialExp(t, opts, obj);
@@ -208,6 +228,52 @@ function cliRmAllCreated(t) {
 
 
 /**
+ * `docker create <cmd>`
+ */
+function cliCreate(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('create ' + opts.args, function (err, stdout, stderr) {
+        var id;
+
+        if (stdout) {
+            id = stdout.split('\n')[0];
+        }
+
+        if (opts.expectedErr) {
+            if (id) {
+                t.ok(false, 'expected error but got ID: ' + id);
+            }
+
+            common.expErr(t, stderr, opts.expectedErr, callback);
+            return;
+
+        } else {
+            t.ifErr(err, 'docker create');
+            // Docker create may need to download the image, which produces
+            // stderr - only allow for that case:
+            if (stderr
+                && stderr.indexOf('Status: Downloaded newer image') === -1)
+            {
+                t.equal(stderr, '', 'stderr');
+            }
+        }
+
+        if (id) {
+            t.ok(id, fmt('"docker create %s" -> ID %s', opts.args, id));
+            CREATED.push(id);
+            LAST_CREATED = id;
+        }
+
+        common.done(t, callback, err, id);
+        return;
+    });
+}
+
+
+/**
  * `docker run <cmd>`
  */
 function cliRun(t, opts, callback) {
@@ -276,8 +342,8 @@ function cliPs(t, opts, callback) {
     ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
         var i, j;
 
-        t.ifErr(err, 'docker ps');
-        t.equal(stderr, '', 'stderr');
+        t.ifErr(err, 'docker ps' + (' ' + opts.args || ''));
+        t.equal(stderr, '', 'stderr should be empty');
 
         // Parse stdout.
         var lines = stdout.split('\n');
@@ -369,6 +435,7 @@ function cliStart(t, opts, callback) {
 
 
 module.exports = {
+    create: cliCreate,
     get accountUuid() {
         return ALICE.account.uuid;
     },

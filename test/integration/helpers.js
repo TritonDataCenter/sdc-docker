@@ -33,6 +33,7 @@ var constants = require('../../lib/constants');
 var CONFIG = {
     docker_url: process.env.DOCKER_URL,
     fwapi_url: process.env.FWAPI_URL,
+    papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
     vmapi_url: process.env.VMAPI_URL
 };
@@ -1308,6 +1309,21 @@ function createSapiClient(callback) {
 
 
 /**
+ * Get a simple restify JSON client to PAPI.
+ */
+function createPapiClient(callback) {
+    createClientOpts('papi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.PAPI(opts));
+        return;
+    });
+}
+
+
+/**
  * Get a simple restify JSON client to VMAPI.
  */
 function createVmapiClient(callback) {
@@ -1320,6 +1336,7 @@ function createVmapiClient(callback) {
         return;
     });
 }
+
 
 
 /**
@@ -1732,6 +1749,7 @@ module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
     createSapiClient: createSapiClient,
     createFwapiClient: createFwapiClient,
+    createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     initDockerEnv: initDockerEnv,

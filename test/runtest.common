@@ -25,6 +25,12 @@ function fatal
 
 #---- guard
 
+if [[ $(zonename) != "global" ]]; then
+    echo "FATAL: must run these tests from the global zone" >&2
+    exit 2
+fi
+
+
 guard_file=/lib/sdc/.sdc-test-no-production-data
 if [[ $(uname) == "SunOS" && ! -f "$guard_file" ]]; then
     cat <<EOF
@@ -86,6 +92,8 @@ export DOCKER_URL="https://$(vmadm lookup -j alias=docker0 | json 0.nics \
     | json -c 'this.nic_tag==="external"' 0.ip):2376"
 export FWAPI_URL="http://$(vmadm lookup -j alias=fwapi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
+export PAPI_URL="http://$(vmadm lookup -j alias=papi0 | json 0.nics \
+    | json -c 'this.nic_tag==="admin"' 0.ip)"
 export VMAPI_URL="http://$(vmadm lookup -j alias=vmapi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
 export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics \
@@ -95,6 +103,7 @@ echo "# Test config:"
 echo "#  DOCKER_UUID=${DOCKER_UUID}"
 echo "#  DOCKER_URL=${DOCKER_URL}"
 echo "#  FWAPI_URL=${FWAPI_URL}"
+echo "#  PAPI_URL=${PAPI_URL}"
 echo "#  VMAPI_URL=${VMAPI_URL}"
 echo "#  SAPI_URL=${SAPI_URL}"
 
