@@ -112,41 +112,25 @@ test('setup', function (tt) {
 
 
 test('test initialization', function (tt) {
-    tt.test('remove old containers', function (t) {
-        cli.ps(t, {args: '-a'}, function (err, entries) {
-            t.ifErr(err, 'docker ps');
 
-            var oldContainers = entries.filter(function (entry) {
-                return (entry.names.substr(0, CONTAINER_PREFIX.length)
-                        === CONTAINER_PREFIX);
-            });
-
-            vasync.forEachParallel({
-                inputs: oldContainers,
-                func: function _delOne(entry, cb) {
-                    cli.rm(t, {args: '-f ' + entry.container_id},
-                            function (err2)
-                    {
-                        t.ifErr(err2, 'rm container ' + entry.container_id);
-                        cb();
-                    });
-                }
-            }, function () {
-                t.end();
-            });
-        });
-    });
+    removeNginxTestContainers(tt);
 
     vasync.forEachParallel({
         inputs: [nginxName, nginxName2],
         func: function (name, next) {
             tt.test('create container ' + name, function (t) {
-                t.plan(2);
-                cli.run(t, { args: '-d --name ' + name + ' nginx' });
-                next();
+                t.plan(3);
+                cli.run(t, { args: '-d --name ' + name + ' nginx' },
+                function (err, id) {
+                    t.ifErr(err, 'docker run ' + name);
+                    t.end();
+                    next();
+                });
             });
-        }}, function (err) {
-        });
+        }
+    }, function (err) {
+        tt.end();
+    });
 });
 
 
@@ -411,6 +395,12 @@ test('copy a file into stopped container', function (tt) {
 });
 
 
+/**
+ * Cleanup.
+ */
+test('copy container cleanup', function (tt) {
+    removeNginxTestContainers(tt);
+});
 
 
 
@@ -434,6 +424,32 @@ function startContainer(tt, containerName, callback) {
 }
 
 
+function removeNginxTestContainers(tt) {
+    tt.test('remove old containers', function (t) {
+        cli.ps(t, {args: '-a'}, function (err, entries) {
+            t.ifErr(err, 'docker ps');
+
+            var oldContainers = entries.filter(function (entry) {
+                return (entry.names.substr(0, CONTAINER_PREFIX.length)
+                        === CONTAINER_PREFIX);
+            });
+
+            vasync.forEachParallel({
+                inputs: oldContainers,
+                func: function _delOne(entry, cb) {
+                    cli.rm(t, {args: '-f ' + entry.container_id},
+                            function (err2)
+                    {
+                        t.ifErr(err2, 'rm container ' + entry.container_id);
+                        cb();
+                    });
+                }
+            }, function () {
+                t.end();
+            });
+        });
+    });
+}
 
 
 /**
