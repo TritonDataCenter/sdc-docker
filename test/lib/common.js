@@ -160,7 +160,7 @@ function expErr(t, err, expected, callback) {
     }
 
     t.ok(matches[2], 'error req id: ' + matches[2]);
-    t.equal(matches[1], expected, 'error message');
+    t.equal(matches[1], expected, 'error message matches expected pattern');
 
     done(t, callback, err);
 }

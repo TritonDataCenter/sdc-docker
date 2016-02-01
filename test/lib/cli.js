@@ -342,41 +342,52 @@ function cliPs(t, opts, callback) {
     ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
         var i, j;
 
-        t.ifErr(err, 'docker ps' + (' ' + opts.args || ''));
-        t.equal(stderr, '', 'stderr should be empty');
+        if (opts.expectedErr) {
+            t.equal(stdout, '', 'stdout should be empty');
+            common.expErr(t, stderr, opts.expectedErr, callback);
+            return;
+        } else {
+            t.ifErr(err, 'docker ps' + (' ' + opts.args || ''));
+            t.equal(stderr, '', 'stderr should be empty');
+        }
 
         // Parse stdout.
-        var lines = stdout.split('\n');
+        var lines = stdout.trim().split('\n');
         var entries = [];
         var re = /\s+/;
         var headerLine = lines[0].toLowerCase();
         headerLine = headerLine.replace('container id', 'container_id');
         var header = headerLine.split(re);
 
-        // From header, determine where each section begins/ends:
-        var headerStartEnds = header.map(function (val, idx) {
-            var nextval = header[idx+1];
-            if (idx+1 == header.length) {
-                return [headerLine.indexOf(val), 100000];
-            } else {
-                return [headerLine.indexOf(val), headerLine.indexOf(nextval)];
-            }
-        });
-        //console.log('header:', header, 'startEnds', headerStartEnds);
+        if (opts.linesOnly) {
+            entries = lines;
+        } else {
+            // From header, determine where each section begins/ends:
+            var headerStartEnds = header.map(function (val, idx) {
+                var nextval = header[idx+1];
+                if (idx+1 == header.length) {
+                    return [headerLine.indexOf(val), 100000];
+                } else {
+                    return [headerLine.indexOf(val),
+                        headerLine.indexOf(nextval)];
+                }
+            });
+            //console.log('header:', header, 'startEnds', headerStartEnds);
 
-        // Split the output lines:
-        for (i = 1; i < lines.length; i++) {
-            var entry = {};
-            var line = lines[i].trim();
-            if (!line) {
-                continue;
+            // Split the output lines:
+            for (i = 1; i < lines.length; i++) {
+                var entry = {};
+                var line = lines[i].trim();
+                if (!line) {
+                    continue;
+                }
+                for (j = 0; j < header.length; j++) {
+                    var se = headerStartEnds[j];
+                    entry[header[j]] = line.substring(se[0], se[1]).trim();
+                }
+                entries.push(entry);
+                //console.log('entry: ', entry);
             }
-            for (j = 0; j < header.length; j++) {
-                var se = headerStartEnds[j];
-                entry[header[j]] = line.substring(se[0], se[1]).trim();
-            }
-            entries.push(entry);
-            //console.log('entry: ', entry);
         }
 
         common.done(t, callback, err, entries);

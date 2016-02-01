@@ -63,3 +63,14 @@ the first 8 characters of the package UUID. The order of precedence is:
 
 if none of these match you will get an error.
 
+In order to see the packages for your existing containers you can also do
+something like:
+
+```
+docker ps -a --format '{{.ID}} {{.Label "com.joyent.package"}}'
+```
+
+which will output the id and package name for each container. If there are
+problems looking up the name of the package because you no longer have access to
+the package or the package is no longer active, you may see '<unknown>' as the
+package name.

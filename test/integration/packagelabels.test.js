@@ -15,6 +15,7 @@
 var h = require('./helpers');
 var cli = require('../lib/cli');
 var fs = require('fs');
+var libuuid = require('libuuid');
 var vm = require('../lib/vm');
 var test = require('tape');
 var vasync = require('vasync');
@@ -28,6 +29,8 @@ var IMAGE_NAME = 'busybox';
 var containers = {};
 var packageA;
 var packageB;
+var packageC;
+var papi;
 
 
 
@@ -47,7 +50,6 @@ test('setup docker environment/cli', function (tt) {
 test('find packages for test', function (tt) {
     var configFile = __dirname + '/../../etc/config.json';
     var packagePrefix;
-    var papi;
 
     packagePrefix = JSON.parse(fs.readFileSync(configFile)).packagePrefix;
 
@@ -91,6 +93,34 @@ test('find packages for test', function (tt) {
         }
     ]}, function _afterPkgPipeline(err) {
         tt.ifError(err, 'found packages');
+        tt.end();
+    });
+});
+
+/*
+ * We create a package with a made-up owner so that we know that this should not
+ * be provisionable by our test user. Later on we'll attempt to provision with
+ * it which should fail.
+ */
+test('create package with bogus owner', function (tt) {
+    papi.add({
+        active: true,
+        cpu_cap: 100,
+        default: false,
+        max_lwps: 1000,
+        max_physical_memory: 64,
+        max_swap: 128,
+        name: 'docker-test-packageC',
+        owner_uuids: [libuuid.create()],
+        quota: 10240,
+        uuid: libuuid.create(),
+        version: '42.0.0',
+        zfs_io_priority: 100
+    }, {}, function _papiAddCb(err, pkg) {
+        tt.ifError(err, 'create packageC' + (err ? '' : pkg.uuid));
+        if (!err) {
+            packageC = pkg;
+        }
         tt.end();
     });
 });
@@ -192,6 +222,7 @@ test('test ps filtering on package', function (tt) {
             cli.ps(tt, {
                 args: argstring
             }, function (err, entries) {
+                var createdContainers = [];
                 var expectedContainers = [];
                 var foundContainers = [];
 
@@ -199,6 +230,10 @@ test('test ps filtering on package', function (tt) {
                     cb(err);
                     return;
                 }
+
+                createdContainers = Object.keys(containers).map(function (k) {
+                    return containers[k].dockerId.substr(0, 12);
+                });
 
                 expectedContainers = Object.keys(containers).map(function (k) {
                     // first we make an array of the *values*
@@ -219,6 +254,12 @@ test('test ps filtering on package', function (tt) {
                 foundContainers = entries.map(function (entry) {
                     // map the entries we found to an array of short Ids
                     return entry.container_id;
+                }).filter(function (container) {
+                    // filter out those we didn't create
+                    if (createdContainers.indexOf(container) !== -1) {
+                        return true;
+                    }
+                    return false;
                 }).sort();
 
                 tt.deepEqual(foundContainers, expectedContainers, 'should only '
@@ -233,4 +274,195 @@ test('test ps filtering on package', function (tt) {
     });
 });
 
-test('teardown', cli.rmAllCreated);
+test('test creation w/ invalid package names', function (tt) {
+    var invalidPrefix = 'Error response from daemon: invalid value for '
+        + 'com.joyent.package: ';
+    var labels = [];
+    var nonexistErr = 'Error response from daemon: no packages match '
+        + 'parameters';
+
+    labels = [
+        {
+            name: '_bacon', // leading underscore invalid
+            errPrefix: invalidPrefix
+        }, {
+            name: 'bacon-', // trailing '-' is invalid
+            errPrefix: invalidPrefix
+        }, {
+            name: 'bacon!', // '!' is invalid
+            errPrefix: invalidPrefix
+        }, {
+            name: '💩', // nope
+            errPrefix: invalidPrefix
+        }, {
+            name: '	', // tabs -- like poo -- are not allowed
+            errPrefix: invalidPrefix
+        }, {
+            name: '.', // can't start or end with '.'
+            errPrefix: invalidPrefix
+        }, {
+            name: '', // empty name should be invalid
+            errPrefix: invalidPrefix
+        }, {
+            name: 'hello--world', // consecutive '-' not allowed
+            errPrefix: invalidPrefix
+        }, {
+            name: 'package-that-does-not-exist',
+            errString: nonexistErr
+        }
+    ];
+
+    vasync.forEachPipeline({
+        inputs: labels,
+        func: function _createContainer(label, cb) {
+            var cmdline = '--label com.joyent.package="' + label.name + '" '
+                + IMAGE_NAME + ' sleep 3600';
+
+            cli.create(tt, {
+                args: cmdline,
+                expectedErr: (
+                    label.errString
+                    ? label.errString
+                    : label.errPrefix + label.name
+                )
+            }, function (err, id) {
+                tt.ok(err, 'expected error for create');
+                cb();
+            });
+        }
+    }, function _createdContainers(err) {
+        tt.ifError(err, 'tried to create containers');
+        tt.end();
+    });
+});
+
+test('test lookup w/ invalid package names', function (tt) {
+    var labels = [
+        '_bacon', // leading underscore invalid
+        'bacon-', // trailing '-' is invalid
+        'bacon!', // '!' is invalid
+        '💩', // nope
+        '.', // can't start or end with '.'
+        'hello--world' // consecutive '-' not allowed
+    ];
+
+    vasync.forEachPipeline({
+        inputs: labels,
+        func: function _lookupContainer(label, cb) {
+            var argstring = '--format "{{.ID}}:\t{{.Labels}}" '
+                + '--filter "label=com.joyent.package=' + label + '"';
+
+            cli.ps(tt, {
+                args: argstring,
+                expectedErr: 'Error response from daemon: invalid value for '
+                    + 'com.joyent.package: ' + label
+            }, function (err, entries) {
+                tt.ok(err, 'expected error for ps (' + label + ')');
+                tt.equal(entries, undefined, 'expected no entries in output');
+                cb();
+            });
+        }
+    }, function _lookedupContainers(err) {
+        tt.ifError(err, 'tried to lookup containers w/ filter');
+        tt.end();
+    });
+});
+
+/*
+ * packageC we created with a random owner, so we shouldn't be able to provision
+ * with it because that random owner is not us.
+ */
+test('test creation w/ non-owned package', function (tt) {
+    var cmdline;
+
+    if (!packageC || !packageC.uuid) {
+        tt.ok(false, 'packageC was not created, cannot provision');
+        tt.end();
+        return;
+    }
+
+    cmdline = '--label com.joyent.package="' + packageC.uuid + '" '
+        + IMAGE_NAME + ' sleep 3600';
+
+    cli.create(tt, {
+        args: cmdline,
+        expectedErr: 'Error response from daemon: no packages match parameters'
+    }, function (err, id) {
+        tt.ok(err, 'expected error for create');
+        tt.end();
+    });
+});
+
+/*
+ * When a VM is created with 2 labels, the second will take precendence and a VM
+ * should be created with that package.
+ */
+test('test creation w/ two package labels', function (tt) {
+    var cmdline;
+
+    cmdline = '--label com.joyent.package="' + packageA.uuid + '" '
+        + '--label com.joyent.package="' + packageB.uuid + '" '
+        + IMAGE_NAME + ' sleep 3600';
+
+    cli.create(tt, {args: cmdline}, function (err, id) {
+        var argstring = '--filter "label=com.joyent.package=' + packageB.name
+            + '" --format '
+            + '\"{{.ID}},{{.Label \\\"com.joyent.package\\\"}}\"';
+        var shortId;
+
+        tt.ifErr(err, 'expect no error for create');
+
+        if (!err) {
+            tt.ok(true, 'created ' + id);
+            shortId = id.substr(0, 12);
+
+            // Need to ensure that this got the right package (packageB)
+            // This also ensures that the container list via `docker ps` is
+            // including the package name correctly.
+            cli.ps(tt, {
+                args: argstring,
+                linesOnly: true
+            }, function (e, entries) {
+                var wrongPackages = [];
+
+                tt.ifError(e, 'list containers after creation');
+                tt.ok(entries.indexOf(shortId + ',' + packageB.name) !== -1,
+                    '`docker ps` shows ' + shortId + ' with packageB');
+                entries.forEach(function _checkEachPkg(entry) {
+                    if (entry.split(',')[1] !== packageB.name) {
+                        wrongPackages.push(entry);
+                    }
+                });
+                tt.deepEqual(wrongPackages, [], 'expected all packages to be '
+                    + packageB.name);
+                tt.end();
+            });
+        } else {
+            tt.end();
+        }
+    });
+});
+
+test('teardown', function (tt) {
+    // cleanup the package we created
+    vasync.pipeline({funcs: [
+        function _rmCreatedPackages(_, cb) {
+            if (!packageC || !packageC.uuid) {
+                tt.ok(true, 'no packageC to delete');
+                cb();
+                return;
+            }
+            papi.del(packageC.uuid, {force: true}, function _papiDelCb(err) {
+                tt.ifError(err, 'papi delete packageC');
+                cb();
+            });
+        }, function _rmCreatedContainers(_, cb) {
+            // this must come last in the 'funcs' because it ends the test on us
+            cli.rmAllCreated(tt);
+            cb();
+        }
+    ]}, function _teardownComplete() {
+        // cli.rmAllCreated() ends our test, so nothing more to do
+        return;
+    });
+});
