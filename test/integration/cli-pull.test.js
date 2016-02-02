@@ -42,34 +42,59 @@ test('docker pull', function (tt) {
     /* END JSSTYLED */
     tt.test('docker pull nope (error message)', function (t) {
         cli.docker('pull nope', function (err, stdout, stderr) {
+            var unauthorizedCode;
+            var unauthorizedMsg;
+
             /*
              * Actually expect a zero exit status, because `docker pull`s
              * JSON progress protocol doesn't handle communicating an error,
              * AFAIK.
              */
-            t.ifError(err);
+            t.ifError(err, 'expected successful pull');
 
-            t.ok(/UNAUTHORIZED/.test(stdout), 'error code');
-            t.ok(/access to the requested resource is not authorized/.test(
-                stdout), 'error message');
+            unauthorizedCode = /UNAUTHORIZED/.test(stdout);
+
+            //JSSTYLED
+            unauthorizedMsg = /access to the requested resource is not authorized/.test(stdout);
+
+            t.ok(unauthorizedCode, 'error code is "UNAUTHORIZED"'
+                + (unauthorizedCode ? '' : ', got: ' + stdout));
+
+            t.ok(unauthorizedMsg,
+                'error message matches "access ... not authorized"'
+                + (unauthorizedMsg ? '' : ', got: ' + stdout));
+
             t.end();
         });
     });
     tt.test('docker pull quay.io/nope (error message)', function (t) {
         cli.docker('pull quay.io/nope', function (err, stdout, stderr) {
-            t.ifError(err); // expect zero exit status, see above
+            var unauthorized;
+
+            // expect zero exit status, see above
+            t.ifError(err, 'expected successful pull');
+
             // JSSTYLED
-            t.ok(/Unauthorized error from registry quay.io trying to pull nope/.test(stdout),
-                'error message');
+            unauthorized = /Unauthorized error from registry quay.io trying to pull nope/.test(stdout);
+
+            t.ok(unauthorized, 'expected that error is "Unauthorized..."'
+                + (unauthorized ? '' : ', got: ' + stdout));
             t.end();
         });
     });
     tt.test('docker pull nope.example.com/nope (error message)', function (t) {
-        cli.docker('pull nope.example.com/nope', function (err, stdout, _) {
-            t.ifError(err); // expect zero exit status, see above
+        cli.docker('pull nope.example.com/nope',
+            function (err, stdout, stderr) {
+            var notFound;
+
+            // expect zero exit status, see above
+            t.ifError(err, 'expected successful pull');
+
             // JSSTYLED
-            t.ok(/\(ENOTFOUND\) nope.example.com host not found/.test(stdout),
-                'error message');
+            notFound
+                = /\(ENOTFOUND\) nope.example.com host not found/.test(stdout);
+            t.ok(notFound, 'error is "ENOTFOUND"'
+                + (notFound ? '' : ', got: ' + stdout));
             t.end();
         });
     });
