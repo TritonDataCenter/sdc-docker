@@ -12,6 +12,7 @@
  * Integration tests for 'docker pull'.
  */
 
+var format = require('util').format;
 var test = require('tape');
 
 var h = require('./helpers');
@@ -26,22 +27,12 @@ test('docker pull', function (tt) {
 
     tt.test('setup: alice init', cli.init);
 
-    /* BEGIN JSSTYLED */
     /**
-     * DOCKER-639: Check for reasonable error messages for some 'docker pull'
-     * failures.
-     *
-     *      $ docker pull nope
-     *      Using default tag: latest
-     *      Error pulling image: (UNAUTHORIZED) access to the requested resource is not authorized (3e95bf10-c14a-11e5-b369-af3866fc219f)
-     *
-     *      $ docker pull quay.io/nope
-     *      Using default tag: latest
-     *      Unauthorized error from registry quay.io trying to pull nope (711d1460-c14a-11e5-b369-af3866fc219f)
+     * Check for reasonable error messages for some 'docker pull' failures.
+     * Some related issues: DOCKER-639, DOCKER-689
      */
-    /* END JSSTYLED */
-    tt.test('docker pull nope (error message)', function (t) {
-        cli.docker('pull nope', function (err, stdout, stderr) {
+    tt.test('docker pull no-such-repo (error message)', function (t) {
+        cli.docker('pull no-such-repo', function (err, stdout, stderr) {
             var unauthorizedCode;
             var unauthorizedMsg;
 
@@ -67,21 +58,24 @@ test('docker pull', function (tt) {
             t.end();
         });
     });
-    tt.test('docker pull quay.io/nope (error message)', function (t) {
-        cli.docker('pull quay.io/nope', function (err, stdout, stderr) {
-            var unauthorized;
+
+    tt.test('docker pull quay.io/no-such-user (error message)', function (t) {
+        cli.docker('pull quay.io/no-such-user',
+                function (err, stdout, stderr) {
+            var match;
 
             // expect zero exit status, see above
             t.ifError(err, 'expected successful pull');
 
             // JSSTYLED
-            unauthorized = /Unauthorized error from registry quay.io trying to pull nope/.test(stdout);
+            match = /Not Found \(404\) error from registry quay.io trying to pull no-such-user/.test(stdout);
 
-            t.ok(unauthorized, 'expected that error is "Unauthorized..."'
-                + (unauthorized ? '' : ', got: ' + stdout));
+            t.ok(match, 'expected that error is "Not Found ..."'
+                + (match ? '' : format(', got: %j', stdout)));
             t.end();
         });
     });
+
     tt.test('docker pull nope.example.com/nope (error message)', function (t) {
         cli.docker('pull nope.example.com/nope',
             function (err, stdout, stderr) {
