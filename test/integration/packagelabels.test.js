@@ -117,7 +117,7 @@ test('create package with bogus owner', function (tt) {
         version: '42.0.0',
         zfs_io_priority: 100
     }, {}, function _papiAddCb(err, pkg) {
-        tt.ifError(err, 'create packageC' + (err ? '' : pkg.uuid));
+        tt.ifError(err, 'create packageC' + (err ? '' : ' ' + pkg.uuid));
         if (!err) {
             packageC = pkg;
         }
@@ -292,7 +292,7 @@ test('test creation w/ invalid package names', function (tt) {
             name: 'bacon!', // '!' is invalid
             errPrefix: invalidPrefix
         }, {
-            name: '💩', // nope
+            name: '💩', // non-ASCII should not be allowed
             errPrefix: invalidPrefix
         }, {
             name: '	', // tabs -- like poo -- are not allowed
@@ -341,7 +341,7 @@ test('test lookup w/ invalid package names', function (tt) {
         '_bacon', // leading underscore invalid
         'bacon-', // trailing '-' is invalid
         'bacon!', // '!' is invalid
-        '💩', // nope
+        '💩', // non-ASCII should not be allowed
         '.', // can't start or end with '.'
         'hello--world' // consecutive '-' not allowed
     ];
