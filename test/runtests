@@ -52,9 +52,6 @@ OUTPUT_DIR=/var/tmp/${API}test
 TAPE=$TOP/node_modules/.bin/tape
 FAILING_LIST=$OUTPUT_DIR/failing-tests.txt
 
-# Include common functions (eg. fatal) and perform sanity checks
-source $(dirname $0)/runtest.common
-
 # Options.
 opt_test_pattern=
 opt_stop_on_failure=
@@ -78,6 +75,8 @@ do
     esac
 done
 
+# Include common functions (e.g. fatal) and perform prereq checks.
+source $(dirname $0)/runtest.common
 
 # Setup a clean output dir.
 echo "# Setup a clean output dir ($OUTPUT_DIR)."

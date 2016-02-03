@@ -25,13 +25,13 @@ var cli = require('../lib/cli');
 
 test('docker pull', function (tt) {
 
-    tt.test('setup: alice init', cli.init);
+    tt.test('  setup: alice init', cli.init);
 
     /**
      * Check for reasonable error messages for some 'docker pull' failures.
      * Some related issues: DOCKER-639, DOCKER-689
      */
-    tt.test('docker pull no-such-repo (error message)', function (t) {
+    tt.test('  docker pull no-such-repo (error message)', function (t) {
         cli.docker('pull no-such-repo', function (err, stdout, stderr) {
             var unauthorizedCode;
             var unauthorizedMsg;
@@ -59,7 +59,7 @@ test('docker pull', function (tt) {
         });
     });
 
-    tt.test('docker pull quay.io/no-such-user (error message)', function (t) {
+    tt.test('  docker pull quay.io/no-such-user (error message)', function (t) {
         cli.docker('pull quay.io/no-such-user',
                 function (err, stdout, stderr) {
             var match;
@@ -76,7 +76,8 @@ test('docker pull', function (tt) {
         });
     });
 
-    tt.test('docker pull nope.example.com/nope (error message)', function (t) {
+    tt.test('  docker pull nope.example.com/nope (error message)',
+            function (t) {
         cli.docker('pull nope.example.com/nope',
             function (err, stdout, stderr) {
             var notFound;
