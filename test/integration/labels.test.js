@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -61,6 +61,7 @@ test('labels', function (tt) {
             partialExp: {
                 Config: {
                     Labels: {
+                        'com.joyent.package': '*',
                         'foo': 'bar',
                         'elem': 'something with a space'
                     }
@@ -75,6 +76,7 @@ test('labels on container', function (tt) {
 
     var containerId;
     var expectedLabels = {
+        'com.joyent.package': '*',
         'foo': 'bar',  // from the command line
         'todd': 'cool' // from the image
     };
@@ -138,6 +140,7 @@ test('labels conflict', function (tt) {
             partialExp: {
                 Config: {
                     Labels: {
+                        'com.joyent.package': '*',
                         'todd': 'notcool'
                     }
                 }

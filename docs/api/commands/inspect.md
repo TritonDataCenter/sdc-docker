@@ -77,6 +77,10 @@ Some fields, including the following, are irrelevent to containers on Triton and
   SecondaryIPAddresses, SecondaryIPv6Addresses
 - State: Dead, OOMKilled
 
+Also note that the Config.Labels will include the special 'com.joyent.package'
+value which will be set to the current name of the package associated with this
+VM.
+
 Read more about container [security on Triton](features/security.md) and see [notes about exit status](../divergence.md).
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.

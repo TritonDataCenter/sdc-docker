@@ -160,7 +160,7 @@ function expErr(t, err, expected, callback) {
     }
 
     t.ok(matches[2], 'error req id: ' + matches[2]);
-    t.equal(matches[1], expected, 'error message');
+    t.equal(matches[1], expected, 'error message matches expected pattern');
 
     done(t, callback, err);
 }
@@ -190,7 +190,12 @@ function partialExp(t, opts, obj) {
         return;
     }
 
+    var compareMessage = 'partial expected';
     var partial = {};
+
+    if (opts.compareMessage) {
+        compareMessage = opts.compareMessage;
+    }
 
     for (var p in opts.partialExp) {
         // Allow specifying some properties of sub-objects, but
@@ -207,7 +212,7 @@ function partialExp(t, opts, obj) {
         }
     }
 
-    t.deepEqual(partial, opts.partialExp, 'partial expected');
+    t.deepEqual(partial, opts.partialExp, compareMessage);
     if (!deepEqual(partial, opts.partialExp)) {
         t.comment(difflet({ indent: 4, comment: true })
             .compare(partial, opts.partialExp));

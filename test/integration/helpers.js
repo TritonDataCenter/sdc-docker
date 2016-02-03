@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -33,6 +33,7 @@ var constants = require('../../lib/constants');
 var CONFIG = {
     docker_url: process.env.DOCKER_URL,
     fwapi_url: process.env.FWAPI_URL,
+    papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
     vmapi_url: process.env.VMAPI_URL
 };
@@ -103,6 +104,9 @@ var CLIENT_ZONE_PAYLOAD = {
  * Return an options object suitable for passing to a restify client
  */
 function createClientOpts(name, callback) {
+    assert.string(name, 'name');
+    assert.func(callback, 'callback');
+
     var configVal = CONFIG[name + '_url'];
     var opts = {
         log: mod_log,
@@ -129,8 +133,10 @@ function createClientOpts(name, callback) {
 }
 
 function getAccountKeys(opts, cb) {
+    assert.object(opts, 'opts');
     assert.object(opts.state, 'opts.state');
     assert.string(opts.login, 'opts.login');
+    assert.func(cb, 'cb');
 
     var cmd = '/opt/smartdc/bin/sdc sdc-useradm keys -j ' + opts.login;
     if (opts.state.runningFrom === 'remote') {
@@ -152,9 +158,12 @@ function getAccountKeys(opts, cb) {
 }
 
 function getAccount(opts, cb) {
+    assert.object(opts, 'opts');
     assert.object(opts.state, 'opts.state');
     assert.string(opts.login, 'opts.login');
     assert.optionalNumber(opts.retries, 'opts.retries');
+    assert.func(cb, 'cb');
+
     var retries = (opts.retries === undefined ? 0 : opts.retries);
 
     var cmd = '/opt/smartdc/bin/sdc sdc-useradm get ' + opts.login;
@@ -196,8 +205,11 @@ function getAccount(opts, cb) {
  * Get a create an account of the given login.
  */
 function getOrCreateAccount(opts, cb) {
+    assert.object(opts, 'opts');
     assert.object(opts.state, 'opts.state');
     assert.string(opts.login, 'opts.login');
+    assert.func(cb, 'cb');
+
     var log = opts.state.log;
 
     var account;
@@ -285,6 +297,9 @@ function loadConfig(callback) {
 // --- vasync.pipeline "step" funcs (they expect and set vars on `state`)
 
 function stepSysinfo(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.sysinfo) {
         return cb();
     }
@@ -303,6 +318,9 @@ function stepSysinfo(state, cb) {
 }
 
 function stepSdcConfig(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.sdcConfig) {
         return cb();
     }
@@ -321,6 +339,9 @@ function stepSdcConfig(state, cb) {
 }
 
 function stepVmapi(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.vmapi) {
         return cb();
     }
@@ -334,6 +355,9 @@ function stepVmapi(state, cb) {
 }
 
 function stepImgapi(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.imgapi) {
         return cb();
     }
@@ -347,6 +371,9 @@ function stepImgapi(state, cb) {
 }
 
 function stepNapi(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.napi) {
         return cb();
     }
@@ -360,6 +387,9 @@ function stepNapi(state, cb) {
 }
 
 function stepPapi(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     if (state.papi) {
         return cb();
     }
@@ -373,6 +403,9 @@ function stepPapi(state, cb) {
 }
 
 function stepCloudapiPublicIp(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
     var cmd = 'vmadm lookup -1 -j alias=cloudapi0';
     if (state.runningFrom === 'remote') {
         cmd = 'ssh ' + state.headnodeSsh + ' ' + cmd;
@@ -402,6 +435,9 @@ function stepCloudapiPublicIp(state, cb) {
  * This is an lx zone with the docker clients added.
  */
 function stepClientZone(state_, cb) {
+    assert.object(state_, 'state_');
+    assert.func(cb, 'cb');
+
     if (state_.clientZone) {
         return cb();
     }
@@ -432,6 +468,9 @@ function stepClientZone(state_, cb) {
 }
 
 function _stepCreateClientZone(state_, cb) {
+    assert.object(state_, 'state_');
+    assert.func(cb, 'cb');
+
     if (state_.clientZone) {
         return cb();
     }
@@ -563,6 +602,9 @@ function _stepCreateClientZone(state_, cb) {
  * A wrapper object for running docker client stuff as a particular account.
  */
 function GzDockerEnv(t, state, opts) {
+    assert.object(t, 't');
+    assert.object(state, 'state');
+    assert.object(opts, 'opts');
     assert.string(opts.account, 'opts.account');
     assert.equal(opts.account.split('_')[0], 'sdcdockertest',
         'All test suite accounts should be prefixed with "sdcdockertest_"');
@@ -572,6 +614,10 @@ function GzDockerEnv(t, state, opts) {
 }
 
 GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
+    assert.object(t, 't');
+    assert.object(state_, 'state_');
+    assert.func(cb, 'cb');
+
     var self = this;
     self.state = state_;
 
@@ -678,6 +724,9 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
  * @param cb {Function} `function (err, stdout, stderr)`
  */
 GzDockerEnv.prototype.docker = function denvDocker(cmd, opts, cb) {
+    assert.string(cmd, 'cmd');
+    // other options asserted by this.exec()
+
     var dockerCmd = fmt(
         '(source /root/.sdc/docker/%s/env.sh; /root/bin/docker --tls %s)',
         this.login, cmd);
@@ -721,6 +770,9 @@ GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
  * should be set in a test config file.
  */
 function LocalDockerEnv(t, state, opts) {
+    assert.object(t, 't');
+    assert.object(state, 'state');
+    assert.object(opts, 'opts');
     assert.string(opts.account, 'opts.account');
     assert.equal(opts.account.split('_')[0], 'sdcdockertest',
         'All test suite accounts should be prefixed with "sdcdockertest_"');
@@ -730,6 +782,10 @@ function LocalDockerEnv(t, state, opts) {
 }
 
 LocalDockerEnv.prototype.init = function ldenvInit(t, state_, cb) {
+    assert.object(t, 't');
+    assert.object(state_, 'state_');
+    assert.func(cb, 'cb');
+
     var self = this;
     self.state = state_;
 
@@ -845,6 +901,9 @@ LocalDockerEnv.prototype.init = function ldenvInit(t, state_, cb) {
  * @param cb {Function} `function (err, stdout, stderr)`
  */
 LocalDockerEnv.prototype.docker = function ldenvDocker(cmd, opts, cb) {
+    assert.string(cmd, 'cmd');
+    // other args are asserted by this.exec()
+
     var dockerCmd = fmt(
         '(source ~/.sdc/docker/%s/env.sh; docker --tls %s)',
         this.login, cmd);
@@ -902,8 +961,17 @@ LocalDockerEnv.prototype.exec = function ldenvExec(cmd, opts, cb) {
  * of account objects.
  */
 function initDockerEnv(t, state, opts, cb) {
+    assert.object(t, 't');
+    assert.object(state, 'state');
+    assert.object(opts, 'opts');
+    assert.func(cb, 'cb');
+
     // if account does not have approved_for_provisioning set to val, set it
     function setProvisioning(env, val, next) {
+        assert.object(env, 'env');
+        assert.bool(val, 'val');
+        assert.func(next, 'next');
+
         if (env.account.approved_for_provisioning === '' + val) {
             next(null);
             return;
@@ -957,6 +1025,11 @@ function initDockerEnv(t, state, opts, cb) {
  *      - account {String} Account name to setup.
  */
 function getDockerEnv(t, state_, opts, cb) {
+    assert.object(t, 't');
+    assert.object(state_, 'state_');
+    assert.object(opts, 'opts');
+    assert.func(cb, 'cb');
+
     var env;
 
     vasync.pipeline({arg: state_, funcs: [
@@ -1043,7 +1116,6 @@ function getDockerEnv(t, state_, opts, cb) {
  */
 function createDockerRemoteClient(options, callback) {
     assert.object(options, 'options');
-
     assert.func(callback, 'callback');
 
     var clientType = options.clientType;
@@ -1083,6 +1155,8 @@ function createDockerRemoteClient(options, callback) {
  * Get a simple restify JSON client to FWAPI.
  */
 function createFwapiClient(callback) {
+    assert.func(callback, 'callback');
+
     createClientOpts('fwapi', function (err, opts) {
         if (err) {
             return callback(err);
@@ -1097,6 +1171,8 @@ function createFwapiClient(callback) {
  * Get a simple restify JSON client to SAPI.
  */
 function createSapiClient(callback) {
+    assert.func(callback, 'callback');
+
     createClientOpts('sapi', function (err, opts) {
         if (err) {
             return callback(err);
@@ -1110,9 +1186,28 @@ function createSapiClient(callback) {
 
 
 /**
+ * Get a simple restify JSON client to PAPI.
+ */
+function createPapiClient(callback) {
+    assert.func(callback, 'callback');
+
+    createClientOpts('papi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.PAPI(opts));
+        return;
+    });
+}
+
+
+/**
  * Get a simple restify JSON client to VMAPI.
  */
 function createVmapiClient(callback) {
+    assert.func(callback, 'callback');
+
     createClientOpts('vmapi', function (err, opts) {
         if (err) {
             return callback(err);
@@ -1124,10 +1219,13 @@ function createVmapiClient(callback) {
 }
 
 
+
 /**
  * Test the given Docker 'info' API response.
  */
 function assertInfo(t, info) {
+    assert.object(t, 't');
+
     t.equal(typeof (info), 'object', 'info is an object');
     t.equal(info.Driver, 'sdc', 'Driver is "sdc"');
 //     t.equal(info.NGoroutines, 42, 'Totally have 42 goroutines');
@@ -1188,8 +1286,10 @@ function buildDockerContainer(opts, callback) {
     function onpost(connectErr, req) {
         var buildResult = {};
 
-        if (connectErr)
+        if (connectErr) {
+            log.error({err: connectErr}, 'error connecting for POST /build');
             return callback(connectErr, buildResult);
+        }
 
         req.on('result', function onResponse(err, res) {
             buildResult.body = '';
@@ -1200,6 +1300,9 @@ function buildDockerContainer(opts, callback) {
 
             res.on('end', function onEnd() {
                 removeDockerTarStreamListeners();
+                if (err) {
+                    log.error({err: err}, 'error at end of result');
+                }
                 return callback(err, buildResult);
             });
         });
@@ -1231,6 +1334,9 @@ function buildDockerContainer(opts, callback) {
  * Create a nginx VM fixture
  */
 function createDockerContainer(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.func(callback, 'callback');
+
     var payload = {
         'Hostname': '',
         'Domainname': '',
@@ -1386,6 +1492,9 @@ function createDockerContainer(opts, callback) {
 
 
 function listContainers(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.func(callback, 'callback');
+
     var dockerClient = opts.dockerClient;
     var t = opts.test;
     var containers;
@@ -1529,6 +1638,7 @@ module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
     createSapiClient: createSapiClient,
     createFwapiClient: createFwapiClient,
+    createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     initDockerEnv: initDockerEnv,
