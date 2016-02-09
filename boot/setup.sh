@@ -14,7 +14,7 @@ export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}
 set -o xtrace
 set -o errexit
 
-DEFAULT_HOSTNAME="*.sdc-docker"
+DEFAULT_HOSTNAME="*.triton"
 PATH=/opt/local/bin:/opt/local/sbin:/usr/bin:/usr/sbin
 role=docker
 
