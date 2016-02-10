@@ -97,18 +97,31 @@ if [[ -n "$opt_test_pattern" ]]; then
 fi
 
 set +o errexit
-
-for file in $test_files; do
-    test_file=$(basename $file)
-    echo "# $test_file"
-    PATH=$NODE_INSTALL/bin:$PATH $TAPE $file \
-        | tee $OUTPUT_DIR/$test_file.tap
-    if [[ "$?" != "0" ]]; then
-        echo $file >> $OUTPUT_DIR/failing-tests.txt
-        [[ -n "$opt_stop_on_failure" ]] && break
+for test_file in $test_files; do
+    test_base=$(basename $test_file)
+    if [[ ${test_base:0:4} == "cli-" ]]; then
+        for docker_cli_version in $DOCKER_CLI_VERSIONS; do
+            echo "# $test_base (DOCKER_CLI_VERSION=$docker_cli_version)"
+            DOCKER_CLI_VERSION=$docker_cli_version \
+                PATH=$NODE_INSTALL/bin:$PATH \
+                $TAPE $test_file \
+                | tee $OUTPUT_DIR/$test_base-$docker_cli_version.tap
+            if [[ "$?" != "0" ]]; then
+                echo "$test_file (DOCKER_CLI_VERSION=$docker_cli_version)" \
+                    >> $OUTPUT_DIR/failing-tests.txt
+                [[ -n "$opt_stop_on_failure" ]] && break
+            fi
+        done
+    else
+        echo "# $test_base"
+        PATH=$NODE_INSTALL/bin:$PATH $TAPE $test_file \
+            | tee $OUTPUT_DIR/$test_base.tap
+        if [[ "$?" != "0" ]]; then
+            echo $test_file >> $OUTPUT_DIR/failing-tests.txt
+            [[ -n "$opt_stop_on_failure" ]] && break
+        fi
     fi
 done
-
 set -o errexit
 
 echo ""

@@ -44,6 +44,17 @@ export VMAPI_URL="http://$(vmadm lookup -j alias=vmapi0 | json 0.nics \
 export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
 
+# Docker CLI versions for testing:
+# 1. 'DOCKER_AVAILABLE_CLI_VERSIONS' is the set of 'docker' CLI versions we
+#    install in the "sdcdockertest_client" zone from which we run 'docker'.
+#    This is the set of possible values for DOCKER_CLI_VERSIONS.
+# 2. 'DOCKER_CLI_VERSIONS' defines the 'docker' CLI versions against which we
+#    run the "test/integration/cli-*.test.js" files. This is overridable, e.g.:
+#       DOCKER_CLI_VERSIONS=1.6.2 .../runtests
+export DOCKER_AVAILABLE_CLI_VERSIONS="1.10.0 1.9.1 1.8.3 1.7.1 1.6.2"
+if [[ -z "$DOCKER_CLI_VERSIONS" ]]; then
+    export DOCKER_CLI_VERSIONS="1.10.0 1.9.1 1.8.3 1.7.1 1.6.2"
+fi
 
 # Guard
 guard_file=/lib/sdc/.sdc-test-no-production-data
@@ -106,6 +117,8 @@ fi
 echo "# Test config:"
 echo "#  DOCKER_UUID=${DOCKER_UUID}"
 echo "#  DOCKER_URL=${DOCKER_URL}"
+echo "#  DOCKER_AVAILABLE_CLI_VERSIONS=${DOCKER_AVAILABLE_CLI_VERSIONS}"
+echo "#  DOCKER_CLI_VERSIONS=${DOCKER_CLI_VERSIONS}"
 echo "#  FWAPI_URL=${FWAPI_URL}"
 echo "#  PAPI_URL=${PAPI_URL}"
 echo "#  VMAPI_URL=${VMAPI_URL}"

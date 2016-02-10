@@ -233,7 +233,17 @@ on test names in this example -- and (b) with trace-level logging:
 Some integration tests (those that don't depend on running in the GZ) can be
 run from your Mac dev tree, e.g.:
 
-    ./test/runtest ./test/integration/info.test.js
+    ./test/runtest ./test/integration/cli-info.test.js
+
+
+All "cli" integration tests ("test/integration/cli-\*.test.js") are run
+repeatedly -- onces for each supported Docker CLI version. If you want to
+run with just a particular version, you can set the `DOCKER_CLI_VERSIONS`
+(plural) environment variable, e.g:
+
+    DOCKER_CLI_VERSIONS=1.10.0 /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-info
+
+
 
 # Testing locally
 

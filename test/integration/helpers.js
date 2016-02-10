@@ -40,14 +40,13 @@ var CONFIG = {
 var p = console.error;
 var UA = 'sdcdockertest';
 
-var dockerVersion = constants.SERVER_VERSION;
-
 var CLIENT_ZONE_PAYLOAD = {
     'alias': 'sdcdockertest_client',
-
     'owner_uuid': '$admin',
-    // lx-ubuntu-14.04  20150320
-    'image_uuid': '818cc79e-ceb3-11e4-99ee-7bc8c674e754',
+
+    // (LX) ubuntu-14.04@20160201
+    'image_uuid': '5917ca96-c888-11e5-8da0-e785a1ad1185',
+
     // $(sdc-napi /networks | json -H -c "this.name=='external'" 0.uuid)
     'networks': [],
     'tags': {
@@ -63,7 +62,8 @@ var CLIENT_ZONE_PAYLOAD = {
         'user-script': [
             '#!/bin/bash',
             '',
-            'DOCKER_VERSION="' + dockerVersion + '"',
+            'DOCKER_AVAILABLE_CLI_VERSIONS="' + process.env.DOCKER_AVAILABLE_CLI_VERSIONS + '"',
+            '',
             'if [[ ! -d /root/bin ]]; then',
             '    mkdir -p /root/bin',
             '    echo \'export PATH=/root/bin:$PATH\' >>/root/.profile',
@@ -75,12 +75,13 @@ var CLIENT_ZONE_PAYLOAD = {
             '    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh',
             '    chmod +x sdc-docker-setup.sh',
             'fi',
-            'if [[ ! -x docker-${DOCKER_VERSION} ]]; then',
-            '    curl -sSO https://get.docker.com/builds/Linux/x86_64/docker-${DOCKER_VERSION}',
-            '    chmod +x docker-${DOCKER_VERSION}',
-            'fi',
-            'rm -f docker',
-            'ln -s docker-${DOCKER_VERSION} docker',
+            '',
+            'for docker_cli_version in ${DOCKER_AVAILABLE_CLI_VERSIONS}; do',
+            '    if [[ ! -x docker-${docker_cli_version} ]]; then',
+            '        curl -sSO https://get.docker.com/builds/Linux/x86_64/docker-${docker_cli_version}',
+            '        chmod +x docker-${docker_cli_version}',
+            '    fi',
+            'done',
             '',
             'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
         ].join('\n')
@@ -725,11 +726,14 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
  */
 GzDockerEnv.prototype.docker = function denvDocker(cmd, opts, cb) {
     assert.string(cmd, 'cmd');
+    assert.ok(process.env.DOCKER_CLI_VERSION,
+        '$DOCKER_CLI_VERSION is not set, do not know which "docker-$ver" '
+        + 'to execute');
     // other options asserted by this.exec()
 
     var dockerCmd = fmt(
-        '(source /root/.sdc/docker/%s/env.sh; /root/bin/docker --tls %s)',
-        this.login, cmd);
+        '(source /root/.sdc/docker/%s/env.sh; /root/bin/docker-%s --tls %s)',
+        this.login, process.env.DOCKER_CLI_VERSION, cmd);
     this.exec(dockerCmd, opts, cb);
 };
 
