@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2014, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -89,6 +89,40 @@ test('boolFromQueryParam', function (t) {
     t.equal(boolFromQueryParam('nope'), true);
     t.equal(boolFromQueryParam('nein'), true);
     t.equal(boolFromQueryParam('nyet'), true);
+
+    t.end();
+});
+
+
+test('apiVersionCmp', function (t) {
+    var apiVersionCmp = common.apiVersionCmp;
+
+    t.equal(apiVersionCmp('1.22', 1.22), 0, '"1.22" == 1.22');
+    t.equal(apiVersionCmp(1.21, 1.22), -1, '1.21 < 1.22');
+    t.equal(apiVersionCmp('1.23', '1.22'), 1, '"1.23" > "1.22"');
+    t.equal(apiVersionCmp('2.0', '1.0'), 1, '"2.0" > "1.0"');
+    t.equal(apiVersionCmp(1.0, 2.0), -1, '"1.0" < "2.0"');
+    t.equal(apiVersionCmp(1, 2), -1, '1 < 2');
+    t.equal(apiVersionCmp(2, '2.0'), 0, '2 == "2.0"');
+    t.equal(apiVersionCmp(2, '1.0'), 1, '2 > "1.0"');
+    t.throws(function () {
+        apiVersionCmp(-42, 42);
+    }, /a must match/, 'negative numbers throw');
+    t.throws(function () {
+        apiVersionCmp(undefined, 1.22);
+    }, /a \(string\) is required/, 'undefined throws');
+    t.throws(function () {
+        apiVersionCmp(null, 1.22);
+    }, /a \(string\) is required/, 'null throws');
+    t.throws(function () {
+        apiVersionCmp({hello: 'world'}, 1.22);
+    }, /a \(string\) is required/, 'object throws');
+    t.throws(function () {
+        apiVersionCmp({}, 1.22);
+    }, /a \(string\) is required/, 'empty object throws');
+    t.throws(function () {
+        apiVersionCmp([], 1.22);
+    }, /a \(string\) is required/, 'empty array throws');
 
     t.end();
 });
