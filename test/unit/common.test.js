@@ -99,6 +99,7 @@ test('apiVersionCmp', function (t) {
 
     t.equal(apiVersionCmp('1.22', 1.22), 0, '"1.22" == 1.22');
     t.equal(apiVersionCmp(1.21, 1.22), -1, '1.21 < 1.22');
+    t.equal(apiVersionCmp(1.9, 1.22), -13, '"1.9" < 1.22');
     t.equal(apiVersionCmp('1.23', '1.22'), 1, '"1.23" > "1.22"');
     t.equal(apiVersionCmp('2.0', '1.0'), 1, '"2.0" > "1.0"');
     t.equal(apiVersionCmp(1.0, 2.0), -1, '"1.0" < "2.0"');
