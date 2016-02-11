@@ -14,6 +14,7 @@
 
 var h = require('./helpers');
 var cli = require('../lib/cli');
+var common = require('../../lib/common');
 var fs = require('fs');
 var libuuid = require('libuuid');
 var vm = require('../lib/vm');
@@ -26,18 +27,33 @@ var vasync = require('vasync');
 
 var IMAGE_NAME = 'busybox';
 
+var cliVersion = process.env.DOCKER_CLI_VERSION;
 var containers = {};
+var opts = {};
 var packageA;
 var packageB;
 var packageC;
 var papi;
 
 
+// --- Disable these tests if too old
+
+if (cliVersion) {
+    cliVersion = cliVersion.split('.')[0] + '.' + cliVersion.split('.')[1];
+    if (common.apiVersionCmp(cliVersion, 1.8) < 0) {
+        console.log('# disabling test, cli version is: '
+            + process.env.DOCKER_CLI_VERSION);
+        opts.skip = true;
+    } else {
+        console.log('# cli version is: ' + process.env.DOCKER_CLI_VERSION);
+    }
+}
+
 
 // --- Tests
 
 
-test('setup docker environment/cli', function (tt) {
+test('setup docker environment/cli', opts, function (tt) {
     tt.test('DockerEnv: alice init', cli.init);
 });
 
@@ -47,7 +63,7 @@ test('setup docker environment/cli', function (tt) {
  * out the packagePrefix then pick the smallest 2 packages that match that for
  * use when testing here.
  */
-test('find packages for test', function (tt) {
+test('find packages for test', opts, function (tt) {
     var configFile = __dirname + '/../../etc/config.json';
     var packagePrefix;
 
@@ -102,7 +118,7 @@ test('find packages for test', function (tt) {
  * be provisionable by our test user. Later on we'll attempt to provision with
  * it which should fail.
  */
-test('create package with bogus owner', function (tt) {
+test('create package with bogus owner', opts, function (tt) {
     papi.add({
         active: true,
         cpu_cap: 100,
@@ -125,7 +141,7 @@ test('create package with bogus owner', function (tt) {
     });
 });
 
-test('create test containers', function (tt) {
+test('create test containers', opts, function (tt) {
     var vms = [ {
         name: 'pkgA-byname',
         pkgLabel: '--label com.joyent.package=' + packageA.name,
@@ -168,7 +184,7 @@ test('create test containers', function (tt) {
     });
 });
 
-test('inspect test containers', function (tt) {
+test('inspect test containers', opts, function (tt) {
     vasync.forEachPipeline({
         inputs: Object.keys(containers),
         func: function _inspectContainer(cname, cb) {
@@ -191,7 +207,7 @@ test('inspect test containers', function (tt) {
     });
 });
 
-test('test ps filtering on package', function (tt) {
+test('test ps filtering on package', opts, function (tt) {
     var expectedResults = {};
 
     // for each key in expectedResults, we'll check that all the containers with
@@ -274,7 +290,7 @@ test('test ps filtering on package', function (tt) {
     });
 });
 
-test('test creation w/ invalid package names', function (tt) {
+test('test creation w/ invalid package names', opts, function (tt) {
     var invalidPrefix = 'Error response from daemon: invalid value for '
         + 'com.joyent.package: ';
     var labels = [];
@@ -336,7 +352,7 @@ test('test creation w/ invalid package names', function (tt) {
     });
 });
 
-test('test lookup w/ invalid package names', function (tt) {
+test('test lookup w/ invalid package names', opts, function (tt) {
     var labels = [
         '_bacon', // leading underscore invalid
         'bacon-', // trailing '-' is invalid
@@ -372,7 +388,7 @@ test('test lookup w/ invalid package names', function (tt) {
  * packageC we created with a random owner, so we shouldn't be able to provision
  * with it because that random owner is not us.
  */
-test('test creation w/ non-owned package', function (tt) {
+test('test creation w/ non-owned package', opts, function (tt) {
     var cmdline;
 
     if (!packageC || !packageC.uuid) {
@@ -397,7 +413,7 @@ test('test creation w/ non-owned package', function (tt) {
  * When a VM is created with 2 labels, the second will take precendence and a VM
  * should be created with that package.
  */
-test('test creation w/ two package labels', function (tt) {
+test('test creation w/ two package labels', opts, function (tt) {
     var cmdline;
 
     cmdline = '--label com.joyent.package="' + packageA.uuid + '" '
@@ -443,7 +459,7 @@ test('test creation w/ two package labels', function (tt) {
     });
 });
 
-test('teardown', function (tt) {
+test('teardown', opts, function (tt) {
     // cleanup the package we created
     vasync.pipeline({funcs: [
         function _rmCreatedPackages(_, cb) {
