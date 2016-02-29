@@ -96,4 +96,18 @@ test('tag image', function (tt) {
             t.end();
         });
     });
+
+
+    cleanupTags(tt);
+
+
+    // Check that the original busybox image is *still* available after deleting
+    // the `altbox` tag.
+    tt.test('inspect busybox image again', function (t) {
+        cli.inspect(t, {
+            id: 'busybox:latest'
+        }, function (err, img) {
+            t.end();
+        });
+    });
 });
