@@ -23,8 +23,10 @@ var VError = require('verror').VError;
 // --- Globals
 
 
-// Error format: (Name) Message text (Req ID)
-var ERR_RE = /^(.*) \(([^)]+)\)$/;
+// Error formats:
+//   (Name) Message text (Req ID)
+//   docker: (Name) Message text (Req ID)\nSee 'docker (Command) --help'.
+var ERR_RE = /^(.*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
 
 
 // --- Exports
@@ -129,6 +131,7 @@ function expectedDeepEqual(t, opts, obj) {
  * object or a string, and `expected` is the expected message.
  */
 function expErr(t, err, expected, callback) {
+    var errorString;
     var message;
     var split;
 
@@ -160,7 +163,14 @@ function expErr(t, err, expected, callback) {
     }
 
     t.ok(matches[2], 'error req id: ' + matches[2]);
-    t.equal(matches[1], expected, 'error message matches expected pattern');
+
+    errorString = matches[1];
+    if (errorString.substr(0, 8) === 'docker: '
+        && expected.substr(0, 8) !== 'docker: ') {
+        errorString = errorString.substr(8);
+    }
+
+    t.equal(errorString, expected, 'error message matches expected pattern');
 
     done(t, callback, err);
 }
