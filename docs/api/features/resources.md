@@ -9,8 +9,8 @@ associated "package". The package will be used to determine such things as:
  * I/O priority
 
 appropriate for the system your container is provisioned to. The package
-parameters can be found using the node-smartdc tools and specifically the
-'sdc-listpackages' tool.
+parameters can be found using the `triton package list` command using
+the [node-triton tool](https://github.com/joyent/node-triton).
 
 When creating a container with `docker create` or `docker run` you can specify
 the package using the special label `com.joyent.package`. This label can be used
