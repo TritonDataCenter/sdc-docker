@@ -17,24 +17,24 @@ SDC zone built from this repo.
 
 # User Guide
 
-For users of the beta service in Joyent's public cloud, or those using
-an SDC Docker stand up, but not administering it, please see the
-[User Guide](./docs/api/).  The rest of this README is targetted at
+For users of the Triton service in Joyent's public cloud, or those using
+a private SDC Docker stand-up, but not administering it, please see the
+[User Guide](./docs/api/README.md).  The rest of this README is targeted at
 *development* of sdc-docker.
 
 
 # Docker Version
 
-Offical supported version: 1.21 (equivalent to docker client version 1.9)
+Offically supported version: 1.22 (equivalent to docker client version 1.10)
 
-Supported version range: 1.18 - 1.21 (docker client version 1.6 to 1.9,
-docker compose version 1.3 to 1.5)
+Supported version range: 1.18 to 1.22 (docker client version 1.6 to 1.10,
+docker compose version 1.5 to 1.6)
 
 When a client makes a remote API call to sdc-docker and it does not specify a
-version, then sdc-docker will default to the official supported version.
+version, then sdc-docker will default to the officially supported version.
 
-Newer clients may continue to work, but until we've officially tested and
-marked a newer version as officially supported, then it's best to use an older
+Newer clients may continue to work, but until we've tested and marked
+a newer version as officially supported, then it's best to use an older
 and officially supported version.
 
 Devs: When updating the sdc-docker server official version, you'll need to
@@ -49,9 +49,9 @@ be sure to update the following:
 
 Many commands are currently at least partially implemented. See
 [docs/divergence.md](./docs/api/divergence.md) for details on where sdc-docker
-diverges from Docker Inc's docker.  While Joyent has deployed this into early
-access, this software is still under active development and should be used in
-production with care.
+diverges from Docker Inc's docker.  This software is under active development
+to provide parity to the newer Docker features that are relevant to SDC, as
+well as to integrate with other new Triton features .
 
 
 # Installation
@@ -193,6 +193,24 @@ to use them:
        $(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.uuid) \
        metadata.PACKAGE_PREFIX="sample-"
 
+
+# Configurations
+
+The SDC Docker service can be configured with the following Service API
+(SAPI) metadata values.
+
+| Key                            | Type    | Default | Description                                                                  |
+| ------------------------------ | ------- | ------- | ----------- |
+| **USE_TLS**                    | Boolean | false   | Turn on TLS authentication. |
+| **DEFAULT_MEMORY**       | Number | 1024 | The default ram/memory to use for docker containers. |
+| **PACKAGE_PREFIX** | String | 'sample-'    | The prefix for packages to use for docker container package selection. |
+| **USE_FABRICS**          | Boolean | false   | Provision container internal nic on default fabric network. |
+| **ENABLED_LOG_DRIVERS**  | String  | 'json-file,none' | Comma-delimited list of log drivers allowed (see [Log Drivers](./docs/api/features/logdrivers.md)) |
+
+Here is an example of modifying the service configurations with SAPI,
+
+    docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
+    sdc-sapi /services/$docker_svc -X PUT -d '{ "metadata": { "USE_TLS": true } }'
 
 
 # Development hooks
