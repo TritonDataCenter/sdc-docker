@@ -12,6 +12,7 @@
  * Integration tests for `docker copy`
  */
 
+var semver = require('semver');
 var sprintf = require('sprintf').sprintf;
 var test = require('tape');
 var path = require('path');
@@ -141,6 +142,13 @@ test('test initialization', function (tt) {
 
 
 test('copy out of container file placement', function (tt) {
+    var cliVer = process.env.DOCKER_CLI_VERSION;
+    if (cliVer && semver.lt(cliVer, '1.8.0')) {
+        tt.skip('Docker copy out not supported in client ' + cliVer);
+        tt.end();
+        return;
+    }
+
     tt.plan(16);
 
     var directoryName = 'local-dir-' + process.pid;
@@ -245,6 +253,13 @@ test('copy out of container file placement', function (tt) {
 
 
 test('copy a file out of running container', function (tt) {
+    var cliVer = process.env.DOCKER_CLI_VERSION;
+    if (cliVer && semver.lt(cliVer, '1.8.0')) {
+        tt.skip('Docker copy out not supported in client ' + cliVer);
+        tt.end();
+        return;
+    }
+
     tt.plan(7);
     var fnbase = '/var/tmp';
     var fn = 'copyout.test';
@@ -279,6 +294,13 @@ test('copy a file out of running container', function (tt) {
 
 
 test('copy a file out of stopped container', function (tt) {
+    var cliVer = process.env.DOCKER_CLI_VERSION;
+    if (cliVer && semver.lt(cliVer, '1.8.0')) {
+        tt.skip('Docker copy out not supported in client ' + cliVer);
+        tt.end();
+        return;
+    }
+
     tt.plan(9);
 
     var fnbase = '/var/tmp';
