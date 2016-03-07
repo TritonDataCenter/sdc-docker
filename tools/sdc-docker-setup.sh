@@ -395,9 +395,17 @@ while true; do
 
     cloudApiUrlStatus=$(pingCloudAPIUrl "$cloudapiUrl")
     if [[ "$cloudApiUrlStatus" == "maintenance" ]]; then
-        printf "\"$cloudapiUrl\" is currently in maintenance, please try another SDC CloudAPI URL\n"
+        if [[ $promptedUser == "true" ]]; then
+            printf "\"$cloudapiUrl\" is currently in maintenance, please try another SDC CloudAPI URL\n"
+        else
+            fatal "\"$cloudapiUrl\" is currently in maintenance"
+        fi
     elif [[ "$cloudApiUrlStatus" == "unavailable" ]]; then
-        printf "Cannot ping \"$cloudapiUrl\", are you sure it is a valid SDC CloudAPI URL?\n"
+        if [[ $promptedUser == "true" ]]; then
+            printf "Cannot ping \"$cloudapiUrl\", are you sure it is a valid SDC CloudAPI URL?\n"
+        else
+            fatal "Cannot ping \"$cloudapiUrl\", are you sure it is a valid SDC CloudAPI URL?"
+        fi
     elif [[ "$cloudApiUrlStatus" == "available" ]]; then
         break
     else
