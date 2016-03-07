@@ -12,25 +12,21 @@
  * Integration tests for docker labels.
  */
 
-var cli = require('../lib/cli');
-var vm = require('../lib/vm');
 var test = require('tape');
 var vasync = require('vasync');
 
+var cli = require('../lib/cli');
+var vm = require('../lib/vm');
 
 
 // --- Globals
-
 
 var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_labels_';
 var IMAGE_NAME = 'joyent/busybox_with_label_test';
 
-// --- Helpers
-
 
 // --- Tests
-
 
 test('setup', function (tt) {
 
@@ -119,6 +115,10 @@ test('labels on container', function (tt) {
 });
 
 
+/**
+ * Test adding a label with the same name as one on the image, 'todd', and
+ * ensure the one added on the container "wins".
+ */
 test('labels conflict', function (tt) {
 
     var containerId;

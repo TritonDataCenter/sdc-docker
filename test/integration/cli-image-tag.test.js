@@ -9,7 +9,7 @@
  */
 
 /*
- * Integration tests for docker labels.
+ * Integration tests for docker image tags.
  */
 
 var cli = require('../lib/cli');
