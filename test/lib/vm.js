@@ -51,6 +51,104 @@ function getVm(t, opts, callback) {
 }
 
 
+/**
+ * UpdateVm (https://mo.joyent.com/docs/vmapi/master/#UpdateVm)
+ */
+function updateVm(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.id, 'opts.id');
+    assert.object(opts.payload, 'opts.payload');
+
+    VMAPI.updateVm({uuid: h.dockerIdToUuid(opts.id), payload: opts.payload},
+            function (err, obj) {
+        t.ifErr(err, 'updateVm error');
+
+        // XXX: allow opts.expectedErr
+        if (err) {
+            common.done(t, callback, err);
+            return;
+        }
+
+        common.partialExp(t, opts, obj);
+        common.expected(t, opts, obj);
+        common.done(t, callback, err, obj);
+    });
+}
+
+/**
+ * Add/update tags on a VM
+ * (https://mo.joyent.com/docs/vmapi/master/#AddMetadata)
+ */
+function addTags(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.id, 'opts.id');
+    assert.object(opts.tags, 'opts.tags');
+
+    VMAPI.addMetadata('tags', {
+        uuid: h.dockerIdToUuid(opts.id),
+        metadata: opts.tags
+    }, function (err, obj) {
+        t.ifErr(err, 'addTags error');
+        if (err) {
+            common.done(t, callback, err);
+            return;
+        }
+        common.partialExp(t, opts, obj);
+        common.expected(t, opts, obj);
+        common.done(t, callback, err, obj);
+    });
+}
+
+
+/*
+ * Wait for given tag values to be applied to a VM (from an earlier
+ * `addTags` call).
+ *
+ * Note: This is a poorman's version of
+ * `TritonApi.prototype.waitForInstanceTagChanges` from node-triton
+ * github.com/joyent/node-triton/blob/ba16f0d9/lib/tritonapi.js#L1127-L1283
+ */
+function waitForTagUpdate(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.id, 'opts.id');  // the docker container id
+    assert.object(opts.tags, 'opts.tags');
+
+    var POLL_INTERVAL = 2 * 1000;
+    var uuid = h.dockerIdToUuid(opts.id);
+
+    var poll = function () {
+        VMAPI.getVm({uuid: uuid}, function (err, obj) {
+            t.ifErr(err, 'waitForTagUpdate: poll getVm ' + uuid);
+            if (err) {
+                common.done(t, callback, err);
+                return;
+            }
+
+            // Determine in changes are not yet applied (incomplete).
+            var incomplete = false;
+            var keys = Object.keys(opts.tags);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if (obj.tags[k] !== opts.tags[k]) {
+                    incomplete = true;
+                    break;
+                }
+            }
+
+            if (!incomplete) {
+                common.done(t, callback, err);
+            } else {
+                setTimeout(poll, POLL_INTERVAL);
+            }
+        });
+    };
+
+    setImmediate(poll);
+}
+
 
 /**
  * Initialize the VMAPI client
@@ -66,6 +164,10 @@ function vmapiInit(t) {
 
 
 module.exports = {
+    init: vmapiInit,
     get: getVm,
-    init: vmapiInit
+    update: updateVm,
+
+    addTags: addTags,
+    waitForTagUpdate: waitForTagUpdate
 };

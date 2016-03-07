@@ -193,7 +193,7 @@ function ifErr(t, err, desc) {
 
 /**
  * Partial expected output - check equality of pieces of an object (specified
- * by `opts.exp`), not the whole thing.
+ * by `opts.partialExp`), not the whole thing.
  */
 function partialExp(t, opts, obj) {
     if (!opts.partialExp) {
