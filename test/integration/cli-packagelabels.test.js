@@ -26,6 +26,7 @@ var vasync = require('vasync');
 // --- Globals
 
 var IMAGE_NAME = 'busybox';
+var CONTAINER_PREFIX = 'sdcdockertest_packagelabels_';
 
 var cliVersion = process.env.DOCKER_CLI_VERSION;
 var containers = {};
@@ -143,19 +144,19 @@ test('create package with bogus owner', opts, function (tt) {
 
 test('create test containers', opts, function (tt) {
     var vms = [ {
-        name: 'pkgA-byname',
+        name: CONTAINER_PREFIX + 'pkgA_byname',
         pkgLabel: '--label com.joyent.package=' + packageA.name,
         packageName: packageA.name
     }, {
-        name: 'pkgA-byuuid',
+        name: CONTAINER_PREFIX + 'pkgA_byuuid',
         pkgLabel: '--label com.joyent.package=' + packageA.uuid,
         packageName: packageA.name
     }, {
-        name: 'pkgA-byshort',
+        name: CONTAINER_PREFIX + 'pkgA_byshort',
         pkgLabel: '--label com.joyent.package=' + packageA.uuid.substr(0, 8),
         packageName: packageA.name
     }, {
-        name: 'pkgB-byuuid',
+        name: CONTAINER_PREFIX + 'pkgB_byuuid',
         pkgLabel: '--label com.joyent.package=' + packageB.uuid,
         packageName: packageB.name
     }];
@@ -253,7 +254,7 @@ test('test ps filtering on package', opts, function (tt) {
 
                 expectedContainers = Object.keys(containers).map(function (k) {
                     // first we make an array of the *values*
-                    // container: "[pkgA-byname] [object Object]"
+                    // container: "[pkgA_byname] [object Object]"
                     return (containers[k]);
                 }).filter(function (container) {
                     // then we filter out those that don't have the package
