@@ -13,6 +13,8 @@
  */
 
 var assert = require('assert-plus');
+var format = require('util').format;
+
 var common = require('./common');
 var h = require('../integration/helpers');
 
@@ -106,18 +108,30 @@ function addTags(t, opts, callback) {
  * Wait for given tag values to be applied to a VM (from an earlier
  * `addTags` call).
  *
- * Note: This is a poorman's version of
- * `TritonApi.prototype.waitForInstanceTagChanges` from node-triton
- * github.com/joyent/node-triton/blob/ba16f0d9/lib/tritonapi.js#L1127-L1283
+ * Dev Note: Compare to `TritonApi.prototype.waitForInstanceTagChanges`
+ * from node-triton.
+ *
+ * @param {Object} t: Required. The test object.
+ * @param {Object} opts
+ *      - {String} opts.id: Required. The container ID.
+ *      - {Object} opts.tags: Required. The tags on which to wait.
+ *      - {String} opts.timeout: Optional. The container ID
+ *      - {Number} timeout: Optional. A number of milliseconds after which to
+ *        timeout the wait. By default this is Infinity.
+ * @param {Function} callback
  */
 function waitForTagUpdate(t, opts, callback) {
     assert.object(t, 't');
     assert.object(opts, 'opts');
     assert.string(opts.id, 'opts.id');  // the docker container id
     assert.object(opts.tags, 'opts.tags');
+    assert.optionalNumber(opts.timeout, 'opts.timeout');
+    var timeout = opts.hasOwnProperty('timeout') ? opts.timeout : Infinity;
+    assert.ok(timeout > 0, 'opts.timeout must be greater than zero');
 
     var POLL_INTERVAL = 2 * 1000;
     var uuid = h.dockerIdToUuid(opts.id);
+    var startTime = Date.now();
 
     var poll = function () {
         VMAPI.getVm({uuid: uuid}, function (err, obj) {
@@ -139,9 +153,18 @@ function waitForTagUpdate(t, opts, callback) {
             }
 
             if (!incomplete) {
-                common.done(t, callback, err);
+                common.done(t, callback, null);
             } else {
-                setTimeout(poll, POLL_INTERVAL);
+                var elapsedTime = Date.now() - startTime;
+                if (elapsedTime > timeout) {
+                    var timeoutErr = new Error(format('timeout waiting '
+                        + 'for tag changes on container %s (elapsed %ds)',
+                        opts.id, Math.round(elapsedTime / 1000)));
+                    t.ifErr(timeoutErr);
+                    common.done(t, callback, timeoutErr);
+                } else {
+                    setTimeout(poll, POLL_INTERVAL);
+                }
             }
         });
     };

@@ -106,7 +106,8 @@ test('triton.* tags/labels', function (tt) {
             tags: {
                 'triton.cns.disable': false,
                 'triton.cns.services': 'foo,bar'
-            }
+            },
+            timeout: 30 * 1000 // give it max 30s to update
         });
     });
 
@@ -134,23 +135,71 @@ test('triton.* tags/labels', function (tt) {
     tt.test('  invalid triton tag: triton.cns.disable=nonbool', function (t) {
         var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
         var args = format(
-            '--label triton.cns.disable=nonbool -d --name %s alpine sleep 3600',
+            '--label triton.cns.disable=nonbool -d --name %s alpine hostname',
             name);
         cli.run(t, {
             args: args,
             /* JSSTYLED */
-            expectedErr: 'Error response from daemon: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool"'
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool"'
         });
     });
 
     tt.test('  invalid triton tag: triton.bogus=foo', function (t) {
         var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
         var args = format(
-            '--label triton.bogus=foo -d --name %s alpine sleep 3600', name);
+            '--label triton.bogus=foo -d --name %s alpine hostname', name);
         cli.run(t, {
             args: args,
             /* JSSTYLED */
-            expectedErr: 'Error response from daemon: Unrecognized special triton tag "triton.bogus"'
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Unrecognized special triton tag "triton.bogus"'
+        });
+    });
+
+    tt.test('  invalid triton tag: triton._test.boolean=nonbool', function (t) {
+        var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        var args = format(
+            '--label triton._test.boolean=nonbool -d --name %s alpine hostname',
+            name);
+        cli.run(t, {
+            args: args,
+            /* JSSTYLED */
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Triton tag "triton._test.boolean" value must be "true" or "false": "nonbool"'
+        });
+    });
+
+    tt.test('  invalid triton tag: triton._test.number=nonnum', function (t) {
+        var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        var args = format(
+            '--label triton._test.number=nonnum -d --name %s alpine hostname',
+            name);
+        cli.run(t, {
+            args: args,
+            /* JSSTYLED */
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Triton tag "triton._test.number" value must be a number: "nonnum"'
+        });
+    });
+
+    tt.test('  invalid triton tag: triton._test.boolean=<empty>', function (t) {
+        var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        var args = format(
+            '--label triton._test.boolean= -d --name %s alpine hostname',
+            name);
+        cli.run(t, {
+            args: args,
+            /* JSSTYLED */
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Triton tag "triton._test.boolean" value must be "true" or "false": ""'
+        });
+    });
+
+    tt.test('  invalid triton tag: triton._test.number=<empty>', function (t) {
+        var name = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        var args = format(
+            '--label triton._test.number= -d --name %s alpine hostname',
+            name);
+        cli.run(t, {
+            args: args,
+            /* JSSTYLED */
+            expectedErr: 'Error response from daemon: (Validation) invalid label: Triton tag "triton._test.number" value must be a number: ""'
         });
     });
 });

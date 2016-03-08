@@ -133,7 +133,6 @@ function expectedDeepEqual(t, opts, obj) {
 function expErr(t, err, expected, callback) {
     var errorString;
     var message;
-    var split;
 
     t.ok(err, 'expected error');
 
@@ -145,14 +144,27 @@ function expErr(t, err, expected, callback) {
     message = (typeof (err) === 'object' ? err.message : err)
         .replace(/\n$/, '');
 
-    // Messages from docker on stderr (when not attached to a termnial) look
-    // like: time="2015-04-12T15:01:11-07:00" level="fatal"
-    // msg="Error response from daemon: publish port: remapping of
-    // port numbers not allowed (c37b45e1-73bf-44c5-bb3b-84200c5a8384)"
-    /* JSSTYLED */
-    split = message.split('msg="');
-    /* JSSTYLED */
-    message = split[split.length -1].replace(/"\s*$/, '');
+    /* BEGIN JSSTYLED */
+    /*
+     * Messages from Docker *version 1.6 and lower* on stderr (when not
+     * attached to a terminal) look like:
+     *      time="2016-03-08T18:28:44Z" level=fatal msg="Error response from daemon: (Validation) invalid label: Triton tag \"triton.cns.disable\" value must be \"true\" or \"false\": \"nonbool\" (96aad1b0-e55b-11e5-a48d-bd9fb8c36dea)"
+     * Starting with Docker v1.7 they look like this:
+     *      Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
+     *
+     * For testing we want to normalize on the latter, so we'll attempt to sniff
+     * and normalize the former. Note two things:
+     * 1. the separate 'time', 'level', 'msg' fields; and
+     * 2. the double-quote escaping
+     *
+     * Limitation: only handling first line if possible multiline stderr.
+     */
+    var docker16StderrRe = /^time=".*?" level=.*? msg="(.*?)"\s*$/m;
+    var docker16Match = docker16StderrRe.exec(message);
+    if (docker16Match) {
+        message = docker16Match[1].replace(/\\"/g, '"');
+    }
+    /* END JSSTYLED */
 
     var matches = message.match(ERR_RE);
     if (!matches || !matches[1] || !matches[2]) {
