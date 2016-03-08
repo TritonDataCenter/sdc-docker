@@ -115,9 +115,8 @@ function addTags(t, opts, callback) {
  * @param {Object} opts
  *      - {String} opts.id: Required. The container ID.
  *      - {Object} opts.tags: Required. The tags on which to wait.
- *      - {String} opts.timeout: Optional. The container ID
- *      - {Number} timeout: Optional. A number of milliseconds after which to
- *        timeout the wait. By default this is Infinity.
+ *      - {Number} opts.timeout: Optional. A number of milliseconds after
+ *        which to timeout the wait. By default this is Infinity.
  * @param {Function} callback
  */
 function waitForTagUpdate(t, opts, callback) {
