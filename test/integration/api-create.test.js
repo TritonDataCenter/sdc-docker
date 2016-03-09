@@ -5,22 +5,21 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright 2016, Joyent, Inc.
  */
 
 /*
  * Integration tests for `docker create` using the Remote API directly.
  */
 
-var p = console.log;
-
-var fmt  = require('util').format;
 var exec = require('child_process').exec;
+var format = require('util').format;
 var test = require('tape');
 var util = require('util');
 var vasync = require('vasync');
 
 var configLoader = require('../../lib/config-loader.js');
+var constants = require('../../lib/constants');
 
 var h = require('./helpers');
 
@@ -91,21 +90,90 @@ test('setup', function (tt) {
         });
     });
 
+    tt.test('pull nginx image', function (t) {
+        var url = '/images/create?fromImage=nginx%3Alatest';
+        DOCKER_ALICE.post(url, function (err, req, res) {
+            t.error(err, 'should be no error posting image create request');
+            t.end();
+        });
+    });
+
+});
+
+
+test('api: create with non-string label values (DOCKER-737)', function (t) {
+    var payload = {
+        // Boilerplate
+        'Hostname': '',
+        'Domainname': '',
+        'User': '',
+        'Memory': 0,
+        'MemorySwap': 0,
+        'CpuShares': 0,
+        'Cpuset': '',
+        'AttachStdin': false,
+        'AttachStdout': false,
+        'AttachStderr': false,
+        'PortSpecs': null,
+        'ExposedPorts': {},
+        'Tty': false,
+        'OpenStdin': false,
+        'StdinOnce': false,
+        'Env': [],
+        'Cmd': null,
+        'Image': 'nginx',
+        'Volumes': {},
+        'WorkingDir': '',
+        'Entrypoint': null,
+        'NetworkDisabled': false,
+        'OnBuild': null,
+        'SecurityOpt': null,
+        'HostConfig': {
+            'Binds': null,
+            'ContainerIDFile': '',
+            'LxcConf': [],
+            'Privileged': false,
+            'PortBindings': {},
+            'Links': null,
+            'PublishAllPorts': false,
+            'Dns': null,
+            'DnsSearch': null,
+            'ExtraHosts': null,
+            'VolumesFrom': null,
+            'Devices': [],
+            'NetworkMode': 'bridge',
+            'CapAdd': null,
+            'CapDrop': null,
+            'RestartPolicy': {
+                'Name': '',
+                'MaximumRetryCount': 0
+            }
+        },
+
+        // The interesting data we are actually testing in this test case:
+        Labels: {
+            foo: true,
+            anum: 3.14
+        }
+    };
+    var apiVersion = 'v' + constants.API_VERSION;
+    DOCKER_ALICE.post(
+        '/' + apiVersion + '/containers/create',
+        payload,
+        function (err, req, res) {
+            t.ok(err, 'expect err from container create');
+            /* JSSTYLED */
+            var errRe = /^\(Validation\) invalid labels: label "foo" value is not a string: true; label "anum" value is not a string: 3.14/;
+            t.ok(errRe.exec(err.message), format('err.message matches %s: %j',
+                errRe, err.message));
+            t.end();
+        });
 });
 
 
 test('api: create', function (tt) {
 
     var created;
-
-    tt.test('pull nginx image', function (t) {
-        var url = '/images/create?fromImage=nginx%3Alatest';
-        DOCKER_ALICE.post(url, function (err, req, res) {
-            t.error(err, 'should be no error posting image create request');
-
-            t.end();
-        });
-    });
 
     tt.test('docker create', function (t) {
         h.createDockerContainer({
