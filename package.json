@@ -24,6 +24,7 @@
     "sprintf": "0.1.5",
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
+    "triton-tags": "1.0.0",
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#c7aa563",
     "vasync": "1.6.3",
     "verror": "1.6.0",
