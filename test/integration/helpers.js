@@ -1510,14 +1510,20 @@ function listContainers(opts, callback) {
                 '/containers/json'
                 + (opts.all ? '?all=1' : ''), onget);
             function onget(err, res, req, body) {
-                t.error(err);
+                if (t) {
+                    t.error(err);
+                }
+
                 containers = body;
                 next(err);
             }
         }
     ],
     function (err) {
-        t.error(err);
+        if (t) {
+            t.error(err);
+        }
+
         callback(err, containers);
     });
 }

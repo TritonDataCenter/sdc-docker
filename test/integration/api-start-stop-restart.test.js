@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -17,8 +17,6 @@ var util = require('util');
 var vasync = require('vasync');
 
 var h = require('./helpers');
-
-
 
 // --- Globals
 
@@ -67,7 +65,7 @@ test('setup', function (tt) {
 });
 
 
-test('api: stop', function (tt) {
+test('api: restart', function (tt) {
 
     var id;
 
@@ -123,42 +121,8 @@ test('api: stop', function (tt) {
     });
 
 
-    tt.test('stop container with invalid non-numeric timeout', function (t) {
+    tt.test('stop container', function (t) {
         // Attempt to stop new container
-        DOCKER.post('/containers/' + id + '/stop?t=foo', onpost);
-        function onpost(err, res, req, body) {
-            var expectedResponseStatusCode = 422;
-            var expectedErrorMessage = '(Validation) Invalid parameters: '
-                + 'Invalid parameter "t": "foo" does not represent a number';
-
-            t.ok(err, 'Response should be an error');
-            t.equal(err.statusCode, expectedResponseStatusCode,
-                'Response status code should be ' + expectedResponseStatusCode);
-            t.equal(err.message.indexOf(expectedErrorMessage), 0,
-                'Error message should be: ' + expectedErrorMessage);
-            t.end();
-        }
-    });
-
-    tt.test('stop container with invalid empty string timeout', function (t) {
-        // Attempt to stop new container
-        DOCKER.post('/containers/' + id + '/stop?t=', onpost);
-        function onpost(err, res, req, body) {
-            var expectedResponseStatusCode = 422;
-            var expectedErrorMessage = '(Validation) Invalid parameters: '
-                + 'Invalid parameter "t": "" does not represent a number';
-
-            t.ok(err, 'Response should be an error');
-            t.equal(err.statusCode, expectedResponseStatusCode,
-                'Response status code should be ' + expectedResponseStatusCode);
-            t.equal(err.message.indexOf(expectedErrorMessage), 0,
-                'Error message should be: ' + expectedErrorMessage);
-            t.end();
-        }
-    });
-
-
-    tt.test('stop container with no timeout', function (t) {
         DOCKER.post('/containers/' + id + '/stop', onpost);
         function onpost(err, res, req, body) {
             t.error(err);
@@ -191,16 +155,29 @@ test('api: stop', function (tt) {
         });
     });
 
+    tt.test('restart container with invalid non-numeric timeout', function (t) {
+        DOCKER.post('/containers/' + id + '/restart?t=foo', onpost);
+        function onpost(err, res, req, body) {
+            var expectedResponseStatusCode = 422;
+            var expectedErrorMessage = '(Validation) Invalid parameters: foo '
+                + 'does not represent a number';
 
-    tt.test('restart container', function (t) {
-        // Attempt to start new container
+            t.ok(err, 'Response should be an error');
+            t.equal(err.statusCode, expectedResponseStatusCode,
+                'Response status code should be ' + expectedResponseStatusCode);
+            t.equal(err.message.indexOf(expectedErrorMessage), 0,
+                'Error message should be: ' + expectedErrorMessage);
+            t.end();
+        }
+    });
+
+    tt.test('restart container with no timeout', function (t) {
         DOCKER.post('/containers/' + id + '/restart', onpost);
         function onpost(err, res, req, body) {
             t.error(err);
             t.end(err);
         }
     });
-
 
     tt.test('confirm container restarted', function (t) {
         h.listContainers({
@@ -219,7 +196,7 @@ test('api: stop', function (tt) {
             t.equal(found.length, 1, 'found our container');
 
             var matched = found[0].Status.match(/^Up /);
-            t.ok(matched, 'container has restarted');
+            t.ok(matched, 'container restarted');
             if (!matched) {
                 t.equal(found[0].Status, 'Status for debugging');
             }
@@ -228,16 +205,24 @@ test('api: stop', function (tt) {
         });
     });
 
-    tt.test('stop container with valid timeout', function (t) {
-        DOCKER.post('/containers/' + id + '/stop?t=42', onpost);
+    tt.test('stop container', function (t) {
+        // Attempt to stop new container
+        DOCKER.post('/containers/' + id + '/stop', onpost);
         function onpost(err, res, req, body) {
             t.error(err);
             t.end(err);
         }
     });
 
+    tt.test('restart container with valid timeout', function (t) {
+        DOCKER.post('/containers/' + id + '/restart?t=42', onpost);
+        function onpost(err, res, req, body) {
+            t.error(err);
+            t.end(err);
+        }
+    });
 
-    tt.test('confirm container stopped', function (t) {
+    tt.test('confirm container restarted', function (t) {
         h.listContainers({
             all: true,
             dockerClient: DOCKER,
@@ -251,14 +236,25 @@ test('api: stop', function (tt) {
                 }
             });
 
-            var matched = found[0].Status.match(/^Exited /);
-            t.ok(matched, 'container is stopped');
+            t.equal(found.length, 1, 'found our container');
+
+            var matched = found[0].Status.match(/^Up /);
+            t.ok(matched, 'container restarted');
             if (!matched) {
                 t.equal(found[0].Status, 'Status for debugging');
             }
 
             t.end();
         });
+    });
+
+    tt.test('stop container', function (t) {
+        // Attempt to stop new container
+        DOCKER.post('/containers/' + id + '/stop', onpost);
+        function onpost(err, res, req, body) {
+            t.error(err);
+            t.end(err);
+        }
     });
 
     tt.test('delete container', function (t) {
@@ -269,8 +265,5 @@ test('api: stop', function (tt) {
             t.end();
         }
     });
-
-
-
 
 });
