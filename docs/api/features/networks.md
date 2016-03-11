@@ -14,6 +14,16 @@ Any of these user-defined networks can be designated as the 'default' network
 to be used for provisioning Docker containers. When you change the 'default'
 network, it affects only the newly provisioned containers.
 
+The management of fabric networks and the option to select the network(s) to
+use for a container are supported only through CloudAPI at this time. There
+is work going on to enable the use of the `--net` option in `docker run` and
+`docker create`. The `docker network` commands will also be available soon
+in sdc-docker to better support the use of Docker Compose v2 to orchestrate
+network management. Follow [DOCKER-722](http://smartos.org/bugview/DOCKER-722),
+[DOCKER-723](http://smartos.org/bugview/DOCKER-723),
+[DOCKER-724](http://smartos.org/bugview/DOCKER-724),
+[DOCKER-725](http://smartos.org/bugview/DOCKER-725) for updates.
+
 All docker containers owned by a user have firewalls enabled by default, and
 their default policy is to block all incoming traffic and allow all outbound
 traffic. All docker VMs have a

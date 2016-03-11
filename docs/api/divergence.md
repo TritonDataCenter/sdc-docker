@@ -87,8 +87,8 @@ Here's the list of API methods currently unimplemented as of this writing, but
 expect it to get shorter by the day:
 
 `docker commit`, `docker diff`, `docker events`, `docker export`,
-`docker import`, `docker load`, `docker pause`, `docker push`, `docker save`,
-`docker tag`, `docker unpause`
+`docker import`, `docker load`, `docker network`, `docker pause`, `docker push`,
+`docker save`, `docker storage`, `docker unpause`
 
 ## Images and private registries
 
