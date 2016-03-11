@@ -308,7 +308,34 @@ test('api: create', function (tt) {
             t.end();
         }
     });
+});
 
+
+test('api: create with env var that has no value (DOCKER-741)', function (tt) {
+    tt.test('create empty-env-var container', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'Env': ['ENV_NO_VALUE'] },
+            start: true  // Will start the container after creating.
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create empty-env-var container');
+            t.equal(result.vm.state, 'running', 'Check container running');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete empty-env-var container');
+            t.end();
+        }
+    });
+});
+
+
+test('cleanup', function (tt) {
     tt.test('delete nginx image', function (t) {
         DOCKER_ALICE.del('/images/nginx', ondel);
         function ondel(err, req, res) {
@@ -316,5 +343,4 @@ test('api: create', function (tt) {
             t.end();
         }
     });
-
 });

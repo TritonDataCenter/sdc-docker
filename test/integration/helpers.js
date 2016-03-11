@@ -1456,19 +1456,20 @@ function createDockerContainer(opts, callback) {
                 next(err);
             }
         },
-        function (next) {
-            // Attempt to get new container
-            dockerClient.get(
-                '/containers/' + response.id + '/json', onget);
-            function onget(err, res, req, body) {
+        function startContainer(next) {
+            // Attempt to start the container.
+            if (!opts.start) {
+                next();
+                return;
+            }
+            dockerClient.post('/containers/' + response.id + '/start', onpost);
+            function onpost(err, res, req, body) {
                 t.error(err);
-                response.inspect = body;
-                response.uuid = sdcCommon.dockerIdToUuid(response.id);
                 next(err);
             }
         },
         function (next) {
-            // Attempt to stop the container
+            // Attempt to get container json (i.e. docker inspect).
             dockerClient.get(
                 '/containers/' + response.id + '/json', onget);
             function onget(err, res, req, body) {
