@@ -12,6 +12,8 @@
  * Integration tests for docker labels.
  */
 
+var format = require('util').format;
+var libuuid = require('libuuid');
 var test = require('tape');
 var vasync = require('vasync');
 
@@ -24,6 +26,17 @@ var vm = require('../lib/vm');
 var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_labels_';
 var IMAGE_NAME = 'joyent/busybox_with_label_test';
+
+
+
+// --- internal support functions
+
+/*
+ * Get a prefixed, randomized name for a test container.
+ */
+function getContainerName() {
+    return CONTAINER_PREFIX + libuuid.create().split('-')[0];
+}
 
 
 // --- Tests
@@ -40,10 +53,10 @@ test('labels', function (tt) {
     var containerId;
 
     tt.test('simple label', function (t) {
-        cli.run(t, { args: '-d --label foo=bar '
-                        + '--label "elem=something with a space" '
-                        + 'busybox sleep 3600' }, function (err, id)
-        {
+        var runArgs = format('-d --label foo=bar --name %s '
+            + '--label "elem=something with a space" busybox sleep 3600',
+            getContainerName());
+        cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar busybox');
             containerId = id;
             t.end();
@@ -78,9 +91,9 @@ test('labels on container', function (tt) {
     };
 
     tt.test('container label', function (t) {
-        cli.run(t, { args: '-d --label foo=bar '
-                        + IMAGE_NAME + ' sleep 3600' }, function (err, id)
-        {
+        var runArgs = format('-d --name %s --label foo=bar %s sleep 3600',
+            getContainerName(), IMAGE_NAME);
+        cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar ' + IMAGE_NAME);
             containerId = id;
             t.end();
@@ -124,9 +137,9 @@ test('labels conflict', function (tt) {
     var containerId;
 
     tt.test('conflicting label', function (t) {
-        cli.run(t, { args: '-d --label todd=notcool '
-                        + IMAGE_NAME + ' sleep 3600' }, function (err, id)
-        {
+        var runArgs = format('-d --name %s --label todd=notcool %s sleep 3600',
+            getContainerName(), IMAGE_NAME);
+        cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label todd=notcool ' + IMAGE_NAME);
             containerId = id;
             t.end();
@@ -153,9 +166,9 @@ test('labels conflict', function (tt) {
 test('labels image filtering', function (tt) {
     // Ensure the mybusybox image is available.
     tt.test('conflicting label', function (t) {
-        cli.run(t, { args: '-d ' + IMAGE_NAME + ' sleep 3600' },
-            function (err, id)
-        {
+        var runArgs = format('-d --name %s %s sleep 3600',
+            getContainerName(), IMAGE_NAME);
+        cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run ' + IMAGE_NAME);
             t.end();
         });
