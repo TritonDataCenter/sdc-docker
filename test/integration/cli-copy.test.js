@@ -142,21 +142,12 @@ test('test initialization', function (tt) {
 
 
 test('copy out of container file placement', function (tt) {
-    tt.plan(16);
-
     var directoryName = 'local-dir-' + process.pid;
-
-    // XXX do this for running and shutdown containers
     var testcases = [
         {
             src: '/etc/nginx/nginx.conf',
             dst: '.',
             result: 'nginx.conf'
-        },
-        {
-            src: '/etc/nginx/nginx.conf',
-            dst: 'file2.conf',
-            result: 'file2.conf'
         },
         {
             src: '/etc/nginx/nginx.conf',
@@ -169,22 +160,36 @@ test('copy out of container file placement', function (tt) {
             result: path.join(directoryName, 'file2.conf')
         },
         {
-            src: '/etc/nginx/',
+            src: '/etc/init.d/',
             dst: '.',
-            result: 'nginx'
+            result: 'init.d'
         },
         {
-            src: '/etc/nginx',
-            dst: 'nginx2',
-            result: 'nginx2'
+            src: '/etc/init.d',
+            dst: 'init.d2',
+            result: 'init.d2'
         },
         {
-            src: '/etc/nginx',
+            src: '/etc/init.d',
             dst: directoryName,
-            result: path.join(directoryName, 'nginx')
+            result: path.join(directoryName, 'init.d')
         }
     ];
 
+    var plan = 14;
+    var cliVer = process.env.DOCKER_CLI_VERSION;
+
+    if (cliVer && !semver.lt(cliVer, '1.8.0')) {
+        // In earlier docker versions this test does not work in the same way.
+        // It creates a "file2.conf" directory and places our file within it.
+        testcases.push({
+            src: '/etc/nginx/nginx.conf',
+            dst: 'file2.conf',
+            result: 'file2.conf'
+        });
+        plan += 2;
+    }
+    tt.plan(plan);
 
     vasync.waterfall([
         initializeFixtures,
