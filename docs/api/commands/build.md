@@ -302,6 +302,27 @@ unique to Triton.
 * the build container is reused for each build step (instead of creating a new
   container)
 
+### Docker build multiple registry divergence:
+
+In Triton SDC Docker, the built image cannot reference images between two
+different registries.
+
+For example, this build would fail as it generates an image without a tag and
+thus the generated image is assigned a default registry of *docker.io* - and you
+cannot have images referencing two registries *docker.io* and *quay.io*:
+
+```
+    $ echo -e 'FROM quay.io/user/image\nLABEL key=val' | docker build -
+    ... build fails
+```
+
+the workaround would be to tag the image with a *quay.io* registry tag:
+
+```
+    $ echo -e 'FROM quay.io/user/image\nLABEL key=val' | docker build -t quay.io/user/othername -
+    ... build successful
+```
+
 
 ## Related
 
