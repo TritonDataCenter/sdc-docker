@@ -111,3 +111,29 @@ test('tag image', function (tt) {
         });
     });
 });
+
+
+/**
+ * DOCKER-748: Cannot build an image that references multiple registries.
+ */
+test('DOCKER-748: tag between different registries', function (tt) {
+
+    var tagName = 'quay.io/joyent/' + TAG_PREFIX + 'altbox';
+
+    tt.test('pull busybox image', function (t) {
+        cli.pull(t, {
+            image: 'busybox:latest'
+        });
+    });
+
+    // Tag the image.
+    tt.test('tag busybox image', function (t) {
+        cli.docker('tag busybox ' + tagName, {}, onComplete);
+        function onComplete(err, stdout, stderr) {
+            t.assert(err);
+            t.assert(String(err).indexOf('different registries') >= 0,
+                'should be a "different registries" error message');
+            t.end();
+        }
+    });
+});

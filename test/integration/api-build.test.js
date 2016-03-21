@@ -261,3 +261,73 @@ test('api: build image conflicts', function (tt) {
     });
 
 });
+
+
+/**
+ * DOCKER-748: Cannot build an image that references multiple registries.
+ */
+test('api: build across multiple registries', function (tt) {
+
+    var imageName = 'quay.io/joyent/triton_alpine_inherit_test:latest';
+
+    // Pull the docker.io alpine image.
+    tt.test('pull quay.io alpine test image', function (t) {
+        var url = '/images/create?fromImage=' + encodeURIComponent(imageName);
+        DOCKER_ALICE.post(url, function (err, req, res, body) {
+            t.ifErr(err, 'getting quay.io alpine test image');
+            t.end();
+        });
+    });
+
+    tt.test('docker build from alpine image', function (t) {
+        var tarStream;
+
+        vasync.waterfall([
+
+            function createTar(next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM ' + imageName + '\n'
+                                + 'LABEL something=true\n'
+                };
+                tarStream = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer(next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        'rm': 'true'  // Remove container after it's built.
+                    },
+                    test: t,
+                    tarball: tarStream
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifErr(err, 'build should not error on post');
+                    var msg = result.body;
+                    t.ok(msg.indexOf('different registries') >= 0,
+                        'expected a "different registries" error message');
+                    next();
+                }
+            }
+
+        ], function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+
+    });
+
+    // Cleanup images we pulled down.
+
+    tt.test('delete quay.io alpine test image', function (t) {
+        DOCKER_ALICE.del('/images/' + encodeURIComponent(imageName),
+            function (err) {
+                t.ifErr(err);
+                t.end();
+            }
+        );
+    });
+
+});
