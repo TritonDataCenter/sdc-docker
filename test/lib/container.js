@@ -18,8 +18,7 @@ function checkContainerStatus(containerId, statusPattern, options, callback) {
 
     function performCheck() {
         ++nbChecksPerformed;
-        console.log('nbChecksPerformed: %d out of %d', nbChecksPerformed,
-            retries);
+
         helper.listContainers({
             all: true,
             dockerClient: dockerClient

@@ -159,8 +159,8 @@ test('api: restart', function (tt) {
         DOCKER.post('/containers/' + id + '/restart?t=foo', onpost);
         function onpost(err, res, req, body) {
             var expectedResponseStatusCode = 422;
-            var expectedErrorMessage = '(Validation) Invalid parameters: foo '
-                + 'does not represent a number';
+            var expectedErrorMessage = '(Validation) Invalid parameters: '
+                + 'Invalid parameter "t": "foo" does not represent a number';
 
             t.ok(err, 'Response should be an error');
             t.equal(err.statusCode, expectedResponseStatusCode,

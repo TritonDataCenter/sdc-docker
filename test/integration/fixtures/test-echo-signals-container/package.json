@@ -1,0 +1,12 @@
+{
+  "name": "test-echo-signals",
+  "version": "1.0.0",
+  "description": "A program that echoes on stdout any signal sent to it.",
+  "main": "echo-signals.js",
+  "scripts": {
+    "start": "node echo-signals.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Julien Gilli",
+  "license": "MPL-2.0"
+}

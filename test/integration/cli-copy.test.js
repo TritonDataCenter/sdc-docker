@@ -204,7 +204,7 @@ test('copy out of container file placement', function (tt) {
     function initializeFixtures(callback) {
         vasync.waterfall([
             function createDir(next) {
-                cli.exec(sprintf('mkdir -p %s', directoryName),
+                cli.execInTestZone(sprintf('mkdir -p %s', directoryName),
                 function (err, stdout, stderr) {
                     tt.ifErr(err, 'creating test directory');
                     tt.comment('created ' + directoryName);
@@ -242,7 +242,7 @@ test('copy out of container file placement', function (tt) {
             tt.ifErr(err, 'no `docker copy` error');
 
             // TODO better mechanism for checking existence of resulting file
-            cli.exec(sprintf('ls %s', result), function (execErr) {
+            cli.execInTestZone(sprintf('ls %s', result), function (execErr) {
                 tt.ifErr(execErr,
                     'checking for existence of resulting docker copy file');
                 callback();
@@ -530,7 +530,7 @@ function createCopyInFile(tt, ffn, callback) {
         + 'count=1024 bs=1024 >/dev/null && '
         + '/native/usr/bin/sum -x sha1 %s | awk "{ print $1 }"',
         ffn, ffn);
-    cli.exec(cmd, function (err, stdout, stderr) {
+    cli.execInTestZone(cmd, function (err, stdout, stderr) {
         tt.ifErr(err);
         hash = stdout.toString();
         callback(err, hash);

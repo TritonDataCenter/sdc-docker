@@ -704,7 +704,7 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
             }
 
             p('# Running "sdc-docker-setup.sh" for "%s" account', self.login);
-            self.exec(
+            self.execInTestZone(
                 fmt(
                     '/root/bin/sdc-docker-setup.sh -k %s %s '
                         + '/root/.ssh/%s.id_rsa',
@@ -734,7 +734,7 @@ GzDockerEnv.prototype.docker = function denvDocker(cmd, opts, cb) {
     var dockerCmd = fmt(
         '(source /root/.sdc/docker/%s/env.sh; /root/bin/docker-%s --tls %s)',
         this.login, process.env.DOCKER_CLI_VERSION, cmd);
-    this.exec(dockerCmd, opts, cb);
+    this.execInTestZone(dockerCmd, opts, cb);
 };
 
 /*
@@ -744,7 +744,7 @@ GzDockerEnv.prototype.docker = function denvDocker(cmd, opts, cb) {
  * @param opts {Object} Optional. Nothing yet.
  * @param cb {Function} `function (err, stdout, stderr)`
  */
-GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
+GzDockerEnv.prototype.execInTestZone = function denvExec(cmd, opts, cb) {
     assert.string(cmd, 'cmd');
     if (cb === undefined) {
         cb = opts;
@@ -911,7 +911,7 @@ LocalDockerEnv.prototype.docker = function ldenvDocker(cmd, opts, cb) {
     var dockerCmd = fmt(
         '(source ~/.sdc/docker/%s/env.sh; docker --tls %s)',
         this.login, cmd);
-    this.exec(dockerCmd, opts, cb);
+    this.execInTestZone(dockerCmd, opts, cb);
 };
 
 /*
@@ -921,7 +921,7 @@ LocalDockerEnv.prototype.docker = function ldenvDocker(cmd, opts, cb) {
  * @param opts {Object} Optional. Nothing yet.
  * @param cb {Function} `function (err, stdout, stderr)`
  */
-LocalDockerEnv.prototype.exec = function ldenvExec(cmd, opts, cb) {
+LocalDockerEnv.prototype.execInTestZone = function ldenvExec(cmd, opts, cb) {
     assert.string(cmd, 'cmd');
     if (cb === undefined) {
         cb = opts;

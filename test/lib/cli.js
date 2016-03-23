@@ -39,16 +39,25 @@ var state = {
 /**
  * Initialize the alice DockerEnv
  */
-function cliInit(t) {
-    h.getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
+function cliInit(t, aliceEnv) {
+    assert.optionalObject(aliceEnv, 'aliceEnv');
+
+    if (!aliceEnv) {
+        h.getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
             function (err, env) {
-        t.ifErr(err, 'expect no error loading docker env');
-        t.ok(env, 'have a DockerEnv for alice');
-        ALICE = env;
+            t.ifErr(err, 'expect no error loading docker env');
+            t.ok(env, 'have a DockerEnv for alice');
+            ALICE = env;
+
+            t.end();
+            return;
+        });
+    } else {
+        ALICE = aliceEnv;
 
         t.end();
         return;
-    });
+    }
 }
 
 
@@ -444,6 +453,57 @@ function cliStart(t, opts, callback) {
     });
 }
 
+/**
+ * `docker kill <opts.args>
+ */
+function cliKill(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+    assert.func(callback, 'callback');
+
+    var t = opts.t;
+
+    ALICE.docker('kill ' + opts.args, function (err, stdout, stderr) {
+        if (t) {
+            t.ifErr(err, 'docker kill ' + opts.args);
+        }
+
+        callback(err, stdout, stderr);
+        return;
+    });
+}
+
+/**
+ * `docker logs <opts.args>
+ */
+function cliLogs(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+    assert.func(callback, 'callback');
+
+    ALICE.docker('logs ' + opts.args, function (err, stdout, stderr) {
+        t.ifErr(err, 'docker logs ' + opts.args);
+        callback(err, stdout, stderr);
+        return;
+    });
+}
+
+/**
+ * `docker logs <opts.args>
+ */
+function cliExec(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+    assert.func(callback, 'callback');
+
+    ALICE.docker('exec ' + opts.args, function (err, stdout, stderr) {
+        t.ifErr(err, 'docker logs ' + opts.args);
+        callback(err, stdout, stderr);
+        return;
+    });
+}
 
 module.exports = {
     create: cliCreate,
@@ -453,8 +513,8 @@ module.exports = {
     get docker() {
         return ALICE.docker.bind(ALICE);
     },
-    get exec() {
-        return ALICE.exec.bind(ALICE);
+    get execInTestZone() {
+        return ALICE.execInTestZone.bind(ALICE);
     },
     init: cliInit,
     inspect: cliInspect,
@@ -468,5 +528,8 @@ module.exports = {
     rmAllCreated: cliRmAllCreated,
     run: cliRun,
     stop: cliStop,
-    start: cliStart
+    start: cliStart,
+    kill: cliKill,
+    logs: cliLogs,
+    exec: cliExec
 };
