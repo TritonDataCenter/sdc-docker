@@ -269,6 +269,7 @@ test('api: build image conflicts', function (tt) {
 test('api: build across multiple registries', function (tt) {
 
     var imageName = 'quay.io/joyent/triton_alpine_inherit_test:latest';
+    var newTagName = 'quay.io/joyent/newtag:latest';
 
     // Pull the docker.io alpine image.
     tt.test('pull quay.io alpine test image', function (t) {
@@ -279,7 +280,7 @@ test('api: build across multiple registries', function (tt) {
         });
     });
 
-    tt.test('docker build from alpine image', function (t) {
+    tt.test('docker build from alpine image (cross registry)', function (t) {
         var tarStream;
 
         vasync.waterfall([
@@ -309,6 +310,55 @@ test('api: build across multiple registries', function (tt) {
                     t.ok(msg.indexOf('different registries') >= 0,
                         'expected a "different registries" error message');
                     next();
+                }
+            }
+
+        ], function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+
+    });
+
+    // Test that can still build using the same index.
+    tt.test('docker build from alpine image (same registry)', function (t) {
+        var tarStream;
+
+        vasync.waterfall([
+
+            function createTar(next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM ' + imageName + '\n'
+                                + 'LABEL something=true\n'
+                };
+                tarStream = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer(next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        't': newTagName,
+                        'rm': 'true'  // Remove container after it's built.
+                    },
+                    test: t,
+                    tarball: tarStream
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifErr(err, 'build should not error on post');
+                    var msg = result.body;
+
+                    var hasSuccess = msg.indexOf('Successfully built') >= 0;
+                    t.ok(hasSuccess, 'output contains Successfully built');
+
+                    // Delete the built image.
+                    if (hasSuccess) {
+                        DOCKER_ALICE.del('/images/' + escape(newTagName), next);
+                    } else {
+                        next();
+                    }
                 }
             }
 
