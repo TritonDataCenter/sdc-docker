@@ -161,7 +161,7 @@ function cloudapiVerifyAccount() {
                     "\nand/or add your SSH public key ($sshPubKeyPath)"
             elif [[ "$coal" == "true" ]]; then
                 fatal "invalid credentials" \
-                    "\n    You must add create the '$account' account and/or add your SSH" \
+                    "\n    You must create the '$account' account and/or add your SSH" \
                     "\n    public key ($sshPubKeyPath) to the" \
                     "\n    given SmartDataCenter."\
                     "\n" \
@@ -173,7 +173,7 @@ function cloudapiVerifyAccount() {
                     "\n        sdc-useradm add-key $account /var/tmp/id_rsa.pub"
             else
                 fatal "invalid credentials" \
-                    "\n    You must add create the '$account' account and/or add your SSH" \
+                    "\n    You must create the '$account' account and/or add your SSH" \
                     "\n    public key ($sshPubKeyPath) to the" \
                     "\n    given SmartDataCenter."
             fi
