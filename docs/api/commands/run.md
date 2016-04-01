@@ -474,7 +474,11 @@ set on the daemon.
 
 Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
 
-* `--add-host` (host-to-IP mapping) is ignored. See [networking](../features/networks.md).
+* `--add-host` (host-to-IP mapping) has been implemented in
+  [DOCKER-694](https://smartos.org/bugview/DOCKER-694). However, until
+  [DOCKER-775](https://smartos.org/bugview/DOCKER-775) is implemented and
+  deployed, this option will not work reliably until all compute nodes used for
+  Docker containers have been updated to a platform greater than 20160331.
 * `--blkio-weight` (block IO weight) is unsupported.
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
 * `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
