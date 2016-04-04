@@ -47,6 +47,8 @@ export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
 export NAPI_URL="http://$(vmadm lookup -j alias=napi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
+export VOLAPI_URL="http://$(vmadm lookup -j alias=volapi0 | json 0.nics \
+    | json -c 'this.nic_tag==="admin"' 0.ip)"
 
 # Docker CLI versions for testing:
 # 1. 'DOCKER_AVAILABLE_CLI_VERSIONS' is the set of 'docker' CLI versions we
@@ -77,6 +79,11 @@ EOF
     exit 2
 fi
 
+# Determine whether NFS Volumes (RFD 26) are supported in this setup
+NFS_VOLUMES_ENABLED=$(curl -sS ${DOCKER_ADMIN_URL}/admin/config \
+    | json -H experimental_nfs_shared_volumes)
+[[ ${NFS_VOLUMES_ENABLED} == "true" ]] || NFS_VOLUMES_ENABLED="false"
+export NFS_VOLUMES_ENABLED
 
 # Prerequisite: ensure there is a package matching the current sdc-docker
 # 'packagePrefix'.
@@ -123,11 +130,13 @@ fi
 
 
 echo "# Test config:"
-echo "#  DOCKER_UUID=${DOCKER_UUID}"
-echo "#  DOCKER_URL=${DOCKER_URL}"
+echo "#  DOCKER_ADMIN_URL=${DOCKER_ADMIN_URL}"
 echo "#  DOCKER_AVAILABLE_CLI_VERSIONS=${DOCKER_AVAILABLE_CLI_VERSIONS}"
 echo "#  DOCKER_CLI_VERSIONS=${DOCKER_CLI_VERSIONS}"
+echo "#  DOCKER_URL=${DOCKER_URL}"
+echo "#  DOCKER_UUID=${DOCKER_UUID}"
 echo "#  FWAPI_URL=${FWAPI_URL}"
+echo "#  NFS_VOLUMES_ENABLED=${NFS_VOLUMES_ENABLED}"
 echo "#  PAPI_URL=${PAPI_URL}"
-echo "#  VMAPI_URL=${VMAPI_URL}"
 echo "#  SAPI_URL=${SAPI_URL}"
+echo "#  VMAPI_URL=${VMAPI_URL}"
