@@ -31,7 +31,9 @@ var STATE = {
     log: require('../lib/log')
 };
 
-var CONTAINER_PREFIX = 'sdcdockertest_commit_';
+var COMMIT_IMAGE_TAG_PREFIX = 'sdcdockertest-commit-image-tag';
+var CONTAINER_PREFIX = 'sdcdockertest-commit-container';
+
 var IMAGE_NAME = 'busybox';
 var IMAGE_PREFIX = 'sdcdockertest-commit';
 var TP = 'api: commit: ';  // Test prefix.
@@ -51,8 +53,8 @@ test(TP + 'setup', function (tt) {
 
 test(TP + 'test add file', function (tt) {
 
-    var commitImageTag = common.makeImageName(IMAGE_PREFIX);
-    var containerName = common.makeContainerName(CONTAINER_PREFIX);
+    var commitImageTag = common.makeResourceName(IMAGE_PREFIX);
+    var containerName = common.makeResourceName(CONTAINER_PREFIX);
 
     tt.test('run ' + IMAGE_NAME + ' container', function (t) {
         var runArgs = format('--name %s %s sh -c "echo hello > '
@@ -88,7 +90,7 @@ test(TP + 'test add file', function (tt) {
     // Run the committed image and verify the 'newfile.txt' contents.
     tt.test('verify created image', function (t) {
         var runArgs = format('--rm --name %s %s sh -c "cat /newfile.txt"',
-            common.makeContainerName(CONTAINER_PREFIX + 'verify_'),
+            common.makeResourceName(CONTAINER_PREFIX + 'verify_'),
             commitImageTag);
         cli.run(t, {args: runArgs}, function (err, result) {
             // err is already tested in cli.run() call

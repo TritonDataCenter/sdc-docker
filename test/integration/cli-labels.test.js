@@ -45,7 +45,7 @@ test('labels', function (tt) {
     tt.test('simple label', function (t) {
         var runArgs = format('-d --label foo=bar --name %s '
             + '--label "elem=something with a space" busybox sleep 3600',
-            common.makeContainerName(CONTAINER_PREFIX));
+            common.makeResourceName(CONTAINER_PREFIX));
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar busybox');
             containerId = id;
@@ -82,7 +82,7 @@ test('labels on container', function (tt) {
 
     tt.test('container label', function (t) {
         var runArgs = format('-d --name %s --label foo=bar %s sleep 3600',
-            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
+            common.makeResourceName(CONTAINER_PREFIX), IMAGE_NAME);
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar ' + IMAGE_NAME);
             containerId = id;
@@ -128,7 +128,7 @@ test('labels conflict', function (tt) {
 
     tt.test('conflicting label', function (t) {
         var runArgs = format('-d --name %s --label todd=notcool %s sleep 3600',
-            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
+            common.makeResourceName(CONTAINER_PREFIX), IMAGE_NAME);
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label todd=notcool ' + IMAGE_NAME);
             containerId = id;
