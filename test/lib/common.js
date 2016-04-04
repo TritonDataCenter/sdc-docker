@@ -246,10 +246,35 @@ function partialExp(t, opts, obj) {
 /*
  * Make a prefixed, randomized name for a test container.
  */
-function makeContainerName(prefix) {
-    return prefix + libuuid.create().split('-')[0];
+function makeResourceName(prefix) {
+    return prefix + '-' + libuuid.create().split('-')[0];
 }
 
+function parseDockerVersion(dockerVersionString) {
+    assert.string(dockerVersionString);
+
+    var dockerVersionRegExp = /^(\d+)\.(\d+)\.(\d+)$/;
+    var matches = dockerVersionString.match(dockerVersionRegExp);
+    var major, minor, patch;
+
+    if (!matches) {
+        return null;
+    }
+
+    major = Number(matches[1]);
+    minor = Number(matches[2]);
+    patch = Number(matches[3]);
+
+    if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
+        return null;
+    }
+
+    return {
+        major: major,
+        minor: minor,
+        patch: patch
+    };
+}
 
 module.exports = {
     constants: constants,
@@ -258,7 +283,8 @@ module.exports = {
     expected: expectedDeepEqual,
     expErr: expErr,
     ifErr: ifErr,
-    makeContainerName: makeContainerName,
+    makeResourceName: makeResourceName,
     objCopy: objCopy,
-    partialExp: partialExp
+    partialExp: partialExp,
+    parseDockerVersion: parseDockerVersion
 };
