@@ -25,6 +25,7 @@ var h = require('../integration/helpers');
 
 
 var ALICE;
+var ALICE_CLIENT;
 var CREATED = [];
 var LAST_CREATED;
 var LOG = require('../lib/log');
@@ -38,16 +39,28 @@ var state = {
 
 /**
  * Initialize the alice DockerEnv
+ *
+ * Callback returns (err, result) with result containing:
+ *  {
+ *    client: json (restify) client object for the docker socket
+ *    user: account object
+ *  }
  */
-function cliInit(t) {
+function cliInit(t, cb) {
     h.getDockerEnv(t, state, {account: 'sdcdockertest_alice'},
             function (err, env) {
         t.ifErr(err, 'expect no error loading docker env');
         t.ok(env, 'have a DockerEnv for alice');
         ALICE = env;
 
-        t.end();
-        return;
+        h.createDockerRemoteClient({user: ALICE},
+            function (clientErr, client) {
+                t.ifErr(clientErr, 'docker remote client for alice');
+                ALICE_CLIENT = client;
+                cb(err || clientErr, {user: ALICE, client: ALICE_CLIENT});
+                t.end();
+            }
+        );
     });
 }
 
@@ -275,16 +288,24 @@ function cliCreate(t, opts, callback) {
 
 /**
  * `docker run <cmd>`
+ *
+ * Note that the returned callback result is different depending on whether the
+ * run command used '-d' (background) mode.
  */
 function cliRun(t, opts, callback) {
     assert.object(t, 't');
     assert.object(opts, 'opts');
     assert.string(opts.args, 'opts.args');
 
+    // The docker id is only printed when in background (detached) mode.
+    // Note: This detection is lame - but effective enough for our usage.
+    var detachedRegex = /(^|\s)(-d|--detached)\s/;
+    var isBackgroundMode = (opts.args || '').search(detachedRegex) >= 0;
+
     ALICE.docker('run ' + opts.args, function (err, stdout, stderr) {
         var id;
 
-        if (stdout) {
+        if (isBackgroundMode && stdout) {
             id = stdout.split('\n')[0];
         }
 
@@ -313,7 +334,11 @@ function cliRun(t, opts, callback) {
             LAST_CREATED = id;
         }
 
-        common.done(t, callback, err, id);
+        if (isBackgroundMode) {
+            common.done(t, callback, err, id);
+        } else {
+            common.done(t, callback, err, { stdout: stdout, stderr: stderr });
+        }
         return;
     });
 }
@@ -414,6 +439,22 @@ function cliRm(t, opts, callback) {
 
 
 /**
+ * `docker rmi <opts.args>`
+ */
+function cliRmi(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('rmi ' + opts.args, function (err, stdout, stderr) {
+        t.ifErr(err, 'docker rmi ' + opts.args);
+        t.equal(stderr, '', 'stderr');
+        callback(err);
+    });
+}
+
+
+/**
  * `docker stop <opts.args>`
  */
 function cliStop(t, opts, callback) {
@@ -445,7 +486,44 @@ function cliStart(t, opts, callback) {
 }
 
 
+/**
+ * `docker commit <opts.args>`
+ */
+function cliCommit(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('commit ' + opts.args, function (err, stdout, stderr) {
+        var id;
+
+        if (stdout) {
+            id = stdout.split('\n')[0];
+        }
+
+        if (opts.expectedErr) {
+            if (id) {
+                t.ok(false, 'expected error but got ID: ' + id);
+            }
+
+            common.expErr(t, stderr, opts.expectedErr, callback);
+            return;
+
+        } else {
+            t.ifErr(err, 'docker commit');
+        }
+
+        if (id) {
+            t.ok(id, fmt('"docker commit %s" -> ID %s', opts.args, id));
+        }
+
+        common.done(t, callback, err, id);
+    });
+}
+
+
 module.exports = {
+    commit: cliCommit,
     create: cliCreate,
     get accountUuid() {
         return ALICE.account.uuid;
@@ -465,6 +543,7 @@ module.exports = {
     port: cliPort,
     ps: cliPs,
     rm: cliRm,
+    rmi: cliRmi,
     rmAllCreated: cliRmAllCreated,
     run: cliRun,
     stop: cliStop,

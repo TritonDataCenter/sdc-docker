@@ -17,6 +17,7 @@ var deepEqual = require('deep-equal');
 var difflet = require('difflet');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
+var libuuid = require('libuuid');
 var VError = require('verror').VError;
 
 
@@ -241,6 +242,15 @@ function partialExp(t, opts, obj) {
     }
 }
 
+
+/*
+ * Make a prefixed, randomized name for a test container.
+ */
+function makeContainerName(prefix) {
+    return prefix + libuuid.create().split('-')[0];
+}
+
+
 module.exports = {
     constants: constants,
     done: done,
@@ -248,6 +258,7 @@ module.exports = {
     expected: expectedDeepEqual,
     expErr: expErr,
     ifErr: ifErr,
+    makeContainerName: makeContainerName,
     objCopy: objCopy,
     partialExp: partialExp
 };
