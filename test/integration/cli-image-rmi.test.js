@@ -125,7 +125,7 @@ test('docker rmi', function (tt) {
             function runContainer(_, next) {
                 var opts = {
                     args: util.format('-d --name %s %s sh -c "sleep 86400"',
-                        common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME)
+                        common.makeResourceName(CONTAINER_PREFIX), IMAGE_NAME)
                 };
 
                 cli.run(t, opts, function (err, id) {

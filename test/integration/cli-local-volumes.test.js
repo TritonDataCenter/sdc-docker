@@ -53,9 +53,9 @@ test('setup', function (tt) {
 
 test('docker local volumes', function (tt) {
     var containerWithLocalVolName =
-        common.makeContainerName('local-volume-test-container-with-local-vol');
+        common.makeResourceName('local-volume-test-container-with-local-vol');
     var mountingContainerName =
-        common.makeContainerName('local-volume-test-mounting-container');
+        common.makeResourceName('local-volume-test-mounting-container');
 
     tt.test('creating container with non-absolute mount should fail',
         function (t) {

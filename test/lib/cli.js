@@ -411,7 +411,7 @@ function cliRun(t, opts, callback) {
             common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
 
-        } else {
+        } else if (!opts.expectRuntimeError) {
             t.ifErr(err, 'docker run');
             // Docker run may need to download the image, which produces
             // stderr - only allow for that case:
@@ -546,7 +546,7 @@ function cliStart(t, opts, callback) {
     ALICE.docker('start ' + opts.args, function (err, stdout, stderr) {
         t.ifErr(err, 'docker start ' + opts.args);
         t.equal(stderr, '', 'stderr');
-        callback(err);
+        callback(err, stdout, stderr);
     });
 }
 
@@ -585,7 +585,6 @@ function cliCommit(t, opts, callback) {
         common.done(t, callback, err, id);
     });
 }
-
 
 /**
  * `docker attach <id>`
