@@ -39,7 +39,8 @@ var CONFIG = {
     papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
     vmapi_url: process.env.VMAPI_URL,
-    napi_url: process.env.NAPI_URL
+    napi_url: process.env.NAPI_URL,
+    volapi_url: process.env.VOLAPI_URL
 };
 var p = console.error;
 var UA = 'sdcdockertest';
@@ -1260,6 +1261,25 @@ function createNapiClient(callback) {
 }
 
 /**
+ * Get a simple restify JSON client to VOLAPI.
+ */
+function createVolapiClient(callback) {
+    assert.func(callback, 'callback');
+
+    createClientOpts('volapi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        opts.version = '^1';
+        opts.userAgent = 'sdc-docker-integration-tests';
+
+        callback(null, new sdcClients.VOLAPI(opts));
+        return;
+    });
+}
+
+/**
  * Test the given Docker 'info' API response.
  */
 function assertInfo(t, info) {
@@ -1525,9 +1545,10 @@ function createDockerContainer(opts, callback) {
     assert.optionalBool(opts.start, 'opts.start');
     assert.object(opts.test, 'opts.test');
     assert.object(opts.vmapiClient, 'opts.vmapiClient');
+    assert.optionalBool(opts.wait, 'opts.wait');
     assert.func(callback, 'callback');
 
-    var imageName = opts.imageName || 'nginx';
+    var imageName = opts.imageName || 'nginx:latest';
 
     var payload = {
         'Hostname': '',
@@ -1600,8 +1621,8 @@ function createDockerContainer(opts, callback) {
 
     vasync.waterfall([
         function (next) {
-            // There is a dependency here, in order to create a container,
-            // the image must first be downloaded.
+            // There is a dependency here, in order to create a container, its
+            // image must first be downloaded.
             ensureImage({
                 name: imageName,
                 user: dockerClient.user
@@ -1637,6 +1658,30 @@ function createDockerContainer(opts, callback) {
                 next(err);
             }
         },
+        function attachToContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/attach',
+                function onAttach(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
+        function waitForContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/wait',
+                function onWait(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
         function (next) {
             // Attempt to get container json (i.e. docker inspect).
             dockerClient.get(
@@ -1665,7 +1710,6 @@ function createDockerContainer(opts, callback) {
         callback(err, response);
     });
 }
-
 
 function listContainers(opts, callback) {
     assert.object(opts, 'opts');
@@ -2072,6 +2116,7 @@ module.exports = {
     createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
     createNapiClient: createNapiClient,
+    createVolapiClient: createVolapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     ensureImage: ensureImage,
     initDockerEnv: initDockerEnv,
