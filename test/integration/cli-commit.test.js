@@ -87,7 +87,7 @@ test(TP + 'test add file', function (tt) {
     // Run the committed image and verify the 'newfile.txt' contents.
     tt.test('verify created image', function (t) {
         var runArgs = format('--rm --name %s %s sh -c "cat /newfile.txt"',
-            common.makeContainerName(CONTAINER_PREFIX + 'verify_'),
+            common.makeResourceName(CONTAINER_PREFIX + 'verify_'),
             commitImageTag);
         cli.run(t, {args: runArgs}, function (err, result) {
             // err is already tested in cli.run() call
