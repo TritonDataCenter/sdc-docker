@@ -54,8 +54,8 @@ function checkContainerFiltering(tt, args, expectedNames) {
 
 
 test('container filters', function (tt) {
-    var containerName1 = common.makeContainerName(CONTAINER_PREFIX);
-    var containerName2 = common.makeContainerName(CONTAINER_PREFIX);
+    var containerName1 = common.makeResourceName(CONTAINER_PREFIX);
+    var containerName2 = common.makeResourceName(CONTAINER_PREFIX);
 
     tt.test('create container 1', function (t) {
         var runArgs = format('-d --name %s --label fishing=true %s sleep 3600',

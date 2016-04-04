@@ -57,7 +57,11 @@
         "workflows": ["pull-image"],
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
-
+{{#experimental_nfs_shared_volumes}}
+    "volapi": {
+        "url": "http://volapi.{{{datacenter_name}}}.{{{dns_domain}}}"
+    },
+{{/experimental_nfs_shared_volumes}}
     "httpProxy": "{{{http_proxy}}}",
     "dockerRegistryInsecure": {{^docker_registry_insecure}}false{{/docker_registry_insecure}}{{#docker_registry_insecure}}{{{docker_registry_insecure}}}{{/docker_registry_insecure}},
 
@@ -77,7 +81,9 @@
 {{#experimental_fluentd_host}}
     "fluentd_host": "{{{experimental_fluentd_host}}}",
 {{/experimental_fluentd_host}}
-
+{{#experimental_nfs_shared_volumes}}
+    "experimental_nfs_shared_volumes": {{{experimental_nfs_shared_volumes}}},
+{{/experimental_nfs_shared_volumes}}
 {{#FWRULE_VERSION}}
     "fwrule_version": {{{FWRULE_VERSION}}},
 {{/FWRULE_VERSION}}
