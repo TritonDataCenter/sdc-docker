@@ -14,6 +14,11 @@
 # By default it will get all the Docker client versions that sdc-docker.git
 # cares about. If given versions it will just download those.
 #
+# As well, if there is a matching "docker debug" build, it will install that
+# as well. Docker debug builds are maintained by Todd when he gets around
+# to it, and are uploaded to us-east Manta at:
+#       /Joyent_Dev/public/docker/docker_debug/
+#
 # Usage:
 #       cd ~/opt/dockers
 #       ~/sdc-docker/tools/get-docker-clients.sh
@@ -42,6 +47,7 @@ DEFAULT_VERS="1.11.0-rc2 1.10.3 1.9.1 1.8.3 1.7.1 1.6.2"
 WRKDIR=/var/tmp/tmp.get-docker-clients
 DSTDIR=$(pwd)
 OS=$(uname)
+ARCH=x86_64
 
 
 # ---- support functions
@@ -67,14 +73,14 @@ function get_docker_client
             URL=https://test.docker.com
         fi
         if [[ ${ver:0:4} == "1.6." ]]; then
-            echo "# Getting docker-$ver (from $URL/builds/$OS/x86_64/docker-$ver)"
-            curl -sS -o $DSTDIR/docker-$ver $URL/builds/$OS/x86_64/docker-$ver
+            echo "# Getting docker-$ver (from $URL/builds/$OS/$ARCH/docker-$ver)"
+            curl -sS -o $DSTDIR/docker-$ver $URL/builds/$OS/$ARCH/docker-$ver
         else
-            echo "# Getting docker-$ver (from $URL/builds/$OS/x86_64/docker-$ver.tgz)"
+            echo "# Getting docker-$ver (from $URL/builds/$OS/$ARCH/docker-$ver.tgz)"
             rm -rf $WRKDIR
             mkdir -p $WRKDIR
             cd $WRKDIR
-            curl -OsS $URL/builds/$OS/x86_64/docker-$ver.tgz
+            curl -OsS $URL/builds/$OS/$ARCH/docker-$ver.tgz
             tar xf docker-$ver.tgz
             cp usr/local/bin/docker $DSTDIR/docker-$ver
             rm -rf $WRKDIR
@@ -83,6 +89,32 @@ function get_docker_client
         $DSTDIR/docker-$ver --version
     else
         echo "# Already have docker-$ver"
+        $DSTDIR/docker-$ver --version
+    fi
+}
+
+
+function get_docker_debug_client
+{
+    local ver
+    ver="$1"
+
+    local name=docker-$ver-debug
+    local mdir=/Joyent_Dev/public/docker/docker_debug
+    local mpath=$mdir/docker-$ver-$OS-$ARCH-debug
+    local murl=https://us-east.manta.joyent.com$mpath
+
+    if [[ -f $DSTDIR/$name ]]; then
+        echo "# Already have $name"
+        $DSTDIR/$name --version
+    elif [[ "$((curl -s -X HEAD -i $murl || true) | head -1 | awk '{print $2}')" == "404" ]]; then
+        # Be silent about this for now.
+        #echo "# No debug build for this version: $mpath"
+        true
+    else
+        echo "# Getting $name (from Manta $mpath)"
+        curl -sS -o $DSTDIR/$name $murl
+        chmod 755 $DSTDIR/$name
         $DSTDIR/docker-$ver --version
     fi
 }
@@ -98,4 +130,5 @@ fi
 
 for ver in $versions; do
     get_docker_client "$ver"
+    get_docker_debug_client "$ver"
 done
