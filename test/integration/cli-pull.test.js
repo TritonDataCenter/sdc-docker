@@ -54,6 +54,7 @@ test('docker pull', function (tt) {
         });
     });
 
+    // JSSTYLED
     //tt.test('  docker pull quay.io/no-such-user (error message)', function (t) {
     //    cli.docker('pull quay.io/no-such-user',
     //            function (err, stdout, stderr) {
@@ -82,6 +83,7 @@ test('docker pull', function (tt) {
     //
     //        // JSSTYLED
     //        notFound
+    // JSSTYLED
     //            = /\(ENOTFOUND\) nope.example.com host not found/.test(stdout);
     //        t.ok(notFound, 'error is "ENOTFOUND"'
     //            + (notFound ? '' : ', got: ' + stdout));
