@@ -54,41 +54,38 @@ test('docker pull', function (tt) {
         });
     });
 
-    // JSSTYLED
-    //tt.test('  docker pull quay.io/no-such-user (error message)', function (t) {
-    //    cli.docker('pull quay.io/no-such-user',
-    //            function (err, stdout, stderr) {
-    //        var match;
-    //
-    //        // expect zero exit status, see above
-    //        t.ifError(err, 'expected successful pull');
-    //
-    //        // JSSTYLED
-    //        match = /Not Found \(404\) error from registry quay.io trying to pull no-such-user/.test(stdout);
-    //
-    //        t.ok(match, 'expected that error is "Not Found ..."'
-    //            + (match ? '' : format(', got: %j', stdout)));
-    //        t.end();
-    //    });
-    //});
-    //
-    //tt.test('  docker pull nope.example.com/nope (error message)',
-    //        function (t) {
-    //    cli.docker('pull nope.example.com/nope',
-    //        function (err, stdout, stderr) {
-    //        var notFound;
-    //
-    //        // expect zero exit status, see above
-    //        t.ifError(err, 'expected successful pull');
-    //
-    //        // JSSTYLED
-    //        notFound
-    // JSSTYLED
-    //            = /\(ENOTFOUND\) nope.example.com host not found/.test(stdout);
-    //        t.ok(notFound, 'error is "ENOTFOUND"'
-    //            + (notFound ? '' : ', got: ' + stdout));
-    //        t.end();
-    //    });
-    //});
+    tt.test('  docker pull quay.io/no-such-user (error message)', function (t) {
+        cli.docker('pull quay.io/no-such-user',
+                function (err, stdout, stderr) {
+            var match;
+
+            // expect zero exit status, see above
+            t.ifError(err, 'expected successful pull');
+
+            // JSSTYLED
+            match = /Not Found \(404\) error from registry quay.io trying to pull no-such-user/.test(stdout);
+
+            t.ok(match, 'expected that error is "Not Found ..."'
+                + (match ? '' : format(', got: %j', stdout)));
+            t.end();
+        });
+    });
+
+    tt.test('  docker pull nope.example.com/nope (error message)',
+            function (t) {
+        cli.docker('pull nope.example.com/nope',
+            function (err, stdout, stderr) {
+            var notFound;
+
+            // expect zero exit status, see above
+            t.ifError(err, 'expected successful pull');
+
+            notFound
+                = /\(ENOTFOUND\) nope.example.com host not found/.test(stdout);
+            t.ok(notFound, 'error is "ENOTFOUND"'
+                + (notFound ? '' : ', got: ' + stdout));
+            t.end();
+        });
+    });
 
 });
