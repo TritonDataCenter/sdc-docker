@@ -32,17 +32,12 @@ var STATE = {
 };
 
 var CONTAINER_PREFIX = 'sdcdockertest_commit_';
-var DOCKER_ALICE; // Regular JSON restify client.
 var IMAGE_NAME = 'busybox';
 var TP = 'api: commit: ';  // Test prefix.
 
 test(TP + 'setup', function (tt) {
 
-    tt.test('DockerEnv: alice init', function (t) {
-        cli.init(t, function (err, result) {
-            DOCKER_ALICE = result.client;
-        });
-    });
+    tt.test('DockerEnv: alice init', cli.init);
 
     // Ensure the busybox image is around.
     tt.test(TP + 'pull busybox image', function (t) {

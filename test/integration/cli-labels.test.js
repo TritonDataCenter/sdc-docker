@@ -17,8 +17,8 @@ var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
-var vm = require('../lib/vm');
 var common = require('../lib/common');
+var vm = require('../lib/vm');
 
 
 // --- Globals
