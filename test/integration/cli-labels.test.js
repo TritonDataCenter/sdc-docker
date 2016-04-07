@@ -13,11 +13,11 @@
  */
 
 var format = require('util').format;
-var libuuid = require('libuuid');
 var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
+var common = require('../lib/common');
 var vm = require('../lib/vm');
 
 
@@ -27,16 +27,6 @@ var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_labels_';
 var IMAGE_NAME = 'joyent/busybox_with_label_test';
 
-
-
-// --- internal support functions
-
-/*
- * Get a prefixed, randomized name for a test container.
- */
-function getContainerName() {
-    return CONTAINER_PREFIX + libuuid.create().split('-')[0];
-}
 
 
 // --- Tests
@@ -55,7 +45,7 @@ test('labels', function (tt) {
     tt.test('simple label', function (t) {
         var runArgs = format('-d --label foo=bar --name %s '
             + '--label "elem=something with a space" busybox sleep 3600',
-            getContainerName());
+            common.makeContainerName(CONTAINER_PREFIX));
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar busybox');
             containerId = id;
@@ -92,7 +82,7 @@ test('labels on container', function (tt) {
 
     tt.test('container label', function (t) {
         var runArgs = format('-d --name %s --label foo=bar %s sleep 3600',
-            getContainerName(), IMAGE_NAME);
+            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label foo=bar ' + IMAGE_NAME);
             containerId = id;
@@ -138,7 +128,7 @@ test('labels conflict', function (tt) {
 
     tt.test('conflicting label', function (t) {
         var runArgs = format('-d --name %s --label todd=notcool %s sleep 3600',
-            getContainerName(), IMAGE_NAME);
+            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run --label todd=notcool ' + IMAGE_NAME);
             containerId = id;
@@ -165,9 +155,9 @@ test('labels conflict', function (tt) {
 
 test('labels image filtering', function (tt) {
     // Ensure the mybusybox image is available.
-    tt.test('conflicting label', function (t) {
+    tt.test('image label', function (t) {
         var runArgs = format('-d --name %s %s sleep 3600',
-            getContainerName(), IMAGE_NAME);
+            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
         cli.run(t, {args: runArgs}, function (err, id) {
             t.ifErr(err, 'docker run ' + IMAGE_NAME);
             t.end();
