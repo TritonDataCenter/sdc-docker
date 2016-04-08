@@ -57,7 +57,9 @@ function cliInit(t, cb) {
             function (clientErr, client) {
                 t.ifErr(clientErr, 'docker remote client for alice');
                 ALICE_CLIENT = client;
-                cb(err || clientErr, {user: ALICE, client: ALICE_CLIENT});
+                if (cb) {
+                    cb(err || clientErr, {user: ALICE, client: ALICE_CLIENT});
+                }
                 t.end();
             }
         );
