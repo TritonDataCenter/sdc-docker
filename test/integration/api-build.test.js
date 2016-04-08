@@ -89,6 +89,7 @@ test('api: build', function (tt) {
                 h.buildDockerContainer({
                     dockerClient: DOCKER_ALICE_HTTP,
                     params: {
+                        'labels': '{"gone":"fishing"}',
                         'rm': 'true'  // Remove container after it's built.
                     },
                     test: t,
@@ -96,7 +97,7 @@ test('api: build', function (tt) {
                 }, onbuild);
 
                 function onbuild(err, result) {
-                    t.ifError(err, 'built successfully');
+                    t.ifError(err, 'build finished');
                     next(err, result);
                 }
             },
@@ -120,6 +121,16 @@ test('api: build', function (tt) {
                 }
 
                 next();
+            },
+
+            function inspectImage(next) {
+                DOCKER_ALICE.get('/images/' + dockerImageId + '/json',
+                        function (err, req, res, img) {
+                    t.ok(img, 'inspect image');
+                    t.deepEqual(img.Config.Labels,
+                        {'gone': 'fishing', 'sdcdocker': 'true'});
+                    next();
+                });
             },
 
             function removeBuiltImage(next) {
@@ -153,7 +164,6 @@ function createTarStream(fileAndContents) {
  * DOCKER-662: Ensure no conflicts with same images in different repositories.
  */
 test('api: build image conflicts', function (tt) {
-
     var imageName1 = 'docker.io/joyent/triton_alpine_inherit_test:latest';
     var imageName2 = 'quay.io/joyent/triton_alpine_inherit_test:latest';
 
@@ -267,7 +277,6 @@ test('api: build image conflicts', function (tt) {
  * DOCKER-748: Cannot build an image that references multiple registries.
  */
 test('api: build across multiple registries', function (tt) {
-
     var imageName = 'quay.io/joyent/triton_alpine_inherit_test:latest';
     var newTagName = 'quay.io/joyent/newtag:latest';
 
