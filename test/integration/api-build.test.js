@@ -78,12 +78,20 @@ test('setup', function (tt) {
 });
 
 test('api: build', function (tt) {
-    tt.test('docker build with nginx build context', function (t) {
+    tt.test('docker build with busybox build context', function (t) {
         var dockerImageId = null;
-        var tarballPath = path.join(__dirname, 'fixtures',
-            'busybox-build-context.tar');
+        var tarStream;
 
         vasync.waterfall([
+
+            function createTar(next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM busybox\n'
+                                + 'LABEL sdcdockertest=true\n'
+                };
+                tarStream = createTarStream(fileAndContents);
+                next();
+            },
 
             function buildContainer(next) {
                 h.buildDockerContainer({
@@ -93,7 +101,7 @@ test('api: build', function (tt) {
                         'rm': 'true'  // Remove container after it's built.
                     },
                     test: t,
-                    tarball: tarballPath
+                    tarball: tarStream
                 }, onbuild);
 
                 function onbuild(err, result) {
@@ -109,8 +117,8 @@ test('api: build', function (tt) {
                 }
 
                 var output = result.body;
-                var hasLabel = output.indexOf('LABEL sdcdocker=true') >= 0;
-                t.ok(hasLabel, 'output contains LABEL sdcdocker=true');
+                var hasLabel = output.indexOf('LABEL sdcdockertest=true') >= 0;
+                t.ok(hasLabel, 'output contains LABEL sdcdockertest=true');
 
                 var hasSuccess = output.indexOf('Successfully built') >= 0;
                 t.ok(hasSuccess, 'output contains Successfully built');
@@ -128,7 +136,7 @@ test('api: build', function (tt) {
                         function (err, req, res, img) {
                     t.ok(img, 'inspect image');
                     t.deepEqual(img.Config.Labels,
-                        {'gone': 'fishing', 'sdcdocker': 'true'});
+                        {'gone': 'fishing', 'sdcdockertest': 'true'});
                     next();
                 });
             },
