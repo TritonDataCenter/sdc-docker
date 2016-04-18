@@ -82,7 +82,12 @@ function get_docker_client
             cd $WRKDIR
             curl -OsS $URL/builds/$OS/$ARCH/docker-$ver.tgz
             tar xf docker-$ver.tgz
-            cp usr/local/bin/docker $DSTDIR/docker-$ver
+            # Different tarballs use different locations...
+            if [[ -f docker/docker ]]; then
+                cp docker/docker $DSTDIR/docker-$ver
+            else
+                cp usr/local/bin/docker $DSTDIR/docker-$ver
+            fi
             rm -rf $WRKDIR
         fi
         chmod 755 $DSTDIR/docker-$ver
