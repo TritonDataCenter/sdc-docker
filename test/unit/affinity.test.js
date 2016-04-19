@@ -24,20 +24,6 @@ var localityFromContainer = require('../../lib/backends/sdc/affinity')
 
 // ---- globals
 
-//function BunyanNoopLogger(fields) {
-//    this.fields = fields;
-//}
-//BunyanNoopLogger.prototype.trace = function () {};
-//BunyanNoopLogger.prototype.debug = function () {};
-//BunyanNoopLogger.prototype.info = function () {};
-//BunyanNoopLogger.prototype.warn = function () {};
-//BunyanNoopLogger.prototype.error = function () {};
-//BunyanNoopLogger.prototype.fatal = function () {};
-//BunyanNoopLogger.prototype.child = function () { return this; };
-//BunyanNoopLogger.prototype.end = function () {};
-//
-//var log = new BunyanNoopLogger(
-//        {req_id: '655b2da4-3165-9549-8626-531ef9336e1e'});
 var log = bunyan.createLogger({
     name: 'affinity.test',
     level: process.env.TRACE ? 'trace' : 'off',
