@@ -33,6 +33,10 @@ set -o pipefail
 NAME=$(basename $0)
 VERSION=1.0.0
 
+# Ensure locale-independent output for 'date' for signing headers.
+# (See DOCKER-799.)
+LC_ALL=C
+
 CERT_BASE_DIR=$HOME/.sdc/docker
 
 CURL_OPTS=" -H user-agent:sdc-docker-setup/$VERSION"
