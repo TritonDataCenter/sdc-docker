@@ -251,6 +251,59 @@ function makeContainerName(prefix) {
 }
 
 
+/*
+ * Parse docker columnar output by using the width's in the first header row.
+ */
+function parseOutputUsingHeader(stdout, opts) {
+    var entries = [];
+    var i, j;
+    var lines = stdout.trim().split('\n');
+    var re = /\s+/;
+    var headerLine = lines[0].toLowerCase();
+    // Some header names use spaces, like 'image id', so adjust those.
+    if (opts.headerNamesWithSpaces) {
+        var snames = opts.headerNamesWithSpaces;
+        snames.forEach(function (name) {
+            headerLine = headerLine.replace(name, name.replace(/\s/g, '_'));
+        });
+    }
+    var header = headerLine.split(re);
+
+    if (opts.linesOnly) {
+        entries = lines;
+    } else {
+        // From header, determine where each section begins/ends:
+        var headerStartEnds = header.map(function (val, idx) {
+            var nextval = header[idx + 1];
+            if (idx + 1 == header.length) {
+                return [headerLine.indexOf(val), 100000];
+            } else {
+                return [headerLine.indexOf(val),
+                    headerLine.indexOf(nextval)];
+            }
+        });
+        //console.log('header:', header, 'startEnds', headerStartEnds);
+
+        // Split the output lines:
+        for (i = 1; i < lines.length; i++) {
+            var entry = {};
+            var line = lines[i].trim();
+            if (!line) {
+                continue;
+            }
+            for (j = 0; j < header.length; j++) {
+                var se = headerStartEnds[j];
+                entry[header[j]] = line.substring(se[0], se[1]).trim();
+            }
+            entries.push(entry);
+            //console.log('entry: ', entry);
+        }
+    }
+
+    return entries;
+}
+
+
 module.exports = {
     constants: constants,
     done: done,
@@ -260,5 +313,6 @@ module.exports = {
     ifErr: ifErr,
     makeContainerName: makeContainerName,
     objCopy: objCopy,
+    parseOutputUsingHeader: parseOutputUsingHeader,
     partialExp: partialExp
 };

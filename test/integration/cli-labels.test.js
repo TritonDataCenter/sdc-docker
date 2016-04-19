@@ -166,35 +166,22 @@ test('labels image filtering', function (tt) {
 
 
     tt.test('filter on image label', function (t) {
-        cli.docker('images --filter label=todd=cool',
-                    function (err, stdout, stderr)
+        cli.images(t, {args: '--filter label=todd=cool'},
+            function (err, images)
         {
             t.ifErr(err, 'docker images --filter');
-            var lines = stdout.split('\n');
-
-            if (lines.filter(function (line) {
-                return line.substr(0, IMAGE_NAME.length) === IMAGE_NAME;
-                }).length === 0)
-            {
-                t.fail('Filter did not return the expected image: ' + stdout);
-            }
+            t.equal(images.length, 1, 'Check one image returned');
+            t.equal(images[0].repository, IMAGE_NAME, 'Check image name');
             t.end();
         });
     });
 
-    tt.test('filter on bogus image label', function (t) {
-        cli.docker('images --filter label=todd=notcool',
-                    function (err, stdout, stderr)
+    tt.test('filter on nonexistant image label', function (t) {
+        cli.images(t, {args: '--filter label=todd=notcool'},
+            function (err, images)
         {
-            t.ifErr(err, 'docker images --filter');
-            var lines = stdout.split('\n');
-
-            if (lines.filter(function (line) {
-                return line.substr(0, IMAGE_NAME.length) === IMAGE_NAME;
-                }).length !== 0)
-            {
-                t.fail('Filter returned an expected image: ' + stdout);
-            }
+            t.ifErr(err, 'docker images nonexistant --filter');
+            t.deepEqual(images, []);
             t.end();
         });
     });

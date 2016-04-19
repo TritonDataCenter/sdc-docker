@@ -132,6 +132,65 @@ function cliInspect(t, opts, callback) {
 
 
 /**
+ * `docker images <opts.args>`
+ *
+ * An array of entries will returned via the callback(err, entries), with each
+ * entry being an object holding the docker images contents for one image.
+ * Example:
+ *  {
+ *      "RepoTags": ["busybox:latest"],
+ *      "Uuid": "d8473b5a-713b-6b89-e35b-40620a1da3b3",
+ * `docker images <opts.args>`
+ *
+ * An array of entries will returned via the callback(err, entries), with each
+ * entry being an object holding the docker images contents for one image.
+ * Example:
+ *  {
+ *      "RepoTags": ["busybox:latest"],
+ *      "Uuid": "d8473b5a-713b-6b89-e35b-40620a1da3b3",
+ *      "Id": "bc744c4ab376115cc45c610d53f529dd2d4249ae6b35e5d6e7ae58863545aa",
+ *      "IndexName": "docker.io",
+ *      "Created": 1458325368,
+ *      "Cmd": ["sh"],
+ *      "Env": null,
+ *      "Entrypoint": null,
+ *      "ParentId": "56ed16bd6310cca65920c653a9bb22de6baa1742ff839867aed730e5",
+ *      "Size": 0,
+ *      "Tty": false,
+ *      "User": "",
+ *      "VirtualSize": 0,
+ *      "Volumes": null,
+ *      "WorkingDir": ""
+ *  }
+ */
+function cliImages(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.optionalString(opts.args, 'opts.args');
+
+    ALICE.docker('images ' + (opts.args || ''), function (err, stdout, stderr) {
+        if (opts.expectedErr) {
+            t.equal(stdout, '', 'stdout should be empty');
+            common.expErr(t, stderr, opts.expectedErr, callback);
+            return;
+        } else {
+            t.ifErr(err, 'docker images' + (' ' + opts.args || ''));
+            t.equal(stderr, '', 'stderr should be empty');
+        }
+
+        // Parse stdout using header columns.
+        var parseOpts = {
+            headerNamesWithSpaces: ['image id'],
+            linesOnly: opts.linesOnly
+        };
+        var entries = common.parseOutputUsingHeader(stdout, parseOpts);
+
+        common.done(t, callback, err, entries);
+    });
+}
+
+
+/**
  * `docker port <id> [port spec]`
  */
 function cliPort(t, opts, callback) {
@@ -367,8 +426,6 @@ function cliPs(t, opts, callback) {
     assert.optionalString(opts.args, 'opts.args');
 
     ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
-        var i, j;
-
         if (opts.expectedErr) {
             t.equal(stdout, '', 'stdout should be empty');
             common.expErr(t, stderr, opts.expectedErr, callback);
@@ -378,44 +435,12 @@ function cliPs(t, opts, callback) {
             t.equal(stderr, '', 'stderr should be empty');
         }
 
-        // Parse stdout.
-        var lines = stdout.trim().split('\n');
-        var entries = [];
-        var re = /\s+/;
-        var headerLine = lines[0].toLowerCase();
-        headerLine = headerLine.replace('container id', 'container_id');
-        var header = headerLine.split(re);
-
-        if (opts.linesOnly) {
-            entries = lines;
-        } else {
-            // From header, determine where each section begins/ends:
-            var headerStartEnds = header.map(function (val, idx) {
-                var nextval = header[idx+1];
-                if (idx+1 == header.length) {
-                    return [headerLine.indexOf(val), 100000];
-                } else {
-                    return [headerLine.indexOf(val),
-                        headerLine.indexOf(nextval)];
-                }
-            });
-            //console.log('header:', header, 'startEnds', headerStartEnds);
-
-            // Split the output lines:
-            for (i = 1; i < lines.length; i++) {
-                var entry = {};
-                var line = lines[i].trim();
-                if (!line) {
-                    continue;
-                }
-                for (j = 0; j < header.length; j++) {
-                    var se = headerStartEnds[j];
-                    entry[header[j]] = line.substring(se[0], se[1]).trim();
-                }
-                entries.push(entry);
-                //console.log('entry: ', entry);
-            }
-        }
+        // Parse stdout using header columns.
+        var parseOpts = {
+            headerNamesWithSpaces: ['container id'],
+            linesOnly: opts.linesOnly
+        };
+        var entries = common.parseOutputUsingHeader(stdout, parseOpts);
 
         common.done(t, callback, err, entries);
         return;
@@ -538,6 +563,7 @@ module.exports = {
     },
     init: cliInit,
     inspect: cliInspect,
+    images: cliImages,
     get lastCreated() {
         return LAST_CREATED;
     },
