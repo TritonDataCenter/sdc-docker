@@ -50,7 +50,7 @@ function _vmDottedLookup(obj, lookup) {
             part = 'tags';  // VMAPI "?tag.foo=bar" looks up "tags.foo".
         }
         s.push(part);
-        if (!hasOwnProperty.call(o, part)) {
+        if (!o.hasOwnProperty(part)) {
             return undefined;
         }
         o = o[part];
