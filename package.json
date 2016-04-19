@@ -29,7 +29,8 @@
     "ufds": "git+ssh://git@github.com:joyent/node-ufds.git#c7aa563",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b"
+    "wf-client": "git+ssh://git@github.com:joyent/sdc-wf-client.git#946d33b",
+    "xregexp": "3.1.0"
   },
   "devDependencies": {
     "deep-equal": "~0.2.0",
