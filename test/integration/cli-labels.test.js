@@ -153,39 +153,4 @@ test('labels conflict', function (tt) {
 });
 
 
-test('labels image filtering', function (tt) {
-    // Ensure the mybusybox image is available.
-    tt.test('image label', function (t) {
-        var runArgs = format('-d --name %s %s sleep 3600',
-            common.makeContainerName(CONTAINER_PREFIX), IMAGE_NAME);
-        cli.run(t, {args: runArgs}, function (err, id) {
-            t.ifErr(err, 'docker run ' + IMAGE_NAME);
-            t.end();
-        });
-    });
-
-
-    tt.test('filter on image label', function (t) {
-        cli.images(t, {args: '--filter label=todd=cool'},
-            function (err, images)
-        {
-            t.ifErr(err, 'docker images --filter');
-            t.equal(images.length, 1, 'Check one image returned');
-            t.equal(images[0].repository, IMAGE_NAME, 'Check image name');
-            t.end();
-        });
-    });
-
-    tt.test('filter on nonexistant image label', function (t) {
-        cli.images(t, {args: '--filter label=todd=notcool'},
-            function (err, images)
-        {
-            t.ifErr(err, 'docker images nonexistant --filter');
-            t.deepEqual(images, []);
-            t.end();
-        });
-    });
-});
-
-
 test('teardown', cli.rmAllCreated);

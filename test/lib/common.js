@@ -252,7 +252,7 @@ function makeContainerName(prefix) {
 
 
 /*
- * Parse docker columnar output by using the width's in the first header row.
+ * Parse docker columnar output by using the widths in the first header row.
  */
 function parseOutputUsingHeader(stdout, opts) {
     var entries = [];
