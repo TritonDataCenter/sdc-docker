@@ -300,6 +300,23 @@ test('affinity', function (tt) {
 
     var cases = [
         {
+            name: '(no env)',
+            ownerUuid: ABE,
+            container: {
+                Labels: {}
+            },
+            locality: undefined
+        },
+        {
+            name: '(no labels)',
+            ownerUuid: ABE,
+            container: {
+                Env: []
+            },
+            locality: undefined
+        },
+
+        {
             name: '(no affinities)',
             ownerUuid: ABE,
             container: {
