@@ -50,7 +50,7 @@ is exposed via the `compute_node` field using the [Triton CLI](XXX):
 to talk to a pool of Docker hosts (a.k.a. nodes) as a single virtual Docker
 host. `docker run` against a Swarm master will choose a node on which to run
 your container. Sometimes it matters which node is selected -- my
-webhead should run near the redis is uses for caching, this database instance
+webhead should run near the redis it uses for caching, this database instance
 should *not* be on the same node as other database instances in the HA cluster.
 Swarm defines "filters" for node selection, and in particular ["affinity
 filters"](https://docs.docker.com/swarm/scheduler/filter/#use-an-affinity-filter)
