@@ -42,7 +42,6 @@ test('setup', function (tt) {
 function checkContainerFiltering(tt, args, expectedNames) {
     tt.test('container filtering', function (t) {
         cli.ps(t, {args: args}, function (err, containers) {
-            console.log('containers: ', containers);
             t.ifErr(err, 'docker ps ' + args);
             t.equal(containers.length, expectedNames.length, 'Container count');
             var gotNames = containers.map(function (c) { return c.names; });
