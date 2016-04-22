@@ -51,7 +51,7 @@ export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics \
 # 2. 'DOCKER_CLI_VERSIONS' defines the 'docker' CLI versions against which we
 #    run the "test/integration/cli-*.test.js" files. This is overridable, e.g.:
 #       DOCKER_CLI_VERSIONS=1.6.2 .../runtests
-export DOCKER_AVAILABLE_CLI_VERSIONS="1.10.3 1.9.1 1.8.3 1.7.1 1.6.2"
+export DOCKER_AVAILABLE_CLI_VERSIONS="1.11.0 1.10.3 1.9.1 1.8.3 1.7.1 1.6.2"
 if [[ -z "$DOCKER_CLI_VERSIONS" ]]; then
     export DOCKER_CLI_VERSIONS="$DOCKER_AVAILABLE_CLI_VERSIONS"
 fi
