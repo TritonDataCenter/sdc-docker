@@ -510,6 +510,11 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).
 * `--volume-driver` and other `docker volume` commands are unimplemented at this time.
 
+Docker Swarm's affinity filters for controlling on which server a container
+is provisioned are supported. See the [placement feature
+documentation](../features/placement.md) for details.
+
+
 ## Related
 
 - [`docker ps`](../commands/ps.md)
