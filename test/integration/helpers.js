@@ -76,12 +76,12 @@ var CLIENT_ZONE_PAYLOAD = {
             '    chmod +x sdc-docker-setup.sh',
             'fi',
             '',
-            'for docker_cli_version in ${DOCKER_AVAILABLE_CLI_VERSIONS}; do',
-            '    if [[ ! -x docker-${docker_cli_version} ]]; then',
-            '        curl -sSO https://get.docker.com/builds/Linux/x86_64/docker-${docker_cli_version}',
-            '        chmod +x docker-${docker_cli_version}',
-            '    fi',
-            'done',
+            'if [[ ! -x get-docker-clients.sh ]]; then',
+            '    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/get-docker-clients.sh',
+            '    chmod +x get-docker-clients.sh',
+            'fi',
+            '',
+            'EXCLUDE_DOCKER_DEBUG=1 ./get-docker-clients.sh ${DOCKER_AVAILABLE_CLI_VERSIONS}',
             '',
             'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
         ].join('\n')
