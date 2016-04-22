@@ -13,8 +13,9 @@ facilities are exposed for controlling placement.
 
 ## Default placement
 
-By default, Triton attempts to spread all containers (and non-Docker containers
-and VMs) owned by a single account across separate physical servers.
+By default, Triton makes a reasonable attempt to spread all containers (and
+non-Docker containers and VMs) owned by a single account across separate
+physical servers.
 
 Within a Docker container the physical server on which a container is running
 is exposed via the [`sdc:server_uuid` metadata
@@ -36,12 +37,17 @@ By running another container we can see this default spread behavior (the
     44454c4c-4400-1054-8052-b5c04f383432
 
 Outside the containers, the physical server on which a container is running
-is exposed via the `compute_node` field using the [Triton CLI](XXX):
+is exposed via the `compute_node` field using the [Triton
+CLI](https://github.com/joyent/node-triton):
 
     $ triton insts -o shortid,name,age,compute_node
     SHORTID   NAME             AGE  COMPUTE_NODE
     cc72c36c  serene_bose      6m   44454c4c-5400-1034-8052-b5c04f383432
     98d5a22a  goofy_engelbart  2m   44454c4c-4400-1054-8052-b5c04f383432
+
+Note that [there are many factors in placement
+decisions](https://github.com/joyent/sdc-designation/blob/master/docs/index.md),
+including DC operator-controlled spread policies, so results may vary.
 
 
 ## Swarm affinity
@@ -97,6 +103,9 @@ for any node.)
 - `!=~`: The new container should be on a different node as the container(s)
   identified by `<value>`. I.e. this is a best effort or "soft" rule.
 
+*Divergence:* There is a limitation that a mix of hard and soft (`~`) filters
+is not supported. If both kinds are given, the soft affinities will be ignored.
+
 `<value>` is an exact string, simple `*`-glob, or regular expression to
 match against container names or IDs, or against the given label name.
 (See also the [Docker Swarm filter expression
@@ -135,3 +144,26 @@ syntax:
 
     # Run on a different node to 'db0':
     triton create -a 'container!=db0' ...
+
+
+## Placement failure
+
+The use of affinity rules can mean the placement is impossible. For example:
+
+- a rule requiring that a new container land on the same server as container0
+  and container1 when those two are already on separate servers; or
+- a rule requiring that a new container land on a particular server, but that
+  server does not have enough resources for the new container.
+
+A current limitation is that the error returned with `docker run` for the
+above cases is not differentiated from the general error of the data center
+being out of resources:
+
+```
+$ docker --tls run --name db1 -e 'affinity:container!=db0' alpine hostname
+docker: Error response from daemon: (DockerNoComputeResourcesError) No compute resources available. (cb792af0-08b4-11e6-9922-231469062e7b).
+See 'docker run --help'.
+```
+
+[This issue](https://smartos.org/bugview/DOCKER-815) is being used to track
+this limitation.
