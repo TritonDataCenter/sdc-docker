@@ -15,7 +15,8 @@
 # cares about. If given versions it will just download those.
 #
 # As well, if there is a matching "docker debug" build, it will install that
-# as well. Docker debug builds are maintained by Todd when he gets around
+# as well (use 'EXCLUDE_DOCKER_DEBUG' env variable to disable debug build
+# installation). Docker debug builds are maintained by Todd when he gets around
 # to it, and are uploaded to us-east Manta at:
 #       /Joyent_Dev/public/docker/docker_debug/
 #
@@ -25,7 +26,7 @@
 #
 #       # Get just a particular version:
 #       cd ~/opt/dockers
-#       ~/sdc-docker/tools/get-docker-clients.sh 1.11.0-rc2
+#       ~/sdc-docker/tools/get-docker-clients.sh 1.11.0
 #
 
 
@@ -133,7 +134,12 @@ if [[ -z "$versions" ]]; then
     versions="$DEFAULT_VERS"
 fi
 
+# Exclude debug versions when this env variable is set.
+EXCLUDE_DOCKER_DEBUG=${EXCLUDE_DOCKER_DEBUG:-}
+
 for ver in $versions; do
     get_docker_client "$ver"
-    get_docker_debug_client "$ver"
+    if [[ -z "$EXCLUDE_DOCKER_DEBUG" ]]; then
+        get_docker_debug_client "$ver"
+    fi
 done
