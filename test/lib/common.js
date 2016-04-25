@@ -24,10 +24,17 @@ var VError = require('verror').VError;
 // --- Globals
 
 
-// Error formats:
-//   (Name) Message text (Req ID)
-//   docker: (Name) Message text (Req ID)\nSee 'docker (Command) --help'.
-var ERR_RE = /^(.*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
+/* BEGIN JSSTYLED */
+/**
+ * Parse docker error response.
+ *
+ * Starting with Docker v1.7 they look like this:
+ *      Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
+ * Starting with Docker v1.10 they look like this:
+ *      /path/to/docker-cli: Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
+ */
+var ERR_RE = /^(.*?\:\s?)?(Error response from daemon: .*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
+/* END JSSTYLED */
 
 
 // --- Exports
@@ -152,6 +159,8 @@ function expErr(t, err, expected, callback) {
      *      time="2016-03-08T18:28:44Z" level=fatal msg="Error response from daemon: (Validation) invalid label: Triton tag \"triton.cns.disable\" value must be \"true\" or \"false\": \"nonbool\" (96aad1b0-e55b-11e5-a48d-bd9fb8c36dea)"
      * Starting with Docker v1.7 they look like this:
      *      Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
+     * Starting with Docker v1.10 they look like this:
+     *      /path/to/docker-cli: Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
      *
      * For testing we want to normalize on the latter, so we'll attempt to sniff
      * and normalize the former. Note two things:
@@ -168,21 +177,16 @@ function expErr(t, err, expected, callback) {
     /* END JSSTYLED */
 
     var matches = message.match(ERR_RE);
-    if (!matches || !matches[1] || !matches[2]) {
+    if (!matches || !matches[2] || !matches[3]) {
         t.equal(message, '',
             'error message does not match expected format');
         done(t, callback, new Error('unexpected error format'));
         return;
     }
 
-    t.ok(matches[2], 'error req id: ' + matches[2]);
+    t.ok(matches[3], 'error req id: ' + matches[3]);
 
-    errorString = matches[1];
-    if (errorString.substr(0, 8) === 'docker: '
-        && expected.substr(0, 8) !== 'docker: ') {
-        errorString = errorString.substr(8);
-    }
-
+    errorString = matches[2];
     t.equal(errorString, expected, 'error message matches expected pattern');
 
     done(t, callback, err);
