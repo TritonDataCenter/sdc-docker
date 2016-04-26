@@ -1445,7 +1445,7 @@ function createDockerContainer(opts, callback) {
                 '/' + apiVersion + '/containers/create', payload, onpost);
             function onpost(err, res, req, body) {
                 if (opts.expectedErr) {
-                    common.expErr(t, err, opts.expectedErr, callback);
+                    common.expApiErr(t, err, opts.expectedErr, callback);
                     return;
                 }
 

@@ -171,7 +171,7 @@ function cliImages(t, opts, callback) {
     ALICE.docker('images ' + (opts.args || ''), function (err, stdout, stderr) {
         if (opts.expectedErr) {
             t.equal(stdout, '', 'stdout should be empty');
-            common.expErr(t, stderr, opts.expectedErr, callback);
+            common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
         } else {
             t.ifErr(err, 'docker images' + (' ' + opts.args || ''));
@@ -321,7 +321,7 @@ function cliCreate(t, opts, callback) {
                 t.ok(false, 'expected error but got ID: ' + id);
             }
 
-            common.expErr(t, stderr, opts.expectedErr, callback);
+            common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
 
         } else {
@@ -375,7 +375,7 @@ function cliRun(t, opts, callback) {
                 t.ok(false, 'expected error but got ID: ' + id);
             }
 
-            common.expErr(t, stderr, opts.expectedErr, callback);
+            common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
 
         } else {
@@ -428,7 +428,7 @@ function cliPs(t, opts, callback) {
     ALICE.docker('ps ' + (opts.args || ''), function (err, stdout, stderr) {
         if (opts.expectedErr) {
             t.equal(stdout, '', 'stdout should be empty');
-            common.expErr(t, stderr, opts.expectedErr, callback);
+            common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
         } else {
             t.ifErr(err, 'docker ps' + (' ' + opts.args || ''));
@@ -533,7 +533,7 @@ function cliCommit(t, opts, callback) {
                 t.ok(false, 'expected error but got ID: ' + id);
             }
 
-            common.expErr(t, stderr, opts.expectedErr, callback);
+            common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
 
         } else {

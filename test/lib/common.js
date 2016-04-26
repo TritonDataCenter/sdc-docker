@@ -32,8 +32,11 @@ var VError = require('verror').VError;
  *      Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
  * Starting with Docker v1.10 they look like this:
  *      /path/to/docker-cli: Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
+ *
+ * Note: The match group/positioning must stay the same between these regexes.
  */
-var ERR_RE = /^(.*?\:\s?)?(Error response from daemon: .*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
+var ERR_API_RE = /^()(.*) \(([^)]+)\)$/;
+var ERR_CLI_RE = /^(.*?\:\s?)?(Error response from daemon: .*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
 /* END JSSTYLED */
 
 
@@ -138,7 +141,7 @@ function expectedDeepEqual(t, opts, obj) {
  * Tests for an expected error message, where `err` can either be an error
  * object or a string, and `expected` is the expected message.
  */
-function expErr(t, err, expected, callback) {
+function expErr(t, err, expected, isCliErr, callback) {
     var errorString;
     var message;
 
@@ -176,7 +179,7 @@ function expErr(t, err, expected, callback) {
     }
     /* END JSSTYLED */
 
-    var matches = message.match(ERR_RE);
+    var matches = message.match(isCliErr ? ERR_CLI_RE : ERR_API_RE);
     if (!matches || !matches[2] || !matches[3]) {
         t.equal(message, '',
             'error message does not match expected format');
@@ -190,6 +193,24 @@ function expErr(t, err, expected, callback) {
     t.equal(errorString, expected, 'error message matches expected pattern');
 
     done(t, callback, err);
+}
+
+
+/**
+ * Tests for an expected api error message, where `err` can either be an error
+ * object or a string, and `expected` is the expected message.
+ */
+function expApiErr(t, err, expected, callback) {
+    return expErr(t, err, expected, false, callback);
+}
+
+
+/**
+ * Tests for an expected cli error message, where `err` can either be an error
+ * object or a string, and `expected` is the expected message.
+ */
+function expCliErr(t, err, expected, callback) {
+    return expErr(t, err, expected, true, callback);
 }
 
 
@@ -313,7 +334,8 @@ module.exports = {
     done: done,
     execPlus: execPlus,
     expected: expectedDeepEqual,
-    expErr: expErr,
+    expApiErr: expApiErr,
+    expCliErr: expCliErr,
     ifErr: ifErr,
     makeContainerName: makeContainerName,
     objCopy: objCopy,
