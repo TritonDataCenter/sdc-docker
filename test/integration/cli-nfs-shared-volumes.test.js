@@ -59,6 +59,13 @@ function checkVolumesSupportDisabled(t, err, stderr) {
 
 test('setup', function (tt) {
     tt.test('DockerEnv: alice init', cli.init);
+
+    // Ensure the busybox image is around.
+    tt.test('pull busybox image', function (t) {
+        cli.pull(t, {
+            image: 'busybox:latest'
+        });
+    });
 });
 
 test('docker volume with default driver', function (tt) {
