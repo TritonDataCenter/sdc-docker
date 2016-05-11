@@ -552,7 +552,8 @@ test('affinity', function (tt) {
                 ]
             },
             err: {
-                messageRe: /no active container found with id/,
+                // JSSTYLED
+                messageRe: /no active containers found matching "beef0000f7d74721983366700c5c280d57f1c9bc623f454ba99d492ac2c6abad" for affinity "container==beef0000f7d74721983366700c5c280d57f1c9bc623f454ba99d492ac2c6abad"/,
                 restCode: 'ResourceNotFound'
             }
         },
@@ -604,7 +605,7 @@ test('affinity', function (tt) {
             },
             err: {
                 // JSSTYLED
-                messageRe: /no active container\(s\) match DB0 for affinity "container==DB0"/,
+                messageRe: /no active containers found matching "DB0" for affinity "container==DB0"/,
                 code: 'ResourceNotFound'
             }
         },
@@ -638,7 +639,7 @@ test('affinity', function (tt) {
             },
             err: {
                 // JSSTYLED
-                messageRe: /no active container\(s\) match DB\* for affinity "container==DB\*"/,
+                messageRe: /no active containers found matching "DB\*" for affinity "container==DB\*"/,
                 restCode: 'ResourceNotFound'
             }
         },
@@ -672,7 +673,7 @@ test('affinity', function (tt) {
             },
             err: {
                 // JSSTYLED
-                messageRe: /no active container\(s\) match \/\^DB\/ for affinity "container==\/\^DB\/"/,
+                messageRe: /no active containers found matching "\/\^DB\/" for affinity "container==\/\^DB\/"/,
                 restCode: 'ResourceNotFound'
             }
         },

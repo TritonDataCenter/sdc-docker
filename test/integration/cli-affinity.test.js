@@ -36,39 +36,119 @@ test('setup', function (tt) {
 
 
 test('affinities a la Swarm', function (tt) {
-    var containerId;
-
-    var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
-    tt.ok(containerName, 'containerName: ' + containerName);
-
-    /*
-     * First test that a given affinity shows up as a label on the created
-     * container.
-     */
-    tt.test('  docker run -e "affinity:foo!=bar" ...', function (t) {
-        var args = format(
-            '-e \'affinity:foo!=bar\' -d --name %s alpine sleep 3600',
-            containerName);
-        cli.run(t, {args: args}, function (err, id) {
-            t.ifErr(err, 'docker run -e "affinity:foo!=bar" ...');
-            containerId = id;
+    // This should fail: no container with name 'sdcdockertest_affinity_*'.
+    tt.test('  docker run -e "affinity:container==' + CONTAINER_PREFIX
+            + '*" ... (container, ==, fail)', function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format('-e \'affinity:container==' + CONTAINER_PREFIX
+            + '*\' -d --name %s alpine sleep 3600', containerName);
+        cli.run(t, {
+            args: args,
+            // JSSTYLED
+            expectedErr: 'Error response from daemon: (ResourceNotFound) no active containers found matching "sdcdockertest_affinity_*" for affinity "container==sdcdockertest_affinity_*"'
+        }, function (err) {
             t.end();
         });
     });
 
-    tt.test('  check affinity label on container', function (t) {
+    // This should work: no container with name 'sdcdockertest_affinity_*'.
+    // This behaviour was changed in DAPI-306.
+    tt.test('  docker run -e "affinity:container!=' + CONTAINER_PREFIX
+            + '*" ... (container, !=)', function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format('-e \'affinity:container!=' + CONTAINER_PREFIX
+            + '*\' -d --name %s alpine sleep 3600', containerName);
+        cli.run(t, {args: args}, function (err, id) {
+            t.ifErr(err, 'docker run error');
+            t.ok(id, 'id');
+            t.end();
+        });
+    });
+
+    // This should fail: no container with label foo=bar2.
+    tt.test('  docker run -e "affinity:foo==bar2" ... (label, ==, fail)',
+            function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format(
+            '-e \'affinity:foo==bar2\' -d --name %s alpine sleep 3600',
+            containerName);
+        cli.run(t, {
+            args: args,
+            expectedErr: 'Error response from daemon: (ResourceNotFound) '
+                + 'no active containers found matching tag "foo=bar2" for '
+                + 'affinity "foo==bar2"'
+        }, function (err) {
+            t.end();
+        });
+    });
+
+    // This should work: no container with label foo=bar2, but *soft* affinity.
+    tt.test('  docker run -e "affinity:foo==~bar2" ... (label, ==~)',
+            function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format(
+            '-e \'affinity:foo==~bar2\' -d --name %s alpine sleep 3600',
+            containerName);
+        cli.run(t, {args: args}, function (err, id) {
+            t.ifErr(err, 'docker run error');
+            t.ok(id, 'id');
+            t.end();
+        });
+    });
+
+    // This should work: no container with label foo=bar1.
+    var containerId;
+    tt.test('  docker run -e "affinity:foo!=bar1" ... (label, !=)',
+            function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format(
+            '-e \'affinity:foo!=bar1\' --label foo=bar2 -d '
+                + '--name %s alpine sleep 3600',
+            containerName);
+        cli.run(t, {args: args}, function (err, id) {
+            t.ifErr(err, 'docker run error');
+            t.ok(id, 'id');
+            containerId = id;
+            t.end();
+        });
+    });
+    tt.test('  have "com.docker.swarm.affinities" label', function (t) {
         cli.inspect(t, {
             id: containerId,
             partialExp: {
                 Config: {
                     Labels: {
                         'com.joyent.package': '*',
-                        'com.docker.swarm.affinities': '["foo!=bar"]'
+                        'com.docker.swarm.affinities': '["foo!=bar1"]',
+                        'foo': 'bar2'
                     }
                 }
             }
         });
     });
+
+    // Now this one should work: we *do* have a container with label foo=bar2
+    // (created in previous step).
+    tt.test('  docker run -e "affinity:foo==bar2" ... (label, ==)',
+            function (t) {
+        var containerName = CONTAINER_PREFIX + libuuid.create().split('-')[0];
+        t.ok(containerName, 'containerName: ' + containerName);
+        var args = format(
+            '-e \'affinity:foo==bar2\' -d --name %s alpine sleep 3600',
+            containerName);
+        cli.run(t, {args: args}, function (err, id) {
+            t.ifErr(err, 'docker run error');
+            t.ok(id, 'id');
+            t.end();
+        });
+    });
+
+
 });
 
 

@@ -259,7 +259,7 @@ repeatedly -- onces for each supported Docker CLI version. If you want to
 run with just a particular version, you can set the `DOCKER_CLI_VERSIONS`
 (plural) environment variable, e.g:
 
-    DOCKER_CLI_VERSIONS=1.10.0 /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-info
+    DOCKER_CLI_VERSIONS=1.10.3 /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-info
 
 
 
@@ -369,4 +369,3 @@ Some variable/function naming patterns in this repo.
 | *Pattern* | *Description* |
 | --------- | ------------- |
 | `req*`    | A restify handler that operates (primarily) on a request and adds a request param. E.g. `reqClientApiVersion` adds `req.clientApiVersion`. |
-
