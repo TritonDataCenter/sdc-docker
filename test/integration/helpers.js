@@ -451,7 +451,7 @@ function stepClientZone(state_, cb) {
                 owner_uuid: state.sdcConfig.ufds_admin_uuid,
                 alias: CLIENT_ZONE_PAYLOAD.alias
             };
-            state.vmapi.listVms(filters, function (err, vms) {
+            state.vmapi.listVms(filters, {log: state.log}, function (err, vms) {
                 if (err) {
                     return next(err);
                 }
