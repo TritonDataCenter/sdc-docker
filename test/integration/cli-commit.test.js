@@ -92,8 +92,13 @@ test(TP + 'test add file', function (tt) {
         cli.run(t, {args: runArgs}, function (err, result) {
             // err is already tested in cli.run() call
             if (!err) {
-                t.ok(result.stdout.indexOf('hello') >= 0,
-                    'newfile.txt content is "hello"');
+                if (result.stdout.indexOf('hello') >= 0)  {
+                    t.pass('newfile.txt content is "hello"');
+                } else {
+                    t.fail('cat /newfile.txt expected "hello", got: stdout = "'
+                        + result.stdout + '", stderr = "' + result.stderr
+                        + '"');
+                }
             }
             t.end();
         });
