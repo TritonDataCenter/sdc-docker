@@ -14,6 +14,7 @@
 
 var exec = require('child_process').exec;
 var format = require('util').format;
+var libuuid = require('libuuid');
 var test = require('tape');
 var util = require('util');
 var vasync = require('vasync');
@@ -36,6 +37,8 @@ var STATE = {
 };
 var CONFIG = configLoader.loadConfigSync({log: STATE.log});
 var VMAPI;
+var NAPI;
+var FABRICS = false;
 
 
 // --- Tests
@@ -90,6 +93,15 @@ test('setup', function (tt) {
         });
     });
 
+    // init the napi client to create a fabric to test against.
+    tt.test('napi client init', function (t) {
+        h.createNapiClient(function (err, client) {
+            t.ifErr(err, 'napi client');
+            NAPI = client;
+            t.end();
+        });
+    });
+
     tt.test('pull nginx image', function (t) {
         var url = '/images/create?fromImage=nginx%3Alatest';
         DOCKER_ALICE.post(url, function (err, req, res) {
@@ -99,7 +111,6 @@ test('setup', function (tt) {
     });
 
 });
-
 
 test('api: create with non-string label values (DOCKER-737)', function (t) {
     var payload = {
@@ -334,6 +345,293 @@ test('api: create with env var that has no value (DOCKER-741)', function (tt) {
     });
 });
 
+test('ensure fabrics enabled', function (tt) {
+    tt.test('fabric configuration', function (t) {
+        var listOpts = {};
+        var listParams = {};
+        NAPI.listFabricVLANs(ALICE.account.uuid, listOpts, listParams,
+            function (err, vlans) {
+                if (err) {
+                    FABRICS = false;
+                    if (err.code !== 'PreconditionRequiredError') {
+                        t.ifErr(err);
+                    }
+                } else {
+                    FABRICS = true;
+                }
+                t.end();
+        });
+    });
+});
+
+
+/*
+ * Tests for `docker run --net`
+ *
+ * Of particular interest is whether we can appropriately disambiguate the
+ * user-supplied network name/id. The docker heuristic appears to be:
+ * 1. exact id match
+ * 2. exact name match
+ * 3. any partial id match
+ * See lib/backends/sdc/containers.js for implementation.
+ */
+/*
+ * XXX - pending NAPI-258, we are creating NAT zones, a fabric vlan, and
+ * several fabric networks that can't be easily cleaned up. They should
+ * still be re-usable for repeated test runs, but particularly unlucky
+ * partial failures in the tests *may* require some manual cleanup:
+ * - delete NAT zones for ALICE & the fabric networks
+ * - delete fabric networks
+ * - delete fabric vlan
+ */
+test('create with NetworkMode (docker run --net=)', function (tt) {
+    // set fabric status
+
+    var fVlan;
+    var fNetwork1;
+    var fNetwork2;
+    var fNetwork3;
+
+    if (!FABRICS) {
+        tt.comment('Fabrics not enabled, skipping tests that require them.');
+        tt.end();
+        return;
+    }
+
+    tt.test('fabric vlan setup', function (t) {
+        // create a new one.
+        var fabricParams = {
+            name: 'sdcdockertest_apicreate_vlan4',
+            description: 'integration test fixture',
+            vlan_id: 4
+        };
+        h.getOrCreateFabricVLAN(NAPI, ALICE.account.uuid, fabricParams,
+            function (err, vlan) {
+                t.ifErr(err, 'create fabric vlan');
+                fVlan = vlan;
+                t.end();
+                return;
+            }
+        );
+    });
+
+    tt.test('fabric network setup', function (t) {
+        var nw1uuid = libuuid.create();
+
+        // nw2's name is deliberately ambiguous with a short version of nw1's
+        // id. The exact name (nw2) should be preferred to the partial id.
+        var nw2name = nw1uuid.replace(/-/g, '').substr(0, 12);
+
+        // nw3's name is identical to nw1's full id. The full exact id should
+        // be preferred over a name, so nw1 should be picked.
+        var nw3name = (nw1uuid + nw1uuid).replace(/-/g, '');
+
+        var nw1params = {
+            name: 'sdcdockertest_apicreate_net1',
+            subnet: '10.0.8.0/24',
+            provision_start_ip: '10.0.8.2',
+            provision_end_ip: '10.0.8.254',
+            uuid: nw1uuid,
+            gateway: '10.0.8.1',
+            resolvers: ['8.8.8.8', '8.8.4.4']
+        };
+
+        // name deliberately ambiguous with a short version of nw1's docker id
+        var nw2params = {
+            name: nw2name,
+            subnet: '10.0.9.0/24',
+            provision_start_ip: '10.0.9.2',
+            provision_end_ip: '10.0.9.254',
+            gateway: '10.0.9.1',
+            resolvers: ['8.8.8.8', '8.8.4.4']
+        };
+
+        // name deliberately identical to nw1's docker id
+        var nw3params = {
+            name: nw3name,
+            subnet: '10.0.10.0/24',
+            provision_start_ip: '10.0.10.2',
+            provision_end_ip: '10.0.10.254',
+            gateway: '10.0.10.1',
+            resolvers: ['8.8.8.8', '8.8.4.4']
+        };
+
+        vasync.pipeline({
+            funcs: [
+                function fnw1(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw1params, function (err, network) {
+                            if (err) {
+                                return cb(err);
+                            }
+                            nw2params.name =
+                                network.uuid.replace(/-/g, '').substr(0, 12);
+                            nw3params.name = (network.uuid + network.uuid)
+                                .replace(/-/g, '');
+                            return cb(null, network);
+                        }
+                    );
+                },
+                function fnw2(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw2params, cb);
+                },
+                function fnw3(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw3params, cb);
+                }
+            ]
+        }, function (err, results) {
+            t.ifErr(err, 'create networks');
+            if (err) {
+                t.end();
+                return;
+            }
+            fNetwork1 = results.operations[0].result;
+            fNetwork2 = results.operations[1].result;
+            fNetwork3 = results.operations[2].result;
+
+            t.end();
+        });
+    });
+
+    // attempt a create with a name.
+    tt.test('create with a network name', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': fNetwork1.name },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create NetworkMode: networkName');
+            var nics = result.vm.nics;
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('create with a complete network id', function (t) {
+        var fullId = (fNetwork1.uuid + fNetwork1.uuid).replace(/-/g, '');
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': fullId },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('create with partial network id', function (t) {
+        var partialId = (fNetwork1.uuid + fNetwork1.uuid).replace(/-/g, '');
+        partialId = partialId.substr(0, 10);
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': partialId },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('prefer name over partial id', function (t) {
+        // fNetwork2 is named using a partial id from fNetwork1.
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': fNetwork2.name },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, fNetwork2.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('prefer full id over name', function (t) {
+        // fNetwork3 is named with the full dockerId of fNetwork1.
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': fNetwork3.name },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+
+    });
+
+    tt.test('create with a network that doesn\'t exist', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': 'netmodefoobar' },
+            expectedErr: '(Error) network netmodefoobar not found',
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ok(err, 'should err on create');
+            t.end();
+        }
+    });
+});
 
 test('cleanup', function (tt) {
     tt.test('delete nginx image', function (t) {

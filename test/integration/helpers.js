@@ -35,7 +35,8 @@ var CONFIG = {
     fwapi_url: process.env.FWAPI_URL,
     papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
-    vmapi_url: process.env.VMAPI_URL
+    vmapi_url: process.env.VMAPI_URL,
+    napi_url: process.env.NAPI_URL
 };
 var p = console.error;
 var UA = 'sdcdockertest';
@@ -1222,7 +1223,21 @@ function createVmapiClient(callback) {
     });
 }
 
+/**
+ * Get a simple restify JSON client to NAPI.
+ */
+function createNapiClient(callback) {
+    assert.func(callback, 'callback');
 
+    createClientOpts('napi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.NAPI(opts));
+        return;
+    });
+}
 
 /**
  * Test the given Docker 'info' API response.
@@ -1637,6 +1652,52 @@ function didRestifyHandlerRun(reqId, handlerName, callback) {
     });
 }
 
+/*
+ * Gets or creates a fabric VLAN for use in testing.
+ */
+function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
+    assert.object(client, 'napi client');
+    assert.uuid(userUuid, 'user uuid');
+    assert.object(fabricParams, 'fabricParams');
+
+    client.getFabricVLAN(userUuid, fabricParams.vlan_id, {},
+        function (err, vlan) {
+            if (err && err.restCode !== 'ResourceNotFound') {
+                return callback(err);
+            } else if (vlan) {
+                return callback(null, vlan);
+            }
+            client.createFabricVLAN(userUuid, fabricParams, callback);
+        }
+    );
+}
+
+/*
+ * Gets or creates a fabric network for use in testing; based on the
+ * network *name*.
+ */
+function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
+    assert.object(client, 'napi client');
+    assert.uuid(userUuid, 'user uuid');
+    assert.number(vlan_id, 'vlan_id');
+    assert.object(params, 'network params');
+
+    var listParams = {
+        name: params.name
+    };
+    client.listFabricNetworks(userUuid, vlan_id, listParams,
+        function (err, networks) {
+            if (err) {
+                return callback(err);
+            }
+            if (networks.length !== 0) {
+                return callback(null, networks[0]);
+            }
+            client.createFabricNetwork(userUuid, vlan_id, params, callback);
+        }
+    );
+}
+
 // --- exports
 
 module.exports = {
@@ -1645,11 +1706,14 @@ module.exports = {
     createFwapiClient: createFwapiClient,
     createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
+    createNapiClient: createNapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     initDockerEnv: initDockerEnv,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
     buildDockerContainer: buildDockerContainer,
+    getOrCreateFabricVLAN: getOrCreateFabricVLAN,
+    getOrCreateFabricNetwork: getOrCreateFabricNetwork,
 
     getDockerEnv: getDockerEnv,
 
