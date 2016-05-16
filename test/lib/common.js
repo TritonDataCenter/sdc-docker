@@ -197,7 +197,8 @@ function expErr(t, err, expected, isCliErr, callback) {
         t.ok(expected.test(errorString),
             fmt('error message matches %s: %j', expected, errorString));
     } else {
-        t.equal(errorString, expected, 'error message matches expected pattern');
+        t.equal(errorString, expected,
+            'error message matches expected pattern');
     }
 
     done(t, callback, err);
