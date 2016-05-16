@@ -35,7 +35,8 @@ var CONFIG = {
     fwapi_url: process.env.FWAPI_URL,
     papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
-    vmapi_url: process.env.VMAPI_URL
+    vmapi_url: process.env.VMAPI_URL,
+    napi_url: process.env.NAPI_URL
 };
 var p = console.error;
 var UA = 'sdcdockertest';
@@ -1222,7 +1223,21 @@ function createVmapiClient(callback) {
     });
 }
 
+/**
+ * Get a simple restify JSON client to NAPI.
+ */
+function createNapiClient(callback) {
+    assert.func(callback, 'callback');
 
+    createClientOpts('napi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        callback(null, new sdcClients.NAPI(opts));
+        return;
+    });
+}
 
 /**
  * Test the given Docker 'info' API response.
@@ -1645,6 +1660,7 @@ module.exports = {
     createFwapiClient: createFwapiClient,
     createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
+    createNapiClient: createNapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     initDockerEnv: initDockerEnv,
     listContainers: listContainers,
