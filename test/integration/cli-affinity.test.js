@@ -46,7 +46,7 @@ test('affinities a la Swarm', function (tt) {
         cli.run(t, {
             args: args,
             // JSSTYLED
-            expectedErr: 'Error response from daemon: (ResourceNotFound) no active containers found matching "sdcdockertest_affinity_*" for affinity "container==sdcdockertest_affinity_*"'
+            expectedErr: /\(ResourceNotFound\) no active containers found matching "sdcdockertest_affinity_\*" for affinity "container==sdcdockertest_affinity_\*"/
         }, function (err) {
             t.end();
         });
@@ -147,8 +147,6 @@ test('affinities a la Swarm', function (tt) {
             t.end();
         });
     });
-
-
 });
 
 

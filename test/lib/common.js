@@ -33,10 +33,13 @@ var VError = require('verror').VError;
  * Starting with Docker v1.10 they look like this:
  *      /path/to/docker-cli: Error response from daemon: (Validation) invalid label: Triton tag "triton.cns.disable" value must be "true" or "false": "nonbool" (af09fc40-e55b-11e5-a48d-bd9fb8c36dea)
  *
+ * The 'm' multiline modifier on ERR_CLI_RE allows for leading output, e.g.
+ * docker pull output implicitly part of a `docker run` command.
+ *
  * Note: The match group/positioning must stay the same between these regexes.
  */
 var ERR_API_RE = /^()(.*) \(([^)]+)\)$/;
-var ERR_CLI_RE = /^(.*?\:\s?)?(Error response from daemon: .*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/;
+var ERR_CLI_RE = /^(.*?\:\s?)?(Error response from daemon: .*) \(([^)]+)\)(\.\nSee '.* --help'\.)?$/m;
 /* END JSSTYLED */
 
 
@@ -139,7 +142,7 @@ function expectedDeepEqual(t, opts, obj) {
 
 /**
  * Tests for an expected error message, where `err` can either be an error
- * object or a string, and `expected` is the expected message.
+ * object or a string, and `expected` is the expected message (or regexp).
  */
 function expErr(t, err, expected, isCliErr, callback) {
     var errorString;
@@ -179,18 +182,23 @@ function expErr(t, err, expected, isCliErr, callback) {
     }
     /* END JSSTYLED */
 
-    var matches = message.match(isCliErr ? ERR_CLI_RE : ERR_API_RE);
-    if (!matches || !matches[2] || !matches[3]) {
-        t.equal(message, '',
-            'error message does not match expected format');
-        done(t, callback, new Error('unexpected error format'));
+    var expectedErrRe = (isCliErr ? ERR_CLI_RE : ERR_API_RE);
+    var matches = message.match(expectedErrRe);
+    if (!matches) {
+        t.ok(matches, fmt('err message does not match %s: %j',
+            expectedErrRe, message));
+        done(t, callback, new Error('unexpected error output'));
         return;
     }
-
     t.ok(matches[3], 'error req id: ' + matches[3]);
-
     errorString = matches[2];
-    t.equal(errorString, expected, 'error message matches expected pattern');
+
+    if (RegExp.prototype.isPrototypeOf(expected)) {
+        t.ok(expected.test(errorString),
+            fmt('error message matches %s: %j', expected, errorString));
+    } else {
+        t.equal(errorString, expected, 'error message matches expected pattern');
+    }
 
     done(t, callback, err);
 }
