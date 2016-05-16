@@ -73,7 +73,7 @@ fi
 # Prerequisite: ensure there is a package matching the current sdc-docker
 # 'packagePrefix'.
 packagePrefix=$(json -f /zones/$DOCKER_UUID/root/opt/smartdc/docker/etc/config.json packagePrefix)
-availPackages=$(sdc-papi /packages | json -Hac "this.name.indexOf('$packagePrefix')===0")
+availPackages=$(/opt/smartdc/bin/sdc-papi /packages | json -Hac "this.name.indexOf('$packagePrefix')===0")
 
 if [[ -z "$availPackages" ]]; then
     cat >&2 <<EOF
