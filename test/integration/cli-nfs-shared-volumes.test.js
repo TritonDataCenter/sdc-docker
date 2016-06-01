@@ -38,6 +38,7 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME = 'tritonnfs';
 
 var NFS_SHARED_VOLUME_NAMES_PREFIX = 'test-nfs-shared-volume';
 var MOUNTING_CONTAINER_NAMES_PREFIX = 'test-nfs-mounting-container';
+var GENERATED_VOLUME_NAME_REGEXP = /^[\w0-9]{64}$/;
 
 var STATE = {
     log: log
@@ -87,6 +88,39 @@ test('docker volume with default driver', function (tt) {
                     t.notEqual(stderr.indexOf(expectedErrMsg), -1);
                     t.end();
                 });
+        });
+});
+
+test('docker volume with default name', function (tt) {
+
+    tt.test('creating volume without specifying a name should succeed and '
+        + 'generate a new name', function (t) {
+            cli.createVolume({
+                args: '--driver ' + NFS_SHARED_VOLUMES_DRIVER_NAME
+            }, function onVolumeCreated(err, stdout, stderr) {
+                var stdoutLines;
+                var createdVolumeName;
+
+                if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                    t.ifErr(err,
+                        'volume should have been created successfully');
+
+                    stdoutLines = stdout.split('\n');
+                    t.equal(stdoutLines.length, 2,
+                        'output should be two lines');
+
+                    createdVolumeName = stdoutLines[0];
+                    t.ok(createdVolumeName.match(GENERATED_VOLUME_NAME_REGEXP),
+                        'newly created volume\'s name "'
+                            + createdVolumeName + '" should match: '
+                            + GENERATED_VOLUME_NAME_REGEXP);
+                } else {
+                    t.notEqual(stderr.indexOf('Volumes are not supported'),
+                        -1);
+                }
+
+                t.end();
+            });
         });
 });
 

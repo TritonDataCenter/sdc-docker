@@ -554,11 +554,18 @@ function cliCommit(t, opts, callback) {
 function cliCreateVolume(opts, callback) {
     assert.object(opts, 'opts');
     assert.optionalObject(opts.t, 'opts.t');
-    assert.string(opts.args, 'opts.args');
+    assert.optionalString(opts.args, 'opts.args');
 
     var t = opts.t;
+    var command = [
+        'volume create'
+    ];
 
-    ALICE.docker('volume create ' + opts.args, function (err, stdout, stderr) {
+    if (opts.args) {
+        command.push(opts.args);
+    }
+
+    ALICE.docker(command.join(' '), function (err, stdout, stderr) {
         if (t) {
             t.ifErr(err, 'docker volume create ' + opts.args);
         }
