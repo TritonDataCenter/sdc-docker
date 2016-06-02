@@ -70,25 +70,58 @@ test('setup', function (tt) {
 });
 
 test('docker volume with default driver', function (tt) {
+    var volumeName;
 
-    tt.test('creating volume with no specific driver should fail',
-        function (t) {
-            cli.createVolume({args: '--name foo'},
-                function onVolumeCreated(err, stdout, stderr) {
-                    var expectedErrMsg;
-                    t.ok(err, 'Creating a volume with no specific driver '
-                        + 'should error');
+    tt.test('creating volume with no driver should succeed', function (t) {
+        volumeName =
+            common.makeResourceName(NFS_SHARED_VOLUME_NAMES_PREFIX);
+
+        vasync.pipeline({funcs: [
+            function createVolume(_, next) {
+                cli.createVolume({
+                    args: '--name ' + volumeName
+                }, function onVolumeCreated(err, stdout, stderr) {
                     if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        expectedErrMsg = '(Validation) local is not a '
-                            + 'supported volume driver';
+                        t.ifErr(err,
+                            'volume should have been created successfully');
+                        t.equal(stdout, volumeName + '\n',
+                            'output is newly created volume\'s name');
                     } else {
-                        expectedErrMsg = 'Volumes are not supported';
+                        t.notEqual(stderr.indexOf('Volumes are not supported'),
+                            -1);
                     }
 
-                    t.notEqual(stderr.indexOf(expectedErrMsg), -1);
-                    t.end();
+                    next(err);
                 });
+            },
+            function inspectVolume(_, next) {
+                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
+                    next();
+                    return;
+                }
+
+                cli.inspectVolume({args: volumeName},
+                    function onInspect(err, stdout, stderr) {
+                        var inspectParsedOutput;
+
+                        t.ifErr(err, 'inspect should succeed');
+                        try {
+                            inspectParsedOutput = JSON.parse(stdout);
+                        } catch (inspectParseErr) {
+                        }
+
+                        t.equal(inspectParsedOutput[0].Driver,
+                            NFS_SHARED_VOLUMES_DRIVER_NAME,
+                                'volume driver should be '
+                                    + NFS_SHARED_VOLUMES_DRIVER_NAME);
+
+                        next();
+                    });
+            }
+        ]}, function createAndInspectDone(err) {
+            t.end();
         });
+    });
 });
 
 test('docker volume with default name', function (tt) {

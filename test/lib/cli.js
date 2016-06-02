@@ -634,6 +634,25 @@ function cliAttach(t, opts, callback) {
 }
 
 
+/*
+ * `docker volume inspect <opts.args>`
+ */
+function cliInspectVolume(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.optionalObject(opts.t, 'opts.t');
+    assert.string(opts.args, 'opts.args');
+
+    var t = opts.t;
+
+    ALICE.docker('volume inspect ' + opts.args, function (err, stdout, stderr) {
+        if (t) {
+            t.ifErr(err, 'docker volume inspect ' + opts.args);
+        }
+
+        callback(err, stdout, stderr);
+    });
+}
+
 module.exports = {
     commit: cliCommit,
     create: cliCreate,
@@ -664,5 +683,6 @@ module.exports = {
     attach: cliAttach
     createVolume: cliCreateVolume,
     rmVolume: cliDeleteVolume,
-    listVolumes: cliListVolumes
+    listVolumes: cliListVolumes,
+    inspectVolume: cliInspectVolume
 };
