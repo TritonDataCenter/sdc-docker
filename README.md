@@ -68,20 +68,17 @@ setup will not be appropriate for a production DC.
         sdcadm post-setup dev-headnode-prov
         sdcadm post-setup dev-sample-data  # sample packages for docker containers
         sdcadm post-setup cloudapi
-        sdcadm experimental update-docker --servers cns,headnode
+        sdcadm post-setup docker
         sdcadm experimental update dockerlogger
         # Optional additional steps for VXLAN setup.
-        sdcadm experimental portolan
-        sdcadm experimental fabrics --coal
-        # <reboot>
-        sapiadm update $(sdc-sapi /services?name=docker | json -Ha uuid) metadata.USE_FABRICS=true
-
+        # TODO: This isn't well automated yet.
+        #    sdcadm post-setup fabrics ...
+        #    <reboot>
 
 For compute nodes added after the first-time setup, you will need to install
 the dockerlogger on them by executing:
 
         sdcadm experimental update dockerlogger --servers ${CN1},${CN2},...
-
 
 SDC Docker uses (as of [DOCKER-312](https://smartos.org/bugview/DOCKER-312))
 TLS by default. That means you need to setup a user (or use the 'admin' user)
