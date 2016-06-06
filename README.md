@@ -25,10 +25,12 @@ a private SDC Docker stand-up, but not administering it, please see the
 
 # Docker Version
 
-Offically supported version: 1.22 (equivalent to docker client version 1.10)
+Offically supported version: 1.21 (equivalent to docker client version 1.9)
 
-Supported version range: 1.18 to 1.22 (docker client version 1.6 to 1.10,
-docker compose version 1.5 to 1.6)
+Supported version range:
+    Remote API: 1.20 to 1.23
+    Docker CLI: 1.8 to 1.11
+    Docker Compose: 1.6 to 1.7
 
 When a client makes a remote API call to sdc-docker and it does not specify a
 version, then sdc-docker will default to the officially supported version.
