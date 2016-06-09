@@ -172,7 +172,8 @@ function createTarStream(fileAndContents) {
  * DOCKER-662: Ensure no conflicts with same images in different repositories.
  */
 test('api: build image conflicts', function (tt) {
-    var imageName1 = 'docker.io/joyent/triton_alpine_inherit_test:latest';
+    var imageName1 =
+        'docker.io/joyentunsupported/triton_alpine_inherit_test:latest';
     var imageName2 = 'quay.io/joyent/triton_alpine_inherit_test:latest';
 
     // Pull the docker.io alpine image.

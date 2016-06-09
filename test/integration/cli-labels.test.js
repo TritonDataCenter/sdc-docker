@@ -25,7 +25,7 @@ var vm = require('../lib/vm');
 
 var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_labels_';
-var IMAGE_NAME = 'joyent/busybox_with_label_test';
+var IMAGE_NAME = 'joyentunsupported/busybox_with_label_test';
 
 
 
