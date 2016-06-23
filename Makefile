@@ -43,6 +43,7 @@ include ./tools/mk/Makefile.smf.defs
 
 VERSION=$(shell json -f $(TOP)/package.json version)
 COMMIT=$(shell git describe --all --long  | awk -F'-g' '{print $$NF}')
+BUILD_TIMESTAMP=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 RELEASE_TARBALL:=$(NAME)-pkg-$(STAMP).tar.bz2
 RELSTAGEDIR:=/tmp/$(STAMP)
@@ -57,7 +58,7 @@ all: $(SMF_MANIFESTS) build/build.json | $(TAPE) $(NPM_EXEC) sdc-scripts
 
 build/build.json:
 	mkdir -p build
-	echo "{\"version\": \"$(VERSION)\", \"commit\": \"$(COMMIT)\", \"stamp\": \"$(STAMP)\"}" | json >$@
+	echo "{\"version\": \"$(VERSION)\", \"commit\": \"$(COMMIT)\", \"date\": \"$(BUILD_TIMESTAMP)\", \"stamp\": \"$(STAMP)\"}" | json >$@
 
 sdc-scripts: deps/sdc-scripts/.git
 
