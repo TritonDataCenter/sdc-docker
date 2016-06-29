@@ -161,27 +161,6 @@ test('docker NFS shared volume simple creation', function (tt) {
     var containerName;
     var volumeName;
 
-    tt.test('mounting a non-existing NFS shared volume should fail',
-        function (t) {
-            var nonExistingVolumeName = 'non-existing-volume';
-            var expectedErrorMsg = 'Error response from daemon: ';
-            if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                expectedErrorMsg += 'first of 1 error: No volume found with '
-                    + 'name ' + nonExistingVolumeName + ' for current user';
-            } else {
-                expectedErrorMsg += 'host volumes are not supported';
-            }
-
-            containerName =
-                common.makeResourceName(MOUNTING_CONTAINER_NAMES_PREFIX);
-
-            cli.run(t, {
-                args: '--name ' + containerName
-                    + ' -v ' + nonExistingVolumeName + ':/data busybox:latest',
-                expectedErr: expectedErrorMsg
-            });
-        });
-
     tt.test('creating a NFS shared volume should succeed', function (t) {
             volumeName =
                 common.makeResourceName(NFS_SHARED_VOLUME_NAMES_PREFIX);
@@ -402,6 +381,95 @@ test('mounting more than one NFS shared volume', function (tt) {
                     'Removing second shared volume should not error');
                 t.equal(stdout, secondVolumeName + '\n',
                     'Output should be secondVolumeName shared volume\'s name');
+                t.end();
+            });
+    });
+
+    tt.test('deleting mounting container should succeed',
+            function (t) {
+                cli.rm(t, {args: containerName},
+                function onContainerDeleted(err, stdout, stderr) {
+                    t.ifErr(err,
+                        'deleting container mounting NFS shared volume '
+                            + 'should succeed');
+                    t.end();
+                });
+        });
+});
+
+test('docker run mounting non-existent volume', function (tt) {
+    var nonExistingVolumeName = 'non-existent-volume';
+    var containerName =
+                common.makeResourceName(MOUNTING_CONTAINER_NAMES_PREFIX);
+
+    tt.test('mounting a non-existent NFS shared volume should succeed',
+        function (t) {
+            cli.run(t, {
+                args: '--name ' + containerName
+                    + ' -v ' + nonExistingVolumeName + ':/data busybox:latest'
+                    + ' /bin/sh -c "touch /data/foo.txt && ls /data"'
+            }, function onContainerRun(err, output) {
+                if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                    t.ifErr(err, 'Mounting a non-existent volume should not '
+                        + 'error');
+                    t.equal(output.stdout, 'foo.txt\n', 'Output should include '
+                        + 'newly created file\'s name');
+                } else {
+                    checkVolumesSupportDisabled(t, err, output.stderr);
+                }
+
+                t.end();
+            });
+        });
+
+    tt.test('listing volumes should output newly created volume', function (t) {
+        cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            var outputLines;
+            var foundNewlyCreatedVolume = false;
+
+            if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
+                t.ok(outputLines.length > 0,
+                    'volumes list should not be empty');
+
+                outputLines.forEach(function checkVolumeLsOutputLine(line) {
+                    var driverAndName = line.trim().split(/\s+/);
+                    t.equal(driverAndName[0], NFS_SHARED_VOLUMES_DRIVER_NAME,
+                        'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                    if (driverAndName[1] === nonExistingVolumeName) {
+                        foundNewlyCreatedVolume = true;
+                    }
+                });
+
+                t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
+                    + 'present in volume ls output');
+            } else {
+                checkVolumesSupportDisabled(t, err, stderr);
+            }
+
+            t.end();
+        });
+    });
+
+    // Skip next tests if NFS shared volumes are not supported, as they would
+    // fail since the volume that needs to be mounted would have not been
+    // created. Testing that mounting a nonexistent module fails is done in a
+    // separate test, and this allows us to make the rest of this test slightly
+    // simpler to read.
+    if (!NFS_SHARED_VOLUMES_SUPPORTED) {
+        return;
+    }
+
+    tt.test('deleting shared volume should succeed', function (t) {
+        cli.rmVolume({args: nonExistingVolumeName},
+            function onVolumeDeleted(err, stdout, stderr) {
+                t.ifErr(err,
+                    'Removing shared volume should not error');
+                t.equal(stdout, nonExistingVolumeName + '\n',
+                    'Output should be shared volume\'s name');
                 t.end();
             });
     });
