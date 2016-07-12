@@ -366,15 +366,31 @@ test('ensure fabrics enabled', function (tt) {
 
 
 /*
- * Creates two fabric networks, with the second named using the uuid of the
- * first, used to test HostConfig.NetworkMode handling.
+ * Tests for `docker run --net`
+ *
+ * Of particular interest is whether we can appropriately disambiguate the
+ * user-supplied network name/id. The docker heuristic appears to be:
+ * 1. exact id match
+ * 2. exact name match
+ * 3. any partial id match
+ * See lib/backends/sdc/containers.js for implementation.
  */
-test('fabric setup', function (tt) {
+/*
+ * XXX - pending NAPI-258, we are creating NAT zones, a fabric vlan, and
+ * several fabric networks that can't be easily cleaned up. They should
+ * still be re-usable for repeated test runs, but particularly unlucky
+ * partial failures in the tests *may* require some manual cleanup:
+ * - delete NAT zones for ALICE & the fabric networks
+ * - delete fabric networks
+ * - delete fabric vlan
+ */
+test('create with NetworkMode (docker run --net=)', function (tt) {
     // set fabric status
 
     var fVlan;
     var fNetwork1;
     var fNetwork2;
+    var fNetwork3;
 
     if (!FABRICS) {
         tt.end();
@@ -400,7 +416,14 @@ test('fabric setup', function (tt) {
 
     tt.test('fabric network setup', function (t) {
         var nw1uuid = libuuid.create();
-        var nw2uuid = nw1uuid.replace(/-/g, '').substr(0, 12);
+
+        // deliberately ambiguous with a short version of nw1's id. This should
+        // be preferred (exact name wins over short id);
+        var nw2name = nw1uuid.replace(/-/g, '').substr(0, 12);
+
+        // deliberately ambigious with nw1's full id. nw1 should be preferred
+        // (exact id wins over exact name);
+        var nw3name = (nw1uuid + nw1uuid).replace(/-/g, '');
 
         var nw1params = {
             name: 'alicetest1',
@@ -414,11 +437,20 @@ test('fabric setup', function (tt) {
 
         // Must ignore the common naming convenetion for the sake of testing.
         var nw2params = {
-            name: nw2uuid,
+            name: nw2name,
             subnet: '10.0.9.0/24',
             provision_start_ip: '10.0.9.2',
             provision_end_ip: '10.0.9.254',
             gateway: '10.0.9.1',
+            resolvers: ['8.8.8.8', '8.8.4.4']
+        };
+
+        var nw3params = {
+            name: nw3name,
+            subnet: '10.0.10.0/24',
+            provision_start_ip: '10.0.10.2',
+            provision_end_ip: '10.0.10.254',
+            gateway: '10.0.10.1',
             resolvers: ['8.8.8.8', '8.8.4.4']
         };
 
@@ -432,6 +464,7 @@ test('fabric setup', function (tt) {
                             }
                             nw2params.name =
                                 network.uuid.replace(/-/g, '').substr(0, 12);
+                            nw3params.name = network.uuid.replace(/-/g, '');
                             return cb(null, network);
                         }
                     );
@@ -439,6 +472,10 @@ test('fabric setup', function (tt) {
                 function fnw2(_, cb) {
                     h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
                         fVlan.vlan_id, nw2params, cb);
+                },
+                function fnw3(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw3params, cb);
                 }
             ]
         }, function (err, results) {
@@ -449,6 +486,8 @@ test('fabric setup', function (tt) {
             }
             fNetwork1 = results.operations[0].result;
             fNetwork2 = results.operations[1].result;
+            fNetwork3 = results.operations[2].result;
+
             t.end();
         });
     });
@@ -525,8 +564,8 @@ test('fabric setup', function (tt) {
         }
     });
 
-    tt.test('create with ambiguous name/network id', function (t) {
-        // we named fNetwork2 after the uuid of fNetwork1.
+    tt.test('prefer name over partial id', function (t) {
+        // fNetwork2 is named using a partial id from fNetwork1.
 
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -549,13 +588,38 @@ test('fabric setup', function (tt) {
         }
     });
 
+    tt.test('prefer full id over name', function (t) {
+        // fNetwork3 is named with the full dockerId of fNetwork1.
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': fNetwork3.name },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+
+    });
+
     tt.test('create with a network that doesn\'t exist', function (t) {
         h.createDockerContainer({
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
             extra: { 'HostConfig.NetworkMode': 'netmodefoobar' },
-            expectedErr: 'unable to find network matching netmodefoobar',
+            expectedErr: '(Error) network netmodefoobar not found',
             start: true
         }, oncreate);
 
@@ -564,9 +628,6 @@ test('fabric setup', function (tt) {
             t.end();
         }
     });
-
-    // XXX - can't delete the network without deleting the NAT zone.
-    // how can we grab the nat zone to clean up?
 });
 
 test('cleanup', function (tt) {
