@@ -14,6 +14,7 @@
 
 var exec = require('child_process').exec;
 var format = require('util').format;
+var libuuid = require('libuuid');
 var test = require('tape');
 var util = require('util');
 var vasync = require('vasync');
@@ -363,6 +364,11 @@ test('ensure fabrics enabled', function (tt) {
     });
 });
 
+
+/*
+ * Creates two fabric networks, with the second named using the uuid of the
+ * first, used to test HostConfig.NetworkMode handling.
+ */
 test('fabric setup', function (tt) {
     // set fabric status
 
@@ -380,69 +386,71 @@ test('fabric setup', function (tt) {
         var fabricParams = {
             name: 'alicetest',
             description: 'integration test fixture',
-            vlan_id: 6
+            vlan_id: 4
         };
-        NAPI.getFabricVLAN(ALICE.account.uuid, fabricParams.vlan_id, {},
+        h.getOrCreateFabricVLAN(NAPI, ALICE.account.uuid, fabricParams,
             function (err, vlan) {
-                if (err && err.restCode === 'ResourceNotFoundError') {
-                    NAPI.createFabricVLAN(ALICE.account.uuid, fabricParams,
-                        function (err2, newvlan) {
-                            // ok if it exists.
-
-                            t.ifErr(err2, 'create fabric vlan');
-                            fVlan = newvlan;
-                            t.end();
-                            return;
-                        }
-                    );
-                }
-                t.ifErr(err, 'find or create fabric vlan');
+                t.ifErr(err, 'create fabric vlan');
                 fVlan = vlan;
                 t.end();
+                return;
             }
         );
     });
 
     tt.test('fabric network setup', function (t) {
-        // create a couple of new ones.
-        // create two new fabric networks, one with a simple name,
-        // and one named after the user's default.
+        var nw1uuid = libuuid.create();
+        var nw2uuid = nw1uuid.replace(/-/g, '').substr(0, 12);
 
-
-        // XXX - gen uuid here.
-        var network1Params = {
+        var nw1params = {
             name: 'alicetest1',
-            subnet: '10.0.4.0/24',
-            provision_start_ip: '10.0.4.2',
-            provision_end_ip: '10.0.4.254',
-            gateway: '10.0.4.1',
+            subnet: '10.0.8.0/24',
+            provision_start_ip: '10.0.8.2',
+            provision_end_ip: '10.0.8.254',
+            uuid: nw1uuid,
+            gateway: '10.0.8.1',
             resolvers: ['8.8.8.8', '8.8.4.4']
         };
 
-        // XXX - use gen uuid here for name.
-        var network2Params = {
-            subnet: '10.0.5.0/24',
-            provision_start_ip: '10.0.5.2',
-            provision_end_ip: '10.0.5.254',
-            gateway: '10.0.5.1',
+        // Must ignore the common naming convenetion for the sake of testing.
+        var nw2params = {
+            name: nw2uuid,
+            subnet: '10.0.9.0/24',
+            provision_start_ip: '10.0.9.2',
+            provision_end_ip: '10.0.9.254',
+            gateway: '10.0.9.1',
             resolvers: ['8.8.8.8', '8.8.4.4']
         };
 
-        NAPI.createFabricNetwork(ALICE.account.uuid, fVlan.vlan_id,
-            network1Params, function (err1, network1) {
-                t.ifErr(err1, 'create fabric network1');
-                fNetwork1 = network1;
-                // we want the second to be named with the uuid of the first!
-                network2Params.name = fNetwork1.uuid.substr(0, 8);
-                NAPI.createFabricNetwork(ALICE.account.uuid, fVlan.vlan_id,
-                    network2Params, function (err2, network2) {
-                        t.ifErr(err2, 'create fabric network2');
-                        fNetwork2 = network2;
-                        t.end();
-                    }
-                );
+        vasync.pipeline({
+            funcs: [
+                function fnw1(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw1params, function (err, network) {
+                            if (err) {
+                                return cb(err);
+                            }
+                            nw2params.name =
+                                network.uuid.replace(/-/g, '').substr(0, 12);
+                            return cb(null, network);
+                        }
+                    );
+                },
+                function fnw2(_, cb) {
+                    h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
+                        fVlan.vlan_id, nw2params, cb);
+                }
+            ]
+        }, function (err, results) {
+            t.ifErr(err, 'create networks');
+            if (err) {
+                t.end();
+                return;
             }
-        );
+            fNetwork1 = results.operations[0].result;
+            fNetwork2 = results.operations[1].result;
+            t.end();
+        });
     });
 
     // attempt a create with a name.
@@ -494,7 +502,7 @@ test('fabric setup', function (tt) {
 
     tt.test('create with partial network id', function (t) {
         var partialId = (fNetwork1.uuid + fNetwork1.uuid).replace(/-/g, '');
-        partialId = partialId.substr(0, 12);
+        partialId = partialId.substr(0, 10);
 
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -507,7 +515,7 @@ test('fabric setup', function (tt) {
         function oncreate(err, result) {
             var nics = result.vm.nics;
             t.equal(nics.length, 1, 'only one nic');
-            t.equal(nics[0].network_uuid, fNetwork1, 'correct network');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
             DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
         }
 
@@ -547,6 +555,7 @@ test('fabric setup', function (tt) {
             dockerClient: DOCKER_ALICE,
             test: t,
             extra: { 'HostConfig.NetworkMode': 'netmodefoobar' },
+            expectedErr: 'unable to find network matching netmodefoobar',
             start: true
         }, oncreate);
 

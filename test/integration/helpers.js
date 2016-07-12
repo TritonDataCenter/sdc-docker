@@ -1652,6 +1652,43 @@ function didRestifyHandlerRun(reqId, handlerName, callback) {
     });
 }
 
+/*
+ * Gets or creates a fabric VLAN for use in testing.
+ */
+function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
+    client.getFabricVLAN(userUuid, fabricParams.vlan_id, {},
+        function (err, vlan) {
+            if (err && err.restCode !== 'ResourceNotFound') {
+                return callback(err);
+            } else if (vlan) {
+                return callback(null, vlan);
+            }
+            client.createFabricVLAN(userUuid, fabricParams, callback);
+        }
+    );
+}
+
+/*
+ * Gets or creates a fabric network for use in testing; based on the
+ * network *name*.
+ */
+function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
+    var listParams = {
+        name: params.name
+    };
+    client.listFabricNetworks(userUuid, vlan_id, listParams,
+        function (err, networks) {
+            if (err) {
+                return callback(err);
+            }
+            if (networks.length !== 0) {
+                return callback(null, networks[0]);
+            }
+            client.createFabricNetwork(userUuid, vlan_id, params, callback);
+        }
+    );
+}
+
 // --- exports
 
 module.exports = {
@@ -1666,6 +1703,8 @@ module.exports = {
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
     buildDockerContainer: buildDockerContainer,
+    getOrCreateFabricVLAN: getOrCreateFabricVLAN,
+    getOrCreateFabricNetwork: getOrCreateFabricNetwork,
 
     getDockerEnv: getDockerEnv,
 
