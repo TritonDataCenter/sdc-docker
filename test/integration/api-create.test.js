@@ -464,7 +464,8 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
                             }
                             nw2params.name =
                                 network.uuid.replace(/-/g, '').substr(0, 12);
-                            nw3params.name = network.uuid.replace(/-/g, '');
+                            nw3params.name = (network.uuid + network.uuid)
+                                .replace(/-/g, '');
                             return cb(null, network);
                         }
                     );
