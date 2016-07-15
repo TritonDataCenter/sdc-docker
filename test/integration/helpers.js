@@ -1656,6 +1656,10 @@ function didRestifyHandlerRun(reqId, handlerName, callback) {
  * Gets or creates a fabric VLAN for use in testing.
  */
 function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
+    assert.object(client, 'napi client');
+    assert.UUID(userUuid, 'user uuid');
+    assert.object(fabricParams, 'fabricParams');
+
     client.getFabricVLAN(userUuid, fabricParams.vlan_id, {},
         function (err, vlan) {
             if (err && err.restCode !== 'ResourceNotFound') {
@@ -1673,6 +1677,11 @@ function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
  * network *name*.
  */
 function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
+    assert.object(client, 'napi client');
+    assert.UUID(userUuid, 'user uuid');
+    assert.number(vlan_id, 'vlan_id');
+    assert.object(params, 'network params');
+
     var listParams = {
         name: params.name
     };

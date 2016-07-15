@@ -417,12 +417,12 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     tt.test('fabric network setup', function (t) {
         var nw1uuid = libuuid.create();
 
-        // deliberately ambiguous with a short version of nw1's id. This should
-        // be preferred (exact name wins over short id);
+        // nw2's name is deliberately ambiguous with a short version of nw1's
+        // id. The exact name (nw2) should be preferred to the partial id.
         var nw2name = nw1uuid.replace(/-/g, '').substr(0, 12);
 
-        // deliberately ambigious with nw1's full id. nw1 should be preferred
-        // (exact id wins over exact name);
+        // nw3's name is identical to nw1's full id. The full exact id should
+        // be preferred over a name, so nw1 should be picked.
         var nw3name = (nw1uuid + nw1uuid).replace(/-/g, '');
 
         var nw1params = {
@@ -435,7 +435,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             resolvers: ['8.8.8.8', '8.8.4.4']
         };
 
-        // Must ignore the common naming convenetion for the sake of testing.
+        // name deliberately ambiguous with a short version of nw1's docker id
         var nw2params = {
             name: nw2name,
             subnet: '10.0.9.0/24',
@@ -445,6 +445,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             resolvers: ['8.8.8.8', '8.8.4.4']
         };
 
+        // name deliberately identical to nw1's docker id
         var nw3params = {
             name: nw3name,
             subnet: '10.0.10.0/24',
