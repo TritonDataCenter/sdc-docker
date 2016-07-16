@@ -1657,7 +1657,7 @@ function didRestifyHandlerRun(reqId, handlerName, callback) {
  */
 function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
     assert.object(client, 'napi client');
-    assert.UUID(userUuid, 'user uuid');
+    assert.uuid(userUuid, 'user uuid');
     assert.object(fabricParams, 'fabricParams');
 
     client.getFabricVLAN(userUuid, fabricParams.vlan_id, {},
@@ -1678,7 +1678,7 @@ function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
  */
 function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
     assert.object(client, 'napi client');
-    assert.UUID(userUuid, 'user uuid');
+    assert.uuid(userUuid, 'user uuid');
     assert.number(vlan_id, 'vlan_id');
     assert.object(params, 'network params');
 
