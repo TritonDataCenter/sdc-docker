@@ -69,6 +69,62 @@ test('setup', function (tt) {
     });
 });
 
+function deleteVolume(volumeName, callback) {
+    assert.string(volumeName, 'volumeName');
+    assert.func(callback, 'callback');
+
+    cli.rmVolume({args: volumeName}, callback);
+}
+
+function deleteVolumes(volumeNames, callback) {
+    assert.arrayOfString(volumeNames, 'volumeNames');
+    assert.func(callback, 'callback');
+
+    vasync.forEachParallel({
+        func: deleteVolume,
+        inputs: volumeNames
+    }, callback);
+}
+
+test('cleanup leftover resources from previous tests run', function (tt) {
+
+    tt.test('leftover volumes should be cleaned up', function (t) {
+        var leftoverVolumeNames = [];
+
+        vasync.pipeline({funcs: [
+            function listLeftoverVolumes(_, next) {
+                cli.listVolumes({},
+                function onVolumesListed(err, stdout, stderr) {
+                    var outputLines;
+
+                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                        t.ifErr(err, 'listing volumes should not error');
+                        outputLines = stdout.trim().split(/\n/);
+                        // Remove header from docker volume ls' output.
+                        outputLines = outputLines.slice(1);
+
+                        outputLines.forEach(function addLeftoverVolume(line) {
+                            var driverAndName = line.trim().split(/\s+/);
+                            var volumeName = driverAndName[1];
+
+                            leftoverVolumeNames.push(volumeName);
+                        });
+                    } else {
+                        checkVolumesSupportDisabled(t, err, stderr);
+                    }
+
+                    next();
+                });
+            },
+            function deleteLeftoverVolumes(_, next) {
+                deleteVolumes(leftoverVolumeNames, next);
+            }
+        ]}, function cleanupDone(err) {
+            t.end();
+        });
+    });
+});
+
 test('docker volume with default driver', function (tt) {
     var volumeName;
 
@@ -117,44 +173,70 @@ test('docker volume with default driver', function (tt) {
 
                         next();
                     });
+            },
+            function _deleteVolume(_, next) {
+                cli.rmVolume({args: volumeName},
+                function onVolumeDeleted(err, stdout, stderr) {
+                    t.ifErr(err,
+                        'Removing an existing shared volume should not error');
+                    t.equal(stdout, volumeName + '\n',
+                        'Output should be shared volume\'s name');
+                    next();
+                });
             }
-        ]}, function createAndInspectDone(err) {
+        ]}, function allDone(err) {
             t.end();
         });
     });
 });
 
 test('docker volume with default name', function (tt) {
+    var volumeName;
 
     tt.test('creating volume without specifying a name should succeed and '
         + 'generate a new name', function (t) {
-            cli.createVolume({
-                args: '--driver ' + NFS_SHARED_VOLUMES_DRIVER_NAME
-            }, function onVolumeCreated(err, stdout, stderr) {
-                var stdoutLines;
-                var createdVolumeName;
+        vasync.pipeline({funcs: [
+            function _createVolume(_, next) {
+                cli.createVolume({
+                    args: '--driver ' + NFS_SHARED_VOLUMES_DRIVER_NAME
+                }, function onVolumeCreated(err, stdout, stderr) {
+                    var stdoutLines;
 
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                        t.ifErr(err,
+                            'volume should have been created successfully');
+
+                        stdoutLines = stdout.split('\n');
+                        t.equal(stdoutLines.length, 2,
+                            'output should be two lines');
+
+                        volumeName = stdoutLines[0];
+                        t.ok(volumeName.match(GENERATED_VOLUME_NAME_REGEXP),
+                            'newly created volume\'s name "'
+                                + volumeName + '" should match: '
+                                + GENERATED_VOLUME_NAME_REGEXP);
+                    } else {
+                        t.notEqual(stderr.indexOf('Volumes are not supported'),
+                            -1);
+                    }
+
+                    next();
+                });
+            },
+            function _deleteVolume(_, next) {
+                cli.rmVolume({args: volumeName},
+                function onVolumeDeleted(err, stdout, stderr) {
                     t.ifErr(err,
-                        'volume should have been created successfully');
-
-                    stdoutLines = stdout.split('\n');
-                    t.equal(stdoutLines.length, 2,
-                        'output should be two lines');
-
-                    createdVolumeName = stdoutLines[0];
-                    t.ok(createdVolumeName.match(GENERATED_VOLUME_NAME_REGEXP),
-                        'newly created volume\'s name "'
-                            + createdVolumeName + '" should match: '
-                            + GENERATED_VOLUME_NAME_REGEXP);
-                } else {
-                    t.notEqual(stderr.indexOf('Volumes are not supported'),
-                        -1);
-                }
-
-                t.end();
-            });
+                        'Removing an existing shared volume should not error');
+                    t.equal(stdout, volumeName + '\n',
+                        'Output should be shared volume\'s name');
+                    next();
+                });
+            }
+        ]}, function allDone(err) {
+            t.end();
         });
+    });
 });
 
 test('docker NFS shared volume simple creation', function (tt) {
@@ -484,4 +566,41 @@ test('docker run mounting non-existent volume', function (tt) {
                     t.end();
                 });
         });
+});
+
+test('list docker volumes', function (tt) {
+
+    tt.test('should not output deleted volumes', function (t) {
+        cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            var outputLines;
+            var foundDeletedVolume = false;
+
+            if (NFS_SHARED_VOLUMES_SUPPORTED) {
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
+
+                outputLines.forEach(function checkVolumeLsOutputLine(line) {
+                    var driverAndName = line.trim().split(/\s+/);
+                    var volumeDriver = driverAndName[0];
+                    var volumeName = driverAndName[1];
+
+                    t.equal(volumeDriver, NFS_SHARED_VOLUMES_DRIVER_NAME,
+                        'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                    if (volumeName.match(NFS_SHARED_VOLUME_NAMES_PREFIX)) {
+                        foundDeletedVolume = true;
+                    }
+                });
+
+                t.equal(foundDeletedVolume, false,
+                    'volumes created and deleted by this tests suite should '
+                        + 'not be listed in volume ls output');
+            } else {
+                checkVolumesSupportDisabled(t, err, stderr);
+            }
+
+            t.end();
+        });
+    });
 });
