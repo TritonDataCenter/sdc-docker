@@ -287,9 +287,9 @@ function makeResourceName(prefix) {
 function parseDockerVersion(dockerVersionString) {
     assert.string(dockerVersionString);
 
-    var dockerVersionRegExp = /^(\d+)\.(\d+)\.(\d+)$/;
+    var dockerVersionRegExp = /^(\d+)\.(\d+)\.(\d+)(\-[a-z0-9]+)?$/;
     var matches = dockerVersionString.match(dockerVersionRegExp);
-    var major, minor, patch;
+    var major, minor, patch, label;
 
     if (!matches) {
         return null;
@@ -298,7 +298,12 @@ function parseDockerVersion(dockerVersionString) {
     major = Number(matches[1]);
     minor = Number(matches[2]);
     patch = Number(matches[3]);
+    label = matches[4];
+    if (label !== undefined) {
+        label = label.substr(1);
+    }
 
+    // major, minor and patch version info are mandatory, label is optional
     if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
         return null;
     }
@@ -306,7 +311,8 @@ function parseDockerVersion(dockerVersionString) {
     return {
         major: major,
         minor: minor,
-        patch: patch
+        patch: patch,
+        label: label
     };
 }
 

@@ -21,6 +21,9 @@ if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
     process.exit(0);
 }
 
+var DOCKER_VOLUME_RM_USES_STDERR = dockerVersion.major >= 1
+    && dockerVersion.minor >= 12;
+
 var assert = require('assert-plus');
 var test = require('tape');
 var vasync = require('vasync');
@@ -177,9 +180,12 @@ test('docker volume with default driver', function (tt) {
             function _deleteVolume(_, next) {
                 cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
+                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
-                    t.equal(stdout, volumeName + '\n',
+                    t.equal(dockerVolumeOutput, volumeName + '\n',
                         'Output should be shared volume\'s name');
                     next();
                 });
@@ -226,9 +232,12 @@ test('docker volume with default name', function (tt) {
             function _deleteVolume(_, next) {
                 cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
+                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
-                    t.equal(stdout, volumeName + '\n',
+                    t.equal(dockerVolumeOutput, volumeName + '\n',
                         'Output should be shared volume\'s name');
                     next();
                 });
@@ -361,9 +370,12 @@ test('docker NFS shared volume simple creation', function (tt) {
         tt.test('deleting shared volume should succeed', function (t) {
             cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
+                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
-                    t.equal(stdout, volumeName + '\n',
+                    t.equal(dockerVolumeOutput, volumeName + '\n',
                         'Output should be shared volume\'s name');
                     t.end();
                 });
@@ -448,9 +460,12 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('deleting first shared volume should succeed', function (t) {
         cli.rmVolume({args: firstVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                 t.ifErr(err,
                     'Removing first shared volume should not error');
-                t.equal(stdout, firstVolumeName + '\n',
+                t.equal(dockerVolumeOutput, firstVolumeName + '\n',
                     'Output should be first shared volume\'s name');
                 t.end();
             });
@@ -459,9 +474,12 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('deleting second shared volume should succeed', function (t) {
         cli.rmVolume({args: secondVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                 t.ifErr(err,
                     'Removing second shared volume should not error');
-                t.equal(stdout, secondVolumeName + '\n',
+                t.equal(dockerVolumeOutput, secondVolumeName + '\n',
                     'Output should be secondVolumeName shared volume\'s name');
                 t.end();
             });
@@ -548,9 +566,12 @@ test('docker run mounting non-existent volume', function (tt) {
     tt.test('deleting shared volume should succeed', function (t) {
         cli.rmVolume({args: nonExistingVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
+                        stderr : stdout;
+
                 t.ifErr(err,
                     'Removing shared volume should not error');
-                t.equal(stdout, nonExistingVolumeName + '\n',
+                t.equal(dockerVolumeOutput, nonExistingVolumeName + '\n',
                     'Output should be shared volume\'s name');
                 t.end();
             });
