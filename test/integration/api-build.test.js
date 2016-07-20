@@ -325,8 +325,10 @@ test('api: build across multiple registries', function (tt) {
                 function onbuild(err, result) {
                     t.ifErr(err, 'build should not error on post');
                     var msg = result.body;
-                    t.ok(msg.indexOf('different registries') >= 0,
-                        'expected a "different registries" error message');
+                    if (msg.indexOf('different registries') === -1) {
+                        t.fail('expected a "different registries" error '
+                            + 'message, got: "' + msg + '"');
+                    }
                     next();
                 }
             }
