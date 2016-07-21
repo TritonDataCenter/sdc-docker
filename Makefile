@@ -48,6 +48,8 @@ BUILD_TIMESTAMP=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
 RELEASE_TARBALL:=$(NAME)-pkg-$(STAMP).tar.bz2
 RELSTAGEDIR:=/tmp/$(STAMP)
 
+COAL ?= 10.99.99.7
+
 
 #
 # Targets
@@ -87,7 +89,7 @@ test: $(TAPE)
 #
 .PHONY: test-integration-in-coal
 test-integration-in-coal:
-	@ssh root@10.99.99.7 'LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests $(TEST_ARGS)'
+	@ssh root@$(COAL) 'LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests $(TEST_ARGS)'
 
 
 .PHONY: git-hooks
