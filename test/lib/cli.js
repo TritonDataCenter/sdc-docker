@@ -549,6 +549,24 @@ function cliCommit(t, opts, callback) {
 }
 
 
+/**
+ * `docker attach <id>`
+ *
+ * Attach to a running container.
+ */
+
+function cliAttach(t, opts, callback) {
+    assert.object(t, 't');
+    assert.object(opts, 'opts');
+    assert.string(opts.args, 'opts.args');
+
+    ALICE.docker('attach ' + opts.args, function (err, stdout, stderr) {
+        // pass errors back to caller
+        common.done(t, callback, err);
+    });
+}
+
+
 module.exports = {
     commit: cliCommit,
     create: cliCreate,
@@ -575,5 +593,6 @@ module.exports = {
     rmAllCreated: cliRmAllCreated,
     run: cliRun,
     stop: cliStop,
-    start: cliStart
+    start: cliStart,
+    attach: cliAttach
 };
