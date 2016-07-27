@@ -13,53 +13,29 @@
  * shared volumes (currently named 'tritonnfs').
  */
 
-var common = require('../lib/common');
-var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
-if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
-    console.log('Skipping volume tests: volumes are not supported in Docker '
-        + 'versions < 1.9');
-    process.exit(0);
-}
-
-var DOCKER_VOLUME_RM_USES_STDERR = dockerVersion.major >= 1
-    && dockerVersion.minor >= 12;
-
 var assert = require('assert-plus');
 var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
-var log = require('../lib/log');
+var common = require('../lib/common');
+var testVolumes = require('../lib/volumes');
 
-var configLoader = require('../../lib/config-loader');
-var CONFIG = configLoader.loadConfigSync({log: log});
-var NFS_SHARED_VOLUMES_SUPPORTED = false;
-if (CONFIG.experimental_nfs_shared_volumes === true) {
-    NFS_SHARED_VOLUMES_SUPPORTED = true;
+if (!testVolumes.dockerClientSupportsVolumes()) {
+    console.log('Skipping volume tests: volumes are not supported in Docker '
+        + 'versions < 1.9');
+    process.exit(0);
 }
-var NFS_SHARED_VOLUMES_DRIVER_NAME = 'tritonnfs';
 
-var NFS_SHARED_VOLUME_NAMES_PREFIX = 'test-nfs-shared-volume';
+var errorMeansNFSSharedVolumeSupportDisabled =
+    testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+
+var NFS_SHARED_VOLUMES_SUPPORTED = testVolumes.nfsSharedVolumesSupported();
+var NFS_SHARED_VOLUME_NAMES_PREFIX =
+    testVolumes.getNfsSharedVolumesNamePrefix();
+var NFS_SHARED_VOLUMES_DRIVER_NAME =
+    testVolumes.getNfsSharedVolumesDriverName();
 var MOUNTING_CONTAINER_NAMES_PREFIX = 'test-nfs-mounting-container';
-var GENERATED_VOLUME_NAME_REGEXP = /^[\w0-9]{64}$/;
-
-var STATE = {
-    log: log
-};
-
-var ALICE;
-var DOCKER_API_CLIENT;
-
-function checkVolumesSupportDisabled(t, err, stderr) {
-    assert.object(t, 't');
-    assert.optionalObject(err, 'err');
-    assert.optionalString(stderr, 'stderr');
-
-    var expectedErrMsg = 'Volumes are not supported';
-
-    t.ok(err, 'Volume operation should result in an errror');
-    t.notEqual(stderr.indexOf(expectedErrMsg), -1);
-}
 
 test('setup', function (tt) {
     tt.test('DockerEnv: alice init', cli.init);
@@ -113,7 +89,8 @@ test('cleanup leftover resources from previous tests run', function (tt) {
                             leftoverVolumeNames.push(volumeName);
                         });
                     } else {
-                        checkVolumesSupportDisabled(t, err, stderr);
+                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
+                            stderr));
                     }
 
                     next();
@@ -180,8 +157,10 @@ test('docker volume with default driver', function (tt) {
             function _deleteVolume(_, next) {
                 cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                    var dockerVolumeOutput = stdout;
+                    if (testVolumes.dockerVolumeRmUsesStderr()) {
+                        dockerVolumeOutput = stderr;
+                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
@@ -217,10 +196,10 @@ test('docker volume with default name', function (tt) {
                             'output should be two lines');
 
                         volumeName = stdoutLines[0];
-                        t.ok(volumeName.match(GENERATED_VOLUME_NAME_REGEXP),
-                            'newly created volume\'s name "'
-                                + volumeName + '" should match: '
-                                + GENERATED_VOLUME_NAME_REGEXP);
+                        t.ok(testVolumes.validGeneratedVolumeName(volumeName),
+                            'newly created volume\'s name "' + volumeName
+                                + '" should match automatically generated '
+                                + 'volume name pattern');
                     } else {
                         t.notEqual(stderr.indexOf('Volumes are not supported'),
                             -1);
@@ -232,8 +211,10 @@ test('docker volume with default name', function (tt) {
             function _deleteVolume(_, next) {
                 cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                    var dockerVolumeOutput = stdout;
+                    if (testVolumes.dockerVolumeRmUsesStderr()) {
+                        dockerVolumeOutput = stderr;
+                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
@@ -265,7 +246,7 @@ test('docker NFS shared volume simple creation', function (tt) {
                     t.equal(stdout, volumeName + '\n',
                         'output should be newly created volume\'s name');
                 } else {
-                    checkVolumesSupportDisabled(t, err, stderr);
+                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
                 }
 
                 t.end();
@@ -297,7 +278,7 @@ test('docker NFS shared volume simple creation', function (tt) {
                 t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
                     + 'present in volume ls output');
             } else {
-                checkVolumesSupportDisabled(t, err, stderr);
+                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
             }
 
             t.end();
@@ -370,8 +351,10 @@ test('docker NFS shared volume simple creation', function (tt) {
         tt.test('deleting shared volume should succeed', function (t) {
             cli.rmVolume({args: volumeName},
                 function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                    var dockerVolumeOutput = stdout;
+                    if (testVolumes.dockerVolumeRmUsesStderr()) {
+                        dockerVolumeOutput = stderr;
+                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
@@ -400,7 +383,7 @@ test('mounting more than one NFS shared volume', function (tt) {
                     t.equal(stdout, firstVolumeName + '\n',
                         'output should be newly created volume\'s name');
                 } else {
-                    checkVolumesSupportDisabled(t, err, stderr);
+                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
                 }
 
                 t.end();
@@ -420,7 +403,7 @@ test('mounting more than one NFS shared volume', function (tt) {
                     t.equal(stdout, secondVolumeName + '\n',
                         'output should be newly created volume\'s name');
                 } else {
-                    checkVolumesSupportDisabled(t, err, stderr);
+                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
                 }
 
                 t.end();
@@ -460,8 +443,10 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('deleting first shared volume should succeed', function (t) {
         cli.rmVolume({args: firstVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
-                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                var dockerVolumeOutput = stdout;
+                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                    dockerVolumeOutput = stderr;
+                }
 
                 t.ifErr(err,
                     'Removing first shared volume should not error');
@@ -474,8 +459,10 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('deleting second shared volume should succeed', function (t) {
         cli.rmVolume({args: secondVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
-                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                var dockerVolumeOutput = stdout;
+                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                    dockerVolumeOutput = stderr;
+                }
 
                 t.ifErr(err,
                     'Removing second shared volume should not error');
@@ -515,7 +502,7 @@ test('docker run mounting non-existent volume', function (tt) {
                     t.equal(output.stdout, 'foo.txt\n', 'Output should include '
                         + 'newly created file\'s name');
                 } else {
-                    checkVolumesSupportDisabled(t, err, output.stderr);
+                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, output));
                 }
 
                 t.end();
@@ -547,7 +534,7 @@ test('docker run mounting non-existent volume', function (tt) {
                 t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
                     + 'present in volume ls output');
             } else {
-                checkVolumesSupportDisabled(t, err, stderr);
+                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
             }
 
             t.end();
@@ -566,8 +553,10 @@ test('docker run mounting non-existent volume', function (tt) {
     tt.test('deleting shared volume should succeed', function (t) {
         cli.rmVolume({args: nonExistingVolumeName},
             function onVolumeDeleted(err, stdout, stderr) {
-                var dockerVolumeOutput = DOCKER_VOLUME_RM_USES_STDERR ?
-                        stderr : stdout;
+                var dockerVolumeOutput = stdout;
+                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                    dockerVolumeOutput = stderr;
+                }
 
                 t.ifErr(err,
                     'Removing shared volume should not error');
@@ -618,7 +607,7 @@ test('list docker volumes', function (tt) {
                     'volumes created and deleted by this tests suite should '
                         + 'not be listed in volume ls output');
             } else {
-                checkVolumesSupportDisabled(t, err, stderr);
+                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
             }
 
             t.end();
