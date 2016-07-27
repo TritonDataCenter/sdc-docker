@@ -393,6 +393,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     var fNetwork3;
 
     if (!FABRICS) {
+        tt.comment('Fabrics not enabled, skipping tests that require them.');
         tt.end();
         return;
     }
@@ -400,7 +401,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     tt.test('fabric vlan setup', function (t) {
         // create a new one.
         var fabricParams = {
-            name: 'alicetest',
+            name: 'sdcdockertest_apicreate_vlan4',
             description: 'integration test fixture',
             vlan_id: 4
         };
@@ -426,7 +427,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         var nw3name = (nw1uuid + nw1uuid).replace(/-/g, '');
 
         var nw1params = {
-            name: 'alicetest1',
+            name: 'sdcdockertest_apicreate_net1',
             subnet: '10.0.8.0/24',
             provision_start_ip: '10.0.8.2',
             provision_end_ip: '10.0.8.254',
