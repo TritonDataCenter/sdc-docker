@@ -29,7 +29,6 @@ var test = require('tape');
 
 var cli = require('../lib/cli');
 var log = require('../lib/log');
-var mod_testVolumes = require('../lib/volumes');
 
 var createTestVolume = mod_testVolumes.createTestVolume;
 
