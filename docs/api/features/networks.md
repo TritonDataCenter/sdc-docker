@@ -9,17 +9,20 @@ Each default fabric network is private to a user - one user's containers cannot
 connect to another's fabric IP addresses, and vice-versa.
 
 To isolate the traffic between different applications or groups of applications,
-users may use the CloudAPI to create additional networks on their fabric.
+you may want to create additional networks on your fabric with CloudAPI.
 Any of these user-defined networks can be designated as the 'default' network
 to be used for provisioning Docker containers. When you change the 'default'
-network, it affects only the newly provisioned containers.
+network, it affects only the newly provisioned containers. You may specify
+a different fabric network during provisioning by passing the `--network`
+argument in `docker run` and `docker create`, e.g.
 
-The management of fabric networks and the option to select the network(s) to
-use for a container are supported only through CloudAPI at this time. There
-is work going on to enable the use of the `--net` option in `docker run` and
-`docker create`. The `docker network` commands will also be available soon
-in sdc-docker to better support the use of Docker Compose v2 to orchestrate
-network management. Follow [DOCKER-722](http://smartos.org/bugview/DOCKER-722),
+```
+   docker run --network=dev-net-123 busybox
+   docker run --network=d8f607e4 -P -d nginx
+```
+
+The work to support `docker network` commands is in progress. Follow
+[DOCKER-722](http://smartos.org/bugview/DOCKER-722),
 [DOCKER-723](http://smartos.org/bugview/DOCKER-723),
 [DOCKER-724](http://smartos.org/bugview/DOCKER-724),
 [DOCKER-725](http://smartos.org/bugview/DOCKER-725) for updates.

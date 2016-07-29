@@ -50,8 +50,8 @@
       --memory-swap=""                 Total memory (memory + swap), '-1' to disable swap
       --memory-swappiness=""           Tune container memory swappiness (0 to 100)
       --name=""                        Assign a name to the container
-      --net=default                    Connect a container to a network
-      --net-alias=[]                   Add network-scoped alias for the container
+      --network=default                Connect a container to a network
+      --network-alias=[]               Add network-scoped alias for the container
       --oom-kill-disable=false         Whether to disable OOM Killer for the container or not
       --oom-score-adj                  Tune host's OOM preferences (-1000 to 1000)
       -P, --publish-all=false          Publish all exposed ports to random ports
@@ -496,7 +496,8 @@ Triton's secure, multi-tenant, container-native environment imposes some differe
 * `--mac-address` which is unsupported. See [networking](../features/networks.md).
 * `--kernel-memory` and `--memory-reservation` (memory limits) are unsupported. See [resource allocation](../features/resources.md) for more about memory allocation in Triton.
 * `--memory-swap` and `--memory-swappiness` (disabling swap and tuning memory swappiness) are unsupported.
-* `--net`, `--net-alias`, `--ip`, `--ip6` (controls network config and ip address assignment) are currently unsupported. See [networking](../features/networks.md).
+* `--network-alias`, `--ip`, `--ip6` (controls network config and ip address
+  assignment) are currently unsupported.
 * `--oom-kill-disable` and `--oom-score-adj` (tunables for OOM behavior) are unsupported.
 * `--pid=host` is unsupported.
 * `-P`, `--publish-all`, `-p`, and `--publish` behave slightly differently thanks to each container having a complete IP stack with one or more virtual NICs. See [networking](../features/networks.md).
