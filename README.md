@@ -5,12 +5,17 @@
 -->
 
 <!--
-    Copyright (c) 2015, Joyent, Inc.
+    Copyright (c) 2016, Joyent, Inc.
 -->
 
 # sdc-docker
 
-A Docker Engine for SmartDataCenter, where the data center is exposed
+This repository is part of the Joyent Triton project. See the [contribution
+guidelines](https://github.com/joyent/triton/blob/master/CONTRIBUTING.md) --
+*Triton does not use GitHub PRs* -- and general documentation at the main
+[Triton project](https://github.com/joyent/triton) page.
+
+SDC Docker is the Docker Engine for Triton, where the data center is exposed
 as a single Docker host. The Docker remote API is served from a "docker" core
 SDC zone built from this repo.
 
