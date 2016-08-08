@@ -65,21 +65,6 @@ function dockerClientSupportsVolumes(dockerVersionString) {
 }
 
 /*
- * Returns true if the "docker rm command" for the version of the Docker client
- * used by the current integration test outputs its results on stderr. False
- * otherwise.
- */
-function dockerVolumeRmUsesStderr(dockerVersionString) {
-    assert.string(dockerVersionString, 'dockerVersionString');
-
-    var dockerVersion = common.parseDockerVersion(dockerVersionString);
-
-    // The docker rm command with versions of the Docker client >= 1.12 output
-    // the deleted volume name on stderr instead of stdout.
-    return dockerVersion.major >= 1 && dockerVersion.minor >= 12;
-}
-
-/*
  * Returns true if the string "volumeName" represents a valid
  * automatically-generated volume name, false otherwise.
  */
@@ -136,6 +121,5 @@ module.exports = {
         errorMeansNFSSharedVolumeSupportDisabled,
     nfsSharedVolumesSupported: nfsSharedVolumesSupported,
     getVolapiClient: getVolapiClient,
-    dockerVolumeRmUsesStderr: dockerVolumeRmUsesStderr,
     dockerClientSupportsVolumes: dockerClientSupportsVolumes
 };

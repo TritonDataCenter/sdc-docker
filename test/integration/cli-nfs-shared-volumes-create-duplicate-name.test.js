@@ -36,9 +36,6 @@ var createTestVolume = mod_testVolumes.createTestVolume;
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
-var DOCKER_RM_USES_STDERR =
-    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
-
 var ALICE_USER;
 
 test('setup', function (tt) {
@@ -104,10 +101,6 @@ test('Volume creation with same name as existing volume', function (tt) {
                 args: testVolumeName
             }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-
-                    if (DOCKER_RM_USES_STDERR) {
-                        dockerVolumeOutput = stderr;
-                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not '

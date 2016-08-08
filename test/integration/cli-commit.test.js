@@ -31,7 +31,9 @@ var STATE = {
     log: require('../lib/log')
 };
 
-var CONTAINER_PREFIX = 'sdcdockertest_commit_';
+var COMMIT_IMAGE_TAG_PREFIX = 'sdcdockertest-commit-image-tag';
+var CONTAINER_PREFIX = 'sdcdockertest-commit-container';
+
 var IMAGE_NAME = 'busybox';
 var IMAGE_PREFIX = 'sdcdockertest-commit';
 var TP = 'api: commit: ';  // Test prefix.

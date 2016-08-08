@@ -45,9 +45,6 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME =
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
-var DOCKER_RM_USES_STDERR =
-    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
-
 var MOUNT_MODE_SERVER_SIDE_VALIDATION = true;
 if (dockerVersion.major === 1 && dockerVersion.minor <= 9) {
     // With docker version 1.9.x and older, validation for mounting modes (or
@@ -273,10 +270,6 @@ test('docker volumes mounting modes', function (tt) {
                 args: testVolumeName
             }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-
-                    if (DOCKER_RM_USES_STDERR) {
-                        dockerVolumeOutput = stderr;
-                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not '

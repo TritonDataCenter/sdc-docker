@@ -37,9 +37,6 @@ var NFS_SHARED_VOLUME_NAMES_PREFIX =
 var NFS_SHARED_VOLUMES_DRIVER_NAME =
     testVolumes.getNfsSharedVolumesDriverName();
 
-var DOCKER_RM_USES_STDERR =
-    testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
-
 var MOUNTING_CONTAINER_NAMES_PREFIX = 'test-nfs-mounting-container';
 
 var ALICE_USER;
@@ -131,9 +128,6 @@ test('docker volume with default driver', function (tt) {
                     args: volumeName
                 }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-                    if (DOCKER_RM_USES_STDERR) {
-                        dockerVolumeOutput = stderr;
-                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
@@ -189,9 +183,6 @@ test('docker volume with default name', function (tt) {
                 },
                 function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-                    if (DOCKER_RM_USES_STDERR) {
-                        dockerVolumeOutput = stderr;
-                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not error');
@@ -334,9 +325,6 @@ test('docker NFS shared volume simple creation', function (tt) {
                 args: volumeName
             }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (DOCKER_RM_USES_STDERR) {
-                    dockerVolumeOutput = stderr;
-                }
 
                 t.ifErr(err,
                     'Removing an existing shared volume should not error');
@@ -424,15 +412,22 @@ test('mounting more than one NFS shared volume', function (tt) {
             });
         });
 
+    tt.test('deleting mounting container should succeed', function (t) {
+            cli.rm(t, {args: containerName},
+            function onContainerDeleted(err, stdout, stderr) {
+                t.ifErr(err,
+                    'deleting container mounting NFS shared volume '
+                        + 'should succeed');
+                t.end();
+            });
+    });
+
     tt.test('deleting first shared volume should succeed', function (t) {
         volumesCli.rmVolume({
             user: ALICE_USER,
             args: firstVolumeName
         }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (DOCKER_RM_USES_STDERR) {
-                    dockerVolumeOutput = stderr;
-                }
 
                 t.ifErr(err,
                     'Removing first shared volume should not error');
@@ -448,24 +443,11 @@ test('mounting more than one NFS shared volume', function (tt) {
             args: secondVolumeName
         }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (DOCKER_RM_USES_STDERR) {
-                    dockerVolumeOutput = stderr;
-                }
 
                 t.ifErr(err,
                     'Removing second shared volume should not error');
                 t.equal(dockerVolumeOutput, secondVolumeName + '\n',
                     'Output should be secondVolumeName shared volume\'s name');
-                t.end();
-            });
-    });
-
-    tt.test('deleting mounting container should succeed', function (t) {
-        cli.rm(t, {args: containerName},
-            function onContainerDeleted(err, stdout, stderr) {
-                t.ifErr(err,
-                    'deleting container mounting NFS shared volume '
-                        + 'should succeed');
                 t.end();
             });
     });
@@ -539,15 +521,22 @@ test('docker run mounting non-existent volume', function (tt) {
         return;
     }
 
+    tt.test('deleting mounting container should succeed', function (t) {
+            cli.rm(t, {args: containerName},
+            function onContainerDeleted(err, stdout, stderr) {
+                t.ifErr(err,
+                    'deleting container mounting NFS shared volume '
+                        + 'should succeed');
+                t.end();
+            });
+    });
+
     tt.test('deleting shared volume should succeed', function (t) {
         volumesCli.rmVolume({
             user: ALICE_USER,
             args: nonExistingVolumeName
         }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (DOCKER_RM_USES_STDERR) {
-                    dockerVolumeOutput = stderr;
-                }
 
                 t.ifErr(err,
                     'Removing shared volume should not error');
@@ -556,18 +545,6 @@ test('docker run mounting non-existent volume', function (tt) {
                 t.end();
             });
     });
-
-    tt.test('deleting mounting container should succeed',
-            function (t) {
-                cli.rm(t, {
-                    args: containerName
-                }, function onContainerDeleted(err, stdout, stderr) {
-                    t.ifErr(err,
-                        'deleting container mounting NFS shared volume '
-                            + 'should succeed');
-                    t.end();
-                });
-        });
 });
 
 test('list docker volumes', function (tt) {

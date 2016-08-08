@@ -53,9 +53,6 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME =
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
-var DOCKER_RM_USES_STDERR =
-    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
-
 var ALICE_USER;
 
 
@@ -190,9 +187,6 @@ test('DOCKER-880', function (tt) {
                 var dockerVolumeOutput;
                 if (mod_testVolumes.nfsSharedVolumesSupported()) {
                     dockerVolumeOutput = stdout;
-                    if (DOCKER_RM_USES_STDERR) {
-                        dockerVolumeOutput = stderr;
-                    }
 
                     t.ifErr(err,
                         'Removing an existing shared volume should not '
@@ -315,9 +309,6 @@ test('DOCKER-880', function (tt) {
 
                     if (mod_testVolumes.nfsSharedVolumesSupported()) {
                         dockerVolumeOutput = stdout;
-                        if (DOCKER_RM_USES_STDERR) {
-                            dockerVolumeOutput = stderr;
-                        }
 
                         t.ifErr(err,
                             'Removing an existing shared volume should not '
