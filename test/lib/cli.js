@@ -378,7 +378,7 @@ function cliRun(t, opts, callback) {
             common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
 
-        } else {
+        } else if (!opts.expectRuntimeError) {
             t.ifErr(err, 'docker run');
             // Docker run may need to download the image, which produces
             // stderr - only allow for that case:
@@ -680,7 +680,7 @@ module.exports = {
     run: cliRun,
     stop: cliStop,
     start: cliStart,
-    attach: cliAttach
+    attach: cliAttach,
     createVolume: cliCreateVolume,
     rmVolume: cliDeleteVolume,
     listVolumes: cliListVolumes,

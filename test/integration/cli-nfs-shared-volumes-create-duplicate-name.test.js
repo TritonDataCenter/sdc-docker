@@ -32,8 +32,6 @@ var log = require('../lib/log');
 
 var createTestVolume = mod_testVolumes.createTestVolume;
 
-var NFS_SHARED_VOLUMES_DRIVER_NAME =
-    mod_testVolumes.getNfsSharedVolumesDriverName();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
