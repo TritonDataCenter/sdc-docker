@@ -24,9 +24,8 @@ var restify = require('restify');
 var vasync = require('vasync');
 
 var common = require('../lib/common');
-var sdcCommon = require('../../lib/common');
 var constants = require('../../lib/constants');
-
+var sdcCommon = require('../../lib/common');
 
 // --- globals
 
@@ -1255,6 +1254,7 @@ function createNapiClient(callback) {
     });
 }
 
+
 /**
  * Test the given Docker 'info' API response.
  */
@@ -1488,12 +1488,16 @@ function ensureImage(opts, callback) {
 
 
 /**
- * Create a nginx VM fixture
+ * Create a Docker container.
  */
 function createDockerContainer(opts, callback) {
     assert.object(opts, 'opts');
+    assert.optionalBool(opts.start, 'opts.start');
+    assert.optionalBool(opts.wait, 'opts.wait');
+    assert.optionalString(opts.imageName, 'opts.imageName');
     assert.func(callback, 'callback');
 
+    var imageName = opts.imageName || 'nginx:latest';
     var payload = {
         'Hostname': '',
         'Domainname': '',
@@ -1512,7 +1516,7 @@ function createDockerContainer(opts, callback) {
         'StdinOnce': false,
         'Env': [],
         'Cmd': null,
-        'Image': 'nginx',
+        'Image': imageName,
         'Volumes': {},
         'WorkingDir': '',
         'Entrypoint': null,
@@ -1565,10 +1569,10 @@ function createDockerContainer(opts, callback) {
 
     vasync.waterfall([
         function (next) {
-            // There is a dependency here, in order to create a nginx container,
-            // the nginx image must first be downloaded.
+            // There is a dependency here, in order to create a container, its
+            // image must first be downloaded.
             ensureImage({
-                name: 'nginx:latest',
+                name: imageName,
                 user: dockerClient.user
             }, next);
         },
@@ -1602,6 +1606,30 @@ function createDockerContainer(opts, callback) {
                 next(err);
             }
         },
+        function attachToContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/attach',
+                function onAttach(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
+        function waitForContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/wait',
+                function onWait(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
         function (next) {
             // Attempt to get container json (i.e. docker inspect).
             dockerClient.get(
@@ -1630,7 +1658,6 @@ function createDockerContainer(opts, callback) {
         callback(err, response);
     });
 }
-
 
 function listContainers(opts, callback) {
     assert.object(opts, 'opts');
