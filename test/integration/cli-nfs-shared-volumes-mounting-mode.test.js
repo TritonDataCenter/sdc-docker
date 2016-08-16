@@ -33,6 +33,7 @@ var test = require('tape');
 var cli = require('../lib/cli');
 var log = require('../lib/log');
 var mod_testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
 
 var createTestVolume = mod_testVolumes.createTestVolume;
 var errorMeansNFSSharedVolumeSupportDisabled =
@@ -44,6 +45,9 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME =
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
+var DOCKER_RM_USES_STDERR =
+    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
+
 var MOUNT_MODE_SERVER_SIDE_VALIDATION = true;
 if (dockerVersion.major === 1 && dockerVersion.minor <= 9) {
     // With docker version 1.9.x and older, validation for mounting modes (or
@@ -54,8 +58,17 @@ if (dockerVersion.major === 1 && dockerVersion.minor <= 9) {
 
 var MOUNTING_CONTAINER_NAMES_PREFIX = 'test-nfs-mounting-modes-container';
 
+var ALICE_USER;
+
 test('setup', function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function onCliInit(err, env) {
+            t.ifErr(err, 'Docker environment initialization should not err');
+            if (env) {
+                ALICE_USER = env.user;
+            }
+        });
+    });
 
     // Ensure the busybox image is around.
     tt.test('pull busybox image', function (t) {
@@ -74,7 +87,7 @@ test('docker volumes mounting modes', function (tt) {
 
     tt.test('creating volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
                 if (mod_testVolumes.nfsSharedVolumesSupported()) {
@@ -255,11 +268,13 @@ test('docker volumes mounting modes', function (tt) {
 
     tt.test('removing volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            cli.rmVolume({args: testVolumeName},
-                function onVolumeDeleted(err, stdout, stderr) {
+            volumesCli.rmVolume({
+                user: ALICE_USER,
+                args: testVolumeName
+            }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
 
-                    if (mod_testVolumes.dockerVolumeRmUsesStderr()) {
+                    if (DOCKER_RM_USES_STDERR) {
                         dockerVolumeOutput = stderr;
                     }
 

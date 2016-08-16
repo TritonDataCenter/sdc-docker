@@ -549,74 +549,6 @@ function cliCommit(t, opts, callback) {
 }
 
 /**
- * `docker volume create <opts.args>`
- */
-function cliCreateVolume(opts, callback) {
-    assert.object(opts, 'opts');
-    assert.optionalObject(opts.t, 'opts.t');
-    assert.optionalString(opts.args, 'opts.args');
-
-    var t = opts.t;
-    var command = [
-        'volume create'
-    ];
-
-    if (opts.args) {
-        command.push(opts.args);
-    }
-
-    ALICE.docker(command.join(' '), function (err, stdout, stderr) {
-        if (t) {
-            t.ifErr(err, 'docker volume create ' + opts.args);
-        }
-
-        callback(err, stdout, stderr);
-    });
-}
-
-/**
- * `docker volume rm <opts.args>`
- */
-function cliDeleteVolume(opts, callback) {
-    assert.object(opts, 'opts');
-    assert.optionalObject(opts.t, 'opts.t');
-    assert.string(opts.args, 'opts.args');
-
-    var t = opts.t;
-
-    ALICE.docker('volume rm ' + opts.args, function (err, stdout, stderr) {
-        if (t) {
-            t.ifErr(err, 'docker volume rm ' + opts.args);
-        }
-
-        callback(err, stdout, stderr);
-    });
-}
-
-/**
- * `docker volume ls <opts.args>`
- */
-function cliListVolumes(opts, callback) {
-    assert.object(opts, 'opts');
-    assert.optionalObject(opts.t, 'opts.t');
-    assert.optionalString(opts.args, 'opts.args');
-
-    var t = opts.t;
-    var listVolumesCommand = 'volume ls';
-    if (opts.args) {
-        listVolumesCommand += ' ' + opts.args;
-    }
-
-    ALICE.docker(listVolumesCommand, function (err, stdout, stderr) {
-        if (t) {
-            t.ifErr(err, 'docker volume ls ' + opts.args);
-        }
-
-        callback(err, stdout, stderr);
-    });
-}
-
-/**
  * `docker attach <id>`
  *
  * Attach to a running container.
@@ -633,25 +565,6 @@ function cliAttach(t, opts, callback) {
     });
 }
 
-
-/*
- * `docker volume inspect <opts.args>`
- */
-function cliInspectVolume(opts, callback) {
-    assert.object(opts, 'opts');
-    assert.optionalObject(opts.t, 'opts.t');
-    assert.string(opts.args, 'opts.args');
-
-    var t = opts.t;
-
-    ALICE.docker('volume inspect ' + opts.args, function (err, stdout, stderr) {
-        if (t) {
-            t.ifErr(err, 'docker volume inspect ' + opts.args);
-        }
-
-        callback(err, stdout, stderr);
-    });
-}
 
 module.exports = {
     commit: cliCommit,
@@ -680,9 +593,5 @@ module.exports = {
     run: cliRun,
     stop: cliStop,
     start: cliStart,
-    attach: cliAttach,
-    createVolume: cliCreateVolume,
-    rmVolume: cliDeleteVolume,
-    listVolumes: cliListVolumes,
-    inspectVolume: cliInspectVolume
+    attach: cliAttach
 };

@@ -18,10 +18,11 @@ var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
+var volumesCli = require('../lib/volumes-cli');
 var common = require('../lib/common');
 var testVolumes = require('../lib/volumes');
 
-if (!testVolumes.dockerClientSupportsVolumes()) {
+if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     console.log('Skipping volume tests: volumes are not supported in Docker '
         + 'versions < 1.9');
     process.exit(0);
@@ -35,10 +36,23 @@ var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var NFS_SHARED_VOLUMES_DRIVER_NAME =
     testVolumes.getNfsSharedVolumesDriverName();
+
+var DOCKER_RM_USES_STDERR =
+    testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
+
 var MOUNTING_CONTAINER_NAMES_PREFIX = 'test-nfs-mounting-container';
 
+var ALICE_USER;
+
 test('setup', function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function onCliInit(err, env) {
+            t.ifErr(err, 'Docker environment initialization should not err');
+            if (env) {
+                ALICE_USER = env.user;
+            }
+        });
+    });
 
     // Ensure the busybox image is around.
     tt.test('pull busybox image', function (t) {
@@ -48,60 +62,14 @@ test('setup', function (tt) {
     });
 });
 
-function deleteVolume(volumeName, callback) {
-    assert.string(volumeName, 'volumeName');
-    assert.func(callback, 'callback');
-
-    cli.rmVolume({args: volumeName}, callback);
-}
-
-function deleteVolumes(volumeNames, callback) {
-    assert.arrayOfString(volumeNames, 'volumeNames');
-    assert.func(callback, 'callback');
-
-    vasync.forEachParallel({
-        func: deleteVolume,
-        inputs: volumeNames
-    }, callback);
-}
-
 test('cleanup leftover resources from previous tests run', function (tt) {
+    tt.test('deleting all volumes for test user', function (t) {
+        volumesCli.deleteAllVolumes(ALICE_USER,
+            function allVolumesDeleted(err) {
+                t.ifErr(err, 'deleting all volumes should not error');
 
-    tt.test('leftover volumes should be cleaned up', function (t) {
-        var leftoverVolumeNames = [];
-
-        vasync.pipeline({funcs: [
-            function listLeftoverVolumes(_, next) {
-                cli.listVolumes({},
-                function onVolumesListed(err, stdout, stderr) {
-                    var outputLines;
-
-                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        t.ifErr(err, 'listing volumes should not error');
-                        outputLines = stdout.trim().split(/\n/);
-                        // Remove header from docker volume ls' output.
-                        outputLines = outputLines.slice(1);
-
-                        outputLines.forEach(function addLeftoverVolume(line) {
-                            var driverAndName = line.trim().split(/\s+/);
-                            var volumeName = driverAndName[1];
-
-                            leftoverVolumeNames.push(volumeName);
-                        });
-                    } else {
-                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                            stderr));
-                    }
-
-                    next();
-                });
-            },
-            function deleteLeftoverVolumes(_, next) {
-                deleteVolumes(leftoverVolumeNames, next);
-            }
-        ]}, function cleanupDone(err) {
-            t.end();
-        });
+                t.end();
+            });
     });
 });
 
@@ -114,7 +82,8 @@ test('docker volume with default driver', function (tt) {
 
         vasync.pipeline({funcs: [
             function createVolume(_, next) {
-                cli.createVolume({
+                volumesCli.createVolume({
+                    user: ALICE_USER,
                     args: '--name ' + volumeName
                 }, function onVolumeCreated(err, stdout, stderr) {
                     if (NFS_SHARED_VOLUMES_SUPPORTED) {
@@ -136,29 +105,33 @@ test('docker volume with default driver', function (tt) {
                     return;
                 }
 
-                cli.inspectVolume({args: volumeName},
-                    function onInspect(err, stdout, stderr) {
-                        var inspectParsedOutput;
+                volumesCli.inspectVolume({
+                    user: ALICE_USER,
+                    args: volumeName
+                }, function onInspect(err, stdout, stderr) {
+                    var inspectParsedOutput;
 
-                        t.ifErr(err, 'inspect should succeed');
-                        try {
-                            inspectParsedOutput = JSON.parse(stdout);
-                        } catch (inspectParseErr) {
-                        }
+                    t.ifErr(err, 'inspect should succeed');
+                    try {
+                        inspectParsedOutput = JSON.parse(stdout);
+                    } catch (inspectParseErr) {
+                    }
 
-                        t.equal(inspectParsedOutput[0].Driver,
-                            NFS_SHARED_VOLUMES_DRIVER_NAME,
-                                'volume driver should be '
-                                    + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                    t.equal(inspectParsedOutput[0].Driver,
+                        NFS_SHARED_VOLUMES_DRIVER_NAME,
+                            'volume driver should be '
+                                + NFS_SHARED_VOLUMES_DRIVER_NAME);
 
-                        next();
-                    });
+                    next();
+                });
             },
             function _deleteVolume(_, next) {
-                cli.rmVolume({args: volumeName},
-                function onVolumeDeleted(err, stdout, stderr) {
+                volumesCli.rmVolume({
+                    user: ALICE_USER,
+                    args: volumeName
+                }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-                    if (testVolumes.dockerVolumeRmUsesStderr()) {
+                    if (DOCKER_RM_USES_STDERR) {
                         dockerVolumeOutput = stderr;
                     }
 
@@ -182,7 +155,8 @@ test('docker volume with default name', function (tt) {
         + 'generate a new name', function (t) {
         vasync.pipeline({funcs: [
             function _createVolume(_, next) {
-                cli.createVolume({
+                volumesCli.createVolume({
+                    user: ALICE_USER,
                     args: '--driver ' + NFS_SHARED_VOLUMES_DRIVER_NAME
                 }, function onVolumeCreated(err, stdout, stderr) {
                     var stdoutLines;
@@ -209,10 +183,13 @@ test('docker volume with default name', function (tt) {
                 });
             },
             function _deleteVolume(_, next) {
-                cli.rmVolume({args: volumeName},
+                volumesCli.rmVolume({
+                    user: ALICE_USER,
+                    args: volumeName
+                },
                 function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
-                    if (testVolumes.dockerVolumeRmUsesStderr()) {
+                    if (DOCKER_RM_USES_STDERR) {
                         dockerVolumeOutput = stderr;
                     }
 
@@ -236,7 +213,8 @@ test('docker NFS shared volume simple creation', function (tt) {
     tt.test('creating a NFS shared volume should succeed', function (t) {
             volumeName =
                 common.makeResourceName(NFS_SHARED_VOLUME_NAMES_PREFIX);
-            cli.createVolume({
+            volumesCli.createVolume({
+                user: ALICE_USER,
                 args: '--name ' + volumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
@@ -254,7 +232,9 @@ test('docker NFS shared volume simple creation', function (tt) {
     });
 
     tt.test('listing volumes should output newly created volume', function (t) {
-        cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+        volumesCli.listVolumes({
+            user: ALICE_USER
+        }, function onVolumesListed(err, stdout, stderr) {
             var outputLines;
             var foundNewlyCreatedVolume = false;
 
@@ -349,19 +329,21 @@ test('docker NFS shared volume simple creation', function (tt) {
         });
 
         tt.test('deleting shared volume should succeed', function (t) {
-            cli.rmVolume({args: volumeName},
-                function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput = stdout;
-                    if (testVolumes.dockerVolumeRmUsesStderr()) {
-                        dockerVolumeOutput = stderr;
-                    }
+            volumesCli.rmVolume({
+                user: ALICE_USER,
+                args: volumeName
+            }, function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput = stdout;
+                if (DOCKER_RM_USES_STDERR) {
+                    dockerVolumeOutput = stderr;
+                }
 
-                    t.ifErr(err,
-                        'Removing an existing shared volume should not error');
-                    t.equal(dockerVolumeOutput, volumeName + '\n',
-                        'Output should be shared volume\'s name');
-                    t.end();
-                });
+                t.ifErr(err,
+                    'Removing an existing shared volume should not error');
+                t.equal(dockerVolumeOutput, volumeName + '\n',
+                    'Output should be shared volume\'s name');
+                t.end();
+            });
         });
 });
 
@@ -373,7 +355,8 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('creating first NFS shared volume should succeed', function (t) {
             firstVolumeName =
                 common.makeResourceName(NFS_SHARED_VOLUME_NAMES_PREFIX);
-            cli.createVolume({
+            volumesCli.createVolume({
+                user: ALICE_USER,
                 args: '--name ' + firstVolumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
@@ -393,7 +376,8 @@ test('mounting more than one NFS shared volume', function (tt) {
     tt.test('creating second NFS shared volume should succeed', function (t) {
             secondVolumeName =
                 common.makeResourceName(NFS_SHARED_VOLUME_NAMES_PREFIX);
-            cli.createVolume({
+            volumesCli.createVolume({
+                user: ALICE_USER,
                 args: '--name ' + secondVolumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
@@ -441,10 +425,12 @@ test('mounting more than one NFS shared volume', function (tt) {
         });
 
     tt.test('deleting first shared volume should succeed', function (t) {
-        cli.rmVolume({args: firstVolumeName},
-            function onVolumeDeleted(err, stdout, stderr) {
+        volumesCli.rmVolume({
+            user: ALICE_USER,
+            args: firstVolumeName
+        }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                if (DOCKER_RM_USES_STDERR) {
                     dockerVolumeOutput = stderr;
                 }
 
@@ -457,10 +443,12 @@ test('mounting more than one NFS shared volume', function (tt) {
     });
 
     tt.test('deleting second shared volume should succeed', function (t) {
-        cli.rmVolume({args: secondVolumeName},
-            function onVolumeDeleted(err, stdout, stderr) {
+        volumesCli.rmVolume({
+            user: ALICE_USER,
+            args: secondVolumeName
+        }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                if (DOCKER_RM_USES_STDERR) {
                     dockerVolumeOutput = stderr;
                 }
 
@@ -472,16 +460,15 @@ test('mounting more than one NFS shared volume', function (tt) {
             });
     });
 
-    tt.test('deleting mounting container should succeed',
-            function (t) {
-                cli.rm(t, {args: containerName},
-                function onContainerDeleted(err, stdout, stderr) {
-                    t.ifErr(err,
-                        'deleting container mounting NFS shared volume '
-                            + 'should succeed');
-                    t.end();
-                });
-        });
+    tt.test('deleting mounting container should succeed', function (t) {
+        cli.rm(t, {args: containerName},
+            function onContainerDeleted(err, stdout, stderr) {
+                t.ifErr(err,
+                    'deleting container mounting NFS shared volume '
+                        + 'should succeed');
+                t.end();
+            });
+    });
 });
 
 test('docker run mounting non-existent volume', function (tt) {
@@ -510,7 +497,9 @@ test('docker run mounting non-existent volume', function (tt) {
         });
 
     tt.test('listing volumes should output newly created volume', function (t) {
-        cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+        volumesCli.listVolumes({
+            user: ALICE_USER
+        }, function onVolumesListed(err, stdout, stderr) {
             var outputLines;
             var foundNewlyCreatedVolume = false;
 
@@ -551,10 +540,12 @@ test('docker run mounting non-existent volume', function (tt) {
     }
 
     tt.test('deleting shared volume should succeed', function (t) {
-        cli.rmVolume({args: nonExistingVolumeName},
-            function onVolumeDeleted(err, stdout, stderr) {
+        volumesCli.rmVolume({
+            user: ALICE_USER,
+            args: nonExistingVolumeName
+        }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput = stdout;
-                if (testVolumes.dockerVolumeRmUsesStderr()) {
+                if (DOCKER_RM_USES_STDERR) {
                     dockerVolumeOutput = stderr;
                 }
 
@@ -568,8 +559,9 @@ test('docker run mounting non-existent volume', function (tt) {
 
     tt.test('deleting mounting container should succeed',
             function (t) {
-                cli.rm(t, {args: containerName},
-                function onContainerDeleted(err, stdout, stderr) {
+                cli.rm(t, {
+                    args: containerName
+                }, function onContainerDeleted(err, stdout, stderr) {
                     t.ifErr(err,
                         'deleting container mounting NFS shared volume '
                             + 'should succeed');
@@ -581,7 +573,9 @@ test('docker run mounting non-existent volume', function (tt) {
 test('list docker volumes', function (tt) {
 
     tt.test('should not output deleted volumes', function (t) {
-        cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+        volumesCli.listVolumes({
+            user: ALICE_USER
+        }, function onVolumesListed(err, stdout, stderr) {
             var outputLines;
             var foundDeletedVolume = false;
 

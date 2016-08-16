@@ -30,6 +30,7 @@ var vasync = require('vasync');
 
 var cli = require('../lib/cli');
 var log = require('../lib/log');
+var volumesCli = require('../lib/volumes-cli');
 
 var createTestVolume = mod_testVolumes.createTestVolume;
 
@@ -38,8 +39,17 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME =
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
+var ALICE_USER;
+
 test('setup', function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function onCliInit(err, env) {
+            t.ifErr(err, 'Docker environment initialization should not err');
+            if (env) {
+                ALICE_USER = env.user;
+            }
+        });
+    });
 
     // Ensure the busybox image is around.
     tt.test('pull busybox image', function (t) {
@@ -67,7 +77,7 @@ test('Volume creation with invalid size', function (tt) {
             var expectedErrMsg = 'Validation error, causes: Error: size "'
                 + invalidSize + '" is not a valid volume size';
 
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 size: invalidSize
             }, function volumeCreated(err, stdout, stderr) {
                 t.ok(err, 'volume creation should result in an error');

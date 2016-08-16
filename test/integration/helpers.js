@@ -24,9 +24,8 @@ var restify = require('restify');
 var vasync = require('vasync');
 
 var common = require('../lib/common');
-var sdcCommon = require('../../lib/common');
 var constants = require('../../lib/constants');
-
+var sdcCommon = require('../../lib/common');
 
 // --- globals
 
@@ -1239,6 +1238,7 @@ function createNapiClient(callback) {
     });
 }
 
+
 /**
  * Test the given Docker 'info' API response.
  */
@@ -1350,12 +1350,16 @@ function buildDockerContainer(opts, callback) {
 }
 
 /**
- * Create a nginx VM fixture
+ * Create a Docker container.
  */
 function createDockerContainer(opts, callback) {
     assert.object(opts, 'opts');
+    assert.optionalBool(opts.start, 'opts.start');
+    assert.optionalBool(opts.wait, 'opts.wait');
+    assert.optionalString(opts.imageName, 'opts.imageName');
     assert.func(callback, 'callback');
 
+    var imageName = opts.imageName || 'nginx:latest';
     var payload = {
         'Hostname': '',
         'Domainname': '',
@@ -1374,7 +1378,7 @@ function createDockerContainer(opts, callback) {
         'StdinOnce': false,
         'Env': [],
         'Cmd': null,
-        'Image': 'nginx',
+        'Image': imageName,
         'Volumes': {},
         'WorkingDir': '',
         'Entrypoint': null,
@@ -1428,23 +1432,26 @@ function createDockerContainer(opts, callback) {
 
     vasync.waterfall([
         function (next) {
-            // There is a dependency here, in order to create a nginx container,
-            // the nginx image must first be downloaded.
-            log.debug('Checking for nginx docker image');
+            // There is a dependency here, in order to create a container, its
+            // image must first be downloaded.
+            log.debug('Checking for ' + imageName + ' docker image');
             dockerClient.get('/images/json',
                     function (err, req, res, images) {
 
-                t.error(err, 'check for nginx image - should be no error');
+                t.error(err, 'check for ' + imageName + ' image - should be no '
+                    + 'error');
 
                 if (images.filter(function (image) {
-                    return -1 !== image.RepoTags.indexOf('nginx:latest');
+                    return -1 !== image.RepoTags.indexOf(imageName);
                 }).length === 0) {
                     // Urgh, it doesn't exist... go get it then.
-                    log.debug('Fetching nginx image');
-                    var url = '/images/create?fromImage=nginx%3Alatest';
+                    log.debug('Fetching ' + imageName + ' image');
+                    var url = '/images/create?fromImage='
+                        + encodeURIComponent(imageName);
 
                     dockerClient.post(url, function (err2, req2, res2) {
-                        t.error(err2, 'pull nginx image - should be no error');
+                        t.error(err2, 'pull ' + imageName + ' image - should '
+                            + 'be no error');
                         next(null);
                     });
 
@@ -1483,6 +1490,30 @@ function createDockerContainer(opts, callback) {
                 next(err);
             }
         },
+        function attachToContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/attach',
+                function onAttach(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
+        function waitForContainer(next) {
+            if (!opts.start || !opts.wait) {
+                next();
+                return;
+            }
+
+            dockerClient.post('/containers/' + response.id + '/wait',
+                function onWait(err, res, req, body) {
+                    t.error(err);
+                    next(err);
+                });
+        },
         function (next) {
             // Attempt to get container json (i.e. docker inspect).
             dockerClient.get(
@@ -1509,7 +1540,6 @@ function createDockerContainer(opts, callback) {
         callback(err, response);
     });
 }
-
 
 function listContainers(opts, callback) {
     assert.object(opts, 'opts');

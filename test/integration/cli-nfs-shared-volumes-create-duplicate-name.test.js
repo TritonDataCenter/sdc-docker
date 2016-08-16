@@ -28,6 +28,7 @@ var assert = require('assert-plus');
 var test = require('tape');
 
 var cli = require('../lib/cli');
+var volumesCli = require('../lib/volumes-cli');
 var log = require('../lib/log');
 
 var createTestVolume = mod_testVolumes.createTestVolume;
@@ -35,8 +36,20 @@ var createTestVolume = mod_testVolumes.createTestVolume;
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
 
+var DOCKER_RM_USES_STDERR =
+    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
+
+var ALICE_USER;
+
 test('setup', function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function onCliInit(err, env) {
+            t.ifErr(err, 'Docker environment initialization should not err');
+            if (env) {
+                ALICE_USER = env.user;
+            }
+        });
+    });
 
     // Ensure the busybox image is around.
     tt.test('pull busybox image', function (t) {
@@ -52,7 +65,7 @@ test('Volume creation with same name as existing volume', function (tt) {
 
     tt.test('creating volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
                 t.ifErr(err,
@@ -72,7 +85,7 @@ test('Volume creation with same name as existing volume', function (tt) {
                 + 'volume: Volume with name ' + testVolumeName
                 + ' already exists';
 
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
                 t.ok(err, 'volume creation should not succeed');
@@ -86,11 +99,13 @@ test('Volume creation with same name as existing volume', function (tt) {
 
     tt.test('removing volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            cli.rmVolume({args: testVolumeName},
-                function onVolumeDeleted(err, stdout, stderr) {
+            volumesCli.rmVolume({
+                user: ALICE_USER,
+                args: testVolumeName
+            }, function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput = stdout;
 
-                    if (mod_testVolumes.dockerVolumeRmUsesStderr()) {
+                    if (DOCKER_RM_USES_STDERR) {
                         dockerVolumeOutput = stderr;
                     }
 

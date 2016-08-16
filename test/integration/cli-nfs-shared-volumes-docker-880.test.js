@@ -42,8 +42,8 @@ var vasync = require('vasync');
 var cli = require('../lib/cli');
 var log = require('../lib/log');
 var mod_testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
 
-var createTestVolume = mod_testVolumes.createTestVolume;
 var errorMeansNFSSharedVolumeSupportDisabled =
     mod_testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
 var VOLAPI_CLIENT = mod_testVolumes.getVolapiClient();
@@ -52,6 +52,12 @@ var NFS_SHARED_VOLUMES_DRIVER_NAME =
     mod_testVolumes.getNfsSharedVolumesDriverName();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();
+
+var DOCKER_RM_USES_STDERR =
+    mod_testVolumes.dockerVolumeRmUsesStderr(process.env.DOCKER_CLI_VERSION);
+
+var ALICE_USER;
+
 
 function makeKeepVolumeWithNameFn(volumeName) {
     assert.string(volumeName, 'volumeName');
@@ -71,7 +77,14 @@ function makeKeepVolumeWithNameFn(volumeName) {
 }
 
 test('setup', function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function onCliInit(err, env) {
+            t.ifErr(err, 'Docker environment initialization should not err');
+            if (env) {
+                ALICE_USER = env.user;
+            }
+        });
+    });
 
     // Ensure the busybox image is around.
     tt.test('pull busybox image', function (t) {
@@ -85,7 +98,7 @@ test('setup', function (tt) {
 test('cleanup leftover resources from previous tests run', function (tt) {
 
     tt.test('leftover volumes should be cleaned up', function (t) {
-        mod_testVolumes.deleteLeftoverVolumes(function done(err, errMsg) {
+        volumesCli.deleteAllVolumes(ALICE_USER, function done(err, errMsg) {
             if (mod_testVolumes.nfsSharedVolumesSupported()) {
                 t.ifErr(err, 'deleting leftover volumes should succeed');
             } else {
@@ -105,7 +118,7 @@ test('DOCKER-880', function (tt) {
 
     tt.test('creating volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
                 if (mod_testVolumes.nfsSharedVolumesSupported()) {
@@ -125,7 +138,9 @@ test('DOCKER-880', function (tt) {
 
     tt.test('listing volumes should output one volume with name: '
         + testVolumeName, function (t) {
-            cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            volumesCli.listVolumes({
+                user: ALICE_USER
+            }, function onVolumesListed(err, stdout, stderr) {
                 var outputLines;
                 var testVolumes;
 
@@ -168,32 +183,36 @@ test('DOCKER-880', function (tt) {
 
     tt.test('removing volume with name ' + testVolumeName + ' should succeed',
         function (t) {
-            cli.rmVolume({args: testVolumeName},
-                function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput;
-                    if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                        dockerVolumeOutput = stdout;
-                        if (mod_testVolumes.dockerVolumeRmUsesStderr()) {
-                            dockerVolumeOutput = stderr;
-                        }
-
-                        t.ifErr(err,
-                            'Removing an existing shared volume should not '
-                                + 'error');
-                        t.equal(dockerVolumeOutput, testVolumeName + '\n',
-                            'Output should be shared volume\'s name');
-                    } else {
-                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                            stderr));
+            volumesCli.rmVolume({
+                user: ALICE_USER,
+                args: testVolumeName
+            }, function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput;
+                if (mod_testVolumes.nfsSharedVolumesSupported()) {
+                    dockerVolumeOutput = stdout;
+                    if (DOCKER_RM_USES_STDERR) {
+                        dockerVolumeOutput = stderr;
                     }
 
-                    t.end();
-                });
+                    t.ifErr(err,
+                        'Removing an existing shared volume should not '
+                            + 'error');
+                    t.equal(dockerVolumeOutput, testVolumeName + '\n',
+                        'Output should be shared volume\'s name');
+                } else {
+                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
+                        stderr));
+                }
+
+                t.end();
+            });
         });
 
     tt.test('listing volumes should output no volume with name: '
         + testVolumeName, function (t) {
-            cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            volumesCli.listVolumes({
+                user: ALICE_USER
+            }, function onVolumesListed(err, stdout, stderr) {
                 var outputLines;
                 var testVolumes;
 
@@ -217,7 +236,7 @@ test('DOCKER-880', function (tt) {
 
     tt.test('creating second volume with name ' + testVolumeName + ' should '
         + 'succeed', function (t) {
-            createTestVolume({
+            volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
                 if (mod_testVolumes.nfsSharedVolumesSupported()) {
@@ -261,7 +280,9 @@ test('DOCKER-880', function (tt) {
 
     tt.test('listing volumes with name ' + testVolumeName + ' after second '
         + 'volume created should output only one volume', function (t) {
-            cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            volumesCli.listVolumes({
+                user: ALICE_USER
+            }, function onVolumesListed(err, stdout, stderr) {
                 var outputLines;
                 var testVolumes;
 
@@ -285,13 +306,16 @@ test('DOCKER-880', function (tt) {
 
     tt.test('removing second volume with name ' + testVolumeName + ' should '
         + 'succeed', function (t) {
-            cli.rmVolume({args: testVolumeName},
+            volumesCli.rmVolume({
+                user: ALICE_USER,
+                args: testVolumeName
+            },
                 function onVolumeDeleted(err, stdout, stderr) {
                     var dockerVolumeOutput;
 
                     if (mod_testVolumes.nfsSharedVolumesSupported()) {
                         dockerVolumeOutput = stdout;
-                        if (mod_testVolumes.dockerVolumeRmUsesStderr()) {
+                        if (DOCKER_RM_USES_STDERR) {
                             dockerVolumeOutput = stderr;
                         }
 
@@ -311,7 +335,9 @@ test('DOCKER-880', function (tt) {
 
     tt.test('listing volumes should output no volume with name after second '
         + 'volume with name ' + testVolumeName + ' is deleted: ', function (t) {
-            cli.listVolumes({}, function onVolumesListed(err, stdout, stderr) {
+            volumesCli.listVolumes({
+                user: ALICE_USER
+            }, function onVolumesListed(err, stdout, stderr) {
                 var outputLines;
                 var testVolumes;
 
