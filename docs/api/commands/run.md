@@ -83,12 +83,12 @@ previous changes intact using `docker start`. See `docker ps -a` to view a list
 of all containers.
 
 There is detailed information about `docker run` in the [Docker run reference](
-/reference/run/).
+https://docs.docker.com/engine/reference/run/).
 
 The `docker run` command can be used in combination with `docker commit` to
-[*change the command that a container runs*](#commit-an-existing-container).
+change the command that a container runs.
 
-See the [Docker User Guide](/userguide/dockerlinks/) for more detailed
+See the [Docker User Guide](https://docs.docker.com/engine/reference) for more detailed
 information about the `--expose`, `-p`, `-P` and `--link` parameters,
 and linking containers.
 
@@ -170,7 +170,7 @@ manipulate the host's Docker daemon.
     $ docker run -p 127.0.0.1:80:8080 ubuntu bash
 
 This binds port `8080` of the container to port `80` on `127.0.0.1` of
-the host machine. The [Docker User Guide](/userguide/dockerlinks/)
+the host machine. The [Docker User Guide](https://docs.docker.com/engine/reference/run/#network-settings)
 explains in detail how to manipulate ports in Docker.
 
     $ docker run --expose 80 ubuntu bash
@@ -257,8 +257,8 @@ format:
 You can load multiple label-files by supplying multiple  `--label-file` flags.
 
 For additional information on working with labels, see [*Labels - custom
-metadata in Docker*](/userguide/labels-custom-metadata/) in the Docker User
-Guide.
+metadata in Docker*](https://docs.docker.com/engine/userguide/labels-custom-metadata/)
+in the Docker User Guide.
 
     $ docker run --link /redis:redis --name console ubuntu bash
 
@@ -416,7 +416,7 @@ This will run the `redis` container with a restart policy of **always**
 so that if the container exits, Docker will restart it.
 
 More detailed information on restart policies can be found in the
-[Restart Policies (--restart)](/reference/run/#restart-policies-restart) section
+[Restart Policies (--restart)](#restart-policies) section
 of the Docker run reference page.
 
 ## Adding entries to a container hosts file
@@ -472,7 +472,13 @@ set on the daemon.
 
 ## Divergence
 
-Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
+Triton's secure, multi-tenant, container-native environment imposes some
+differences from Docker Inc's implementation. Notably, arguments to control
+LXC or change container privilege are unsupported. Other arguments, such as
+those to manage CPU allocation, or networking, are more effective because of
+features unique to Triton. See the [Resources](../features/resources.md) and
+[Networks](../features/networks.md) documentation for more information on how
+to size containers and assign public or private IP addresses to them.
 
 * `--add-host` (host-to-IP mapping) has been implemented in
   [DOCKER-694](https://smartos.org/bugview/DOCKER-694). However, until

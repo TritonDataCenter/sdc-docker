@@ -83,8 +83,8 @@ container at any point.
 This is useful when you want to set up a container configuration ahead
 of time so that it is ready to start when you need it.
 
-Please see the [run command](#run) section and the [Docker run reference](
-/reference/run/) for more details.
+Please see the [run command](./run.md) section and the [Docker run reference](
+https://docs.docker.com/engine/reference/run/) for more details.
 
 ## Examples
 
@@ -123,7 +123,13 @@ can then be used from the subsequent container:
 
 ## Divergence
 
-Triton's secure, multi-tenant, container-native environment imposes some differences from Docker Inc's implementation. Notably, arguments to control LXC or change container privilege are unsupported. Other arguments, such as those to manage CPU allocation, or networking, are more effective because of features unique to Triton.
+Triton's secure, multi-tenant, container-native environment imposes some
+differences from Docker Inc's implementation. Notably, arguments to control
+LXC or change container privilege are unsupported. Other arguments, such as
+those to manage CPU allocation, or networking, are more effective because of
+features unique to Triton. See the [Resources](../features/resources.md) and
+[Networks](../features/networks.md) documentation for more information on how
+to size containers and assign public or private IP addresses to them.
 
 * `--add-host` (host-to-IP mapping) has been implemented in
   [DOCKER-694](https://smartos.org/bugview/DOCKER-694). However, until
