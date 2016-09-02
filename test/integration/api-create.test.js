@@ -353,7 +353,7 @@ test('ensure fabrics enabled', function (tt) {
             function (err, vlans) {
                 if (err) {
                     FABRICS = false;
-                    if (err.code !== 'PreconditionRequiredError') {
+                    if (err.restCode !== 'PreconditionRequiredError') {
                         t.ifErr(err);
                     }
                 } else {
