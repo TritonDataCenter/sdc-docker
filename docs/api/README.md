@@ -19,13 +19,13 @@ Connecting to the API requires an account on the Triton data center, SSH key, an
 
 ### Docker version
 
-SDC Docker supports clients using Docker Remote API v1.18 and greater. For the Docker CLI, this includes Docker 1.6.0 and newer.
+SDC Docker supports clients using Docker Remote API v1.20 to 1.24. For the Docker CLI, this includes Docker v1.8 to 1.12.
 
 You can see the version of your currently installed Docker CLI:
 
 ```bash
 $ docker --version
-Docker version 1.6.0, build 4749651
+Docker version 1.8.1, build d12ea79
 ```
 
 Please [install or upgrade](https://docs.docker.com/installation/#installation) the Docker CLI if you do not have it or have an older version.
