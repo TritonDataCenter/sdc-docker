@@ -86,14 +86,20 @@ function _evalPred(pred, vm) {
     }
 }
 
+function mockReq(clients) {
+    return ({
+        getClient: function _getClient(client) {
+            return (clients[client]);
+        }
+    });
+}
+
 function MockVMAPI(vms) {
     this.vms = vms;
 }
 
 MockVMAPI.prototype.getVm = function getVm(query, options, cb) {
     assert.uuid(query.uuid, 'query.uuid');
-    assert.equal(options.headers['x-request-id'], log.fields.req_id);
-
     var vms = this.vms;
 
     if (query.owner_uuid) {
@@ -134,8 +140,6 @@ MockVMAPI.prototype.getVm = function getVm(query, options, cb) {
 
 
 MockVMAPI.prototype.listVms = function listVms(query, options, cb) {
-    assert.equal(options.headers['x-request-id'], log.fields.req_id);
-
     var filtered;
     var i;
     var isMatch;
@@ -707,7 +711,7 @@ test('affinity', function (tt) {
         tt.test('  ' + c.name, function (t) {
             localityFromContainer({
                 log: log,
-                vmapi: vmapi,
+                req: mockReq({vmapi: vmapi}),
                 ownerUuid: c.ownerUuid,
                 container: c.container
             }, function (err, locality) {
