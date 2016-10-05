@@ -109,6 +109,7 @@ Success. Set your environment as follows:
 	export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
 	export DOCKER_HOST=tcp://us-east-1.docker.joyent.com:2376
 	export DOCKER_CLIENT_TIMEOUT=300
+        export COMPOSE_HTTP_TIMEOUT=300
 	export DOCKER_TLS_VERIFY=1
 ```
 
@@ -149,11 +150,11 @@ SDC Docker offers a number of features unique to Triton's container-native infra
 
 ## Docker CLI commands and Docker Remote API methods
 
-`docker attach`, `docker cp`, `docker create`, `docker exec`, `docker history`, `docker images`,
-`docker info`, `docker inspect`, `docker kill`, `docker login`, `docker logout`, `docker logs`,
-`docker port`, `docker ps`, `docker pull`, `docker rename`, `docker restart`, `docker rm`,
-`docker rmi`, `docker run`, `docker search`, `docker start`, `docker stop`, `docker top`,
-`docker version`, `docker wait`
+`docker attach`, `docker build`, `docker commit`, `docker cp`, `docker create`, `docker exec`,
+`docker history`, `docker images`, `docker info`, `docker inspect`, `docker kill`, `docker login`,
+`docker logout`, `docker logs`, `docker port`, `docker ps`, `docker pull`, `docker rename`,
+`docker restart`, `docker rm`, `docker rmi`, `docker run`, `docker search`, `docker start`,
+`docker stop`, `docker tag`, `docker top`, `docker version`, `docker wait`
 
 ## Divergence
 

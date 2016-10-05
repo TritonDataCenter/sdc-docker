@@ -86,9 +86,27 @@ containers in the cloud, though there are some missing docker API methods.
 Here's the list of API methods currently unimplemented as of this writing, but
 expect it to get shorter by the day:
 
-`docker commit`, `docker diff`, `docker events`, `docker export`,
-`docker import`, `docker load`, `docker network`, `docker pause`, `docker push`,
-`docker save`, `docker storage`, `docker unpause`
+`docker diff`, `docker events`, `docker export`, `docker import`, `docker load`,
+`docker network`, `docker node`, `docker pause`, `docker push`, `docker save`,
+`docker service`, `docker swarm`, `docker unpause`, `docker update`, `docker volume`
+
+### Roadmap:
+- `docker push` is close to completion, it will be available in a later release
+  in 2016.
+- `docker volume` is in active development, more [details](https://github.com/joyent/rfd/blob/master/rfd/0026/README.md)
+  here.
+- `docker network` is also on our near-term roadmap, follow 
+[DOCKER-722](http://smartos.org/bugview/DOCKER-722), [DOCKER-723](http://smartos.org/bugview/DOCKER-723),
+[DOCKER-724](http://smartos.org/bugview/DOCKER-724), [DOCKER-725](http://smartos.org/bugview/DOCKER-725)
+  for updates.
+- `docker events` will not be implemented in the near future. This causes a
+  trivial error when attempting to watch logs with `docker-compose`. Users who
+  intend to use `docker events` for container orchestration purposes should
+  look at [ContainerPilot](https://www.joyent.com/containerpilot)’s automatic
+  service registration, health checking, and configuration.
+- There is no plan to implement `docker node` and `docker swarm` as Triton is
+  already working as a horizontally scalable cluster. There is no need for a
+  set of compute node orchestration commands.
 
 ## Images and private registries
 
