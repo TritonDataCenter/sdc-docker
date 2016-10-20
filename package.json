@@ -18,7 +18,7 @@
     "moray": "git+https://github.com/joyent/node-moray.git#a65aa31",
     "once": "1.3.1",
     "openssl-wrapper": "0.2.1",
-    "restify": "git+https://github.com/joyent/node-restify.git#fd5d5b5",
+    "restify": "4.1.1",
     "sdc-bunyan-serializers": "git+https://github.com/joyent/sdc-bunyan-serializers.git#5454ae4",
     "sdc-clients": "10.0.1",
     "sprintf": "0.1.5",
