@@ -24,10 +24,11 @@ JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 SMF_MANIFESTS_IN = smf/manifests/docker.xml.in
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v0.10.48
+NODE_PREBUILT_VERSION=v4.6.1
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zoneecdh
-	NODE_PREBUILT_IMAGE=de411e86-548d-11e4-a4b7-3bb60478632a
+	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
+	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
 endif
 
 
