@@ -11,7 +11,7 @@
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "fwrule": "git+https://github.com/joyent/sdc-fwrule.git#d1174be",
     "imgmanifest": "git+https://github.com/joyent/node-imgmanifest.git#91e5d80",
-    "keyapi": "git+https://github.com/joyent/keyapi.git#c30dd2710ad2175095dc0e96479686fa774b8063",
+    "keyapi": "git+https://github.com/joyent/keyapi.git#e14b3d5",
     "libuuid": "0.1.3",
     "lru-cache": "2.5.0",
     "lstream": "0.0.4",
