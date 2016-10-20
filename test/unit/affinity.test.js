@@ -26,7 +26,7 @@ var localityFromContainer = require('../../lib/backends/sdc/affinity')
 
 var log = bunyan.createLogger({
     name: 'affinity.test',
-    level: process.env.TRACE ? 'trace' : 'off',
+    level: process.env.TRACE ? 'trace' : bunyan.FATAL + 1 /* off */,
     req_id: '655b2da4-3165-9549-8626-531ef9336e1e'
 });
 
