@@ -16,6 +16,7 @@
  *       which are run separately (e.g. in nightly).
  */
 
+var format = require('util').format;
 var path = require('path');
 
 var tar = require('tar-stream');
@@ -118,7 +119,9 @@ test('api: build', function (tt) {
 
                 var output = result.body;
                 var hasLabel = output.indexOf('LABEL sdcdockertest=true') >= 0;
-                t.ok(hasLabel, 'output contains LABEL sdcdockertest=true');
+                t.ok(hasLabel, format(
+                    'output contains LABEL sdcdockertest=true: output=%j',
+                    output));
 
                 var hasSuccess = output.indexOf('Successfully built') >= 0;
                 t.ok(hasSuccess, 'output contains Successfully built');
