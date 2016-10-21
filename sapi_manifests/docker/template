@@ -32,8 +32,9 @@
         "port": 2020,
         "connectTimeout": 200,
         "retry": {
-            "retries": 2,
-            "minTimeout": 500
+            "retries": 1000,
+            "minTimeout": 100,
+            "minTimeout": 6000
         }
     },
     "fwapi": {
