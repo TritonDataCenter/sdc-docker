@@ -103,9 +103,11 @@ test('setup', function (tt) {
     });
 
     tt.test('pull nginx image', function (t) {
-        var url = '/images/create?fromImage=nginx%3Alatest';
-        DOCKER_ALICE.post(url, function (err, req, res) {
-            t.error(err, 'should be no error posting image create request');
+        h.ensureImage({
+            name: 'nginx:latest',
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image');
             t.end();
         });
     });

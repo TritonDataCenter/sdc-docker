@@ -78,10 +78,12 @@ test('docker images', function (tt) {
 
 
     tt.test('pull ubuntu image', function (t) {
-        var url = '/images/create?fromImage=ubuntu%3Alatest';
-        DOCKER_ALICE.post(url, function (err, req, res) {
-            t.error(err, 'should be no error posting image create request');
-
+        h.ensureImage({
+            name: 'ubuntu:latest',
+            user: ALICE
+        }, function (err) {
+            console.log('ubuntu pull err: ', err);
+            t.error(err, 'should be no error pulling image');
             t.end();
         });
     });

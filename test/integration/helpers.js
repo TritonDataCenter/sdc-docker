@@ -1150,7 +1150,9 @@ function createDockerRemoteClient(options, callback) {
         if (clientType)
             clientFactory = clientFactories[clientType];
 
-        callback(null, clientFactory.call(clientFactory, opts));
+        var client = clientFactory.call(clientFactory, opts);
+        client.user = user;
+        callback(null, client);
         return;
     });
 }
@@ -1350,6 +1352,128 @@ function buildDockerContainer(opts, callback) {
 }
 
 /**
+ * Ensure the given image has been pulled, and if not then pull it down.
+ */
+function ensureImage(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.string(opts.name, 'opts.name');
+    assert.object(opts.user, 'opts.user');
+    assert.func(callback, 'callback');
+
+    var log;
+    var name = opts.name;
+
+    vasync.pipeline({ arg: {}, funcs: [
+        function getJsonClient(ctx, next) {
+            // Get the json client.
+            createDockerRemoteClient({user: opts.user},
+                    function _getJsonClient(err, client) {
+                log = client.log;
+                ctx.jsonClient = client;
+                next(err);
+            });
+        },
+
+        // Check if the image has already been pulled.
+        function checkImageExists(ctx, next) {
+            ctx.jsonClient.get('/images/' + name + '/json',
+                    function _getImage(err) {
+                if (!err) {
+                    // Image found, all is good in the world.
+                    log.debug({name: name}, 'image already exists');
+                    next(true); /* Early abort marker. */
+                    return;
+                }
+                // Allow a 404 error (image not found), other cases a failure.
+                if (err.statusCode !== 404) {
+                    log.warn({name: name}, 'image get error');
+                    next(err);
+                    return;
+                }
+                next();
+            });
+        },
+
+        function getHttpClient(ctx, next) {
+            createDockerRemoteClient({user: opts.user, clientType: 'http'},
+                    function (err, client) {
+                ctx.httpClient = client;
+                next(err);
+            });
+        },
+
+        // Image doesn't exist... pull it down.
+        function pullImage(ctx, next) {
+            log.debug({name: name}, 'ensureImage: pulling image');
+            var url = '/images/create?fromImage='
+                + encodeURIComponent(name);
+            ctx.httpClient.post(url, function _onPost(err, req) {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                req.on('result', function onResponse(err2, res) {
+                    // Don't cancel the request here, wait and read the error
+                    // string in readPullResponse.
+                    ctx.err = err2;
+                    ctx.res = res;
+                    next();
+                });
+                req.on('error', function onReqError(err2) {
+                    log.error({err: err2}, 'Image pull request error');
+                    next(err2);
+                    return;
+                });
+                // We don't need to write anything to create image.
+                req.end();
+            });
+        },
+
+        function readPullResponse(ctx, next) {
+            var body = '';
+
+            ctx.res.on('data', function onResData(data) {
+                body += data.toString();
+            });
+
+            ctx.res.on('end', function onEnd() {
+                if (ctx.err) {
+                    if (!ctx.err.message) {
+                        ctx.err.message = body;
+                    }
+                    next(ctx.err);
+                    return;
+                }
+                ctx.body = body;
+                next();
+            });
+        },
+
+        // Check again to ensure the image now exists.
+        function recheckImageExists(ctx, next) {
+            ctx.jsonClient.get('/images/' + name + '/json',
+                    function _getImage(err) {
+                if (err) {
+                    log.error({name: name}, 'Error pulling image, body: %s',
+                        ctx.body);
+                    next(new Error(fmt('Failed to pull image %s', name)));
+                    return;
+                }
+                next();
+            });
+        }
+
+    ]}, function _onComplete(err) {
+        if (err === true) {
+            // Early abort - the image already exists.
+            err = null;
+        }
+        callback(err);
+    });
+}
+
+
+/**
  * Create a nginx VM fixture
  */
 function createDockerContainer(opts, callback) {
@@ -1407,7 +1531,6 @@ function createDockerContainer(opts, callback) {
     var dockerClient = opts.dockerClient;
     var vmapiClient = opts.vmapiClient;
     var t = opts.test;
-    var log = dockerClient.log;
     var response = {};
     var apiVersion = opts.apiVersion || ('v' + constants.API_VERSION);
 
@@ -1430,28 +1553,10 @@ function createDockerContainer(opts, callback) {
         function (next) {
             // There is a dependency here, in order to create a nginx container,
             // the nginx image must first be downloaded.
-            log.debug('Checking for nginx docker image');
-            dockerClient.get('/images/json',
-                    function (err, req, res, images) {
-
-                t.error(err, 'check for nginx image - should be no error');
-
-                if (images.filter(function (image) {
-                    return -1 !== image.RepoTags.indexOf('nginx:latest');
-                }).length === 0) {
-                    // Urgh, it doesn't exist... go get it then.
-                    log.debug('Fetching nginx image');
-                    var url = '/images/create?fromImage=nginx%3Alatest';
-
-                    dockerClient.post(url, function (err2, req2, res2) {
-                        t.error(err2, 'pull nginx image - should be no error');
-                        next(null);
-                    });
-
-                } else {
-                    next(null);
-                }
-            });
+            ensureImage({
+                name: 'nginx:latest',
+                user: dockerClient.user
+            }, next);
         },
 
         function (next) {
@@ -1502,9 +1607,11 @@ function createDockerContainer(opts, callback) {
             });
         }
     ], function (err) {
-        if (!opts.expectedError) {
-            t.error(err);
+        if (opts.expectedError) {
+            common.expApiErr(t, err, opts.expectedErr, callback);
+            return;
         }
+        t.error(err);
 
         callback(err, response);
     });
@@ -1708,6 +1815,7 @@ module.exports = {
     createVmapiClient: createVmapiClient,
     createNapiClient: createNapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
+    ensureImage: ensureImage,
     initDockerEnv: initDockerEnv,
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,

@@ -181,8 +181,10 @@ test('api: build image conflicts', function (tt) {
 
     // Pull the docker.io alpine image.
     tt.test('pull docker.io alpine test image', function (t) {
-        var url = '/images/create?fromImage=' + encodeURIComponent(imageName1);
-        DOCKER_ALICE.post(url, function (err, req, res, body) {
+        h.ensureImage({
+            name: imageName1,
+            user: ALICE
+        }, function (err) {
             t.error(err, 'getting docker.io alpine test image');
             t.end();
         });
@@ -190,8 +192,10 @@ test('api: build image conflicts', function (tt) {
 
     // Pull something that uses the same alpine image in a different repository.
     tt.test('pull quay.io alpine test image', function (t) {
-        var url = '/images/create?fromImage=' + encodeURIComponent(imageName2);
-        DOCKER_ALICE.post(url, function (err, req) {
+        h.ensureImage({
+            name: imageName2,
+            user: ALICE
+        }, function (err) {
             t.error(err, 'getting quay.io alpine test image');
             t.end();
         });
@@ -294,9 +298,11 @@ test('api: build across multiple registries', function (tt) {
 
     // Pull the docker.io alpine image.
     tt.test('pull quay.io alpine test image', function (t) {
-        var url = '/images/create?fromImage=' + encodeURIComponent(imageName);
-        DOCKER_ALICE.post(url, function (err, req, res, body) {
-            t.ifErr(err, 'getting quay.io alpine test image');
+        h.ensureImage({
+            name: imageName,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'getting docker.io alpine test image');
             t.end();
         });
     });
