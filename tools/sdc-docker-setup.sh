@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright 2016 Joyent, Inc.
 #
 
 #
@@ -509,7 +509,18 @@ caPath=$certDir/ca.pem
 
 mkdir -p $(dirname $keyPath)
 openssl rsa -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
-openssl req -new -key $keyPath -out $csrPath -subj "/CN=$account" >/dev/null 2>/dev/null
+
+certSubject=
+if [[ -n "$(which uname 2>/dev/null)" && "$(uname)" == MINGW* ]]; then
+    # On the mingw32 shell on Windows we need to work around mingw32 converting
+    # args that look like Windows paths.
+    # See <http://stackoverflow.com/a/31990313> for details.
+    certSubject="//CN=$account"
+else
+    certSubject="/CN=$account"
+fi
+openssl req -new -key $keyPath -out $csrPath -subj "$certSubject" >/dev/null 2>/dev/null
+
 # TODO: expiry?
 openssl x509 -req -days 365 -in $csrPath -signkey $keyPath -out $certPath >/dev/null 2>/dev/null
 rm $csrPath    # The signing request has been used - remove it.
