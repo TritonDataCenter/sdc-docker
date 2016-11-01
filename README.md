@@ -266,12 +266,16 @@ run from your Mac dev tree, e.g.:
     ./test/runtest ./test/integration/cli-info.test.js
 
 
-All "cli" integration tests ("test/integration/cli-\*.test.js") are run
-repeatedly -- onces for each supported Docker CLI version. If you want to
-run with just a particular version, you can set the `DOCKER_CLI_VERSIONS`
-(plural) environment variable, e.g:
+By default all "cli" integration tests ("test/integration/cli-\*.test.js") are
+run against the latest Docker CLI version (see the
+`DOCKER_AVAILABLE_CLI_VERSIONS` variable in "test/runtest.common"). To run
+against against other versions, or all supported versions, set the
+`DOCKER_CLI_VERSIONS` (plural) environment variable, e.g.:
 
+    make test-integration-in-coal DOCKER_CLI_VERSIONS=all
+    make test-integration-in-coal DOCKER_CLI_VERSIONS="1.11.1 1.10.3"
     DOCKER_CLI_VERSIONS=1.11.1 /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-info
+    DOCKER_CLI_VERSIONS=latest /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-labels
 
 
 
