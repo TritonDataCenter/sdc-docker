@@ -66,7 +66,7 @@ test('docker run --add-host foo:1.2.3.4', function (tt) {
         var cmd = 'exec ' + containerName + ' grep foo /etc/hosts';
         cli.docker(cmd, function (err, stdout, stderr) {
             t.ifErr(err, 'docker CONTAINER grep foo /etc/hosts');
-            t.equal(stdout, 'foo\t1.2.3.4\n');
+            t.equal(stdout, '1.2.3.4\tfoo\n');
             t.end();
         });
     });
