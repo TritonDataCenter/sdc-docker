@@ -30,12 +30,7 @@
         "logLevel": "info",
         "host": "{{{MORAY_SERVICE}}}",
         "port": 2020,
-        "connectTimeout": 200,
-        "retry": {
-            "retries": 1000,
-            "minTimeout": 100,
-            "maxTimeout": 6000
-        }
+        "connectTimeout": 1000,
     },
     "fwapi": {
         "url": "http://fwapi.{{{datacenter_name}}}.{{{dns_domain}}}"
