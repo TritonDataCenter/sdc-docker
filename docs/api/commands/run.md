@@ -517,7 +517,7 @@ to size containers and assign public or private IP addresses to them.
 * `-v`, `--volume` and `--volumes-from` behave slightly differently in a Triton's container-native environment. See [volumes](../features/volumes.md).
 * `--volume-driver` and other `docker volume` commands are unimplemented at this time.
 
-Docker Swarm's affinity filters for controlling on which server a container
+Docker Swarm's affinity filters  (also called "locality hints" in Triton, see the [cloudapi CreateMachine notes](https://apidocs.joyent.com/cloudapi/#CreateMachine)) for controlling on which server a container
 is provisioned are supported. See the [placement feature
 documentation](../features/placement.md) for details.
 
