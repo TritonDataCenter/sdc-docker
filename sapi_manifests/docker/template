@@ -29,8 +29,7 @@
     "moray": {
         "logLevel": "info",
         "host": "{{{MORAY_SERVICE}}}",
-        "port": 2020,
-        "connectTimeout": 1000,
+        "port": 2020
     },
     "fwapi": {
         "url": "http://fwapi.{{{datacenter_name}}}.{{{dns_domain}}}"
