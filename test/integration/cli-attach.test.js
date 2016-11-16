@@ -25,7 +25,6 @@ var h = require('./helpers');
 var CONTAINER_PREFIX = 'sdcdockertest_';
 var container = CONTAINER_PREFIX + 'attach_test';
 
-var log = require('../lib/log');
 var STATE = {
     log: require('../lib/log')
 };

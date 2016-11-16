@@ -7,7 +7,7 @@
     "assert-plus": "1.0.0",
     "async": "0.9.0",
     "docker-registry-client": "3.2.4",
-    "bunyan": "1.8.1",
+    "bunyan": "1.8.5",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "fwrule": "git+https://github.com/joyent/sdc-fwrule.git#d1174be",
     "imgmanifest": "git+https://github.com/joyent/node-imgmanifest.git#91e5d80",
@@ -27,10 +27,10 @@
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
     "triton-tags": "1.0.0",
-    "ufds": "git+https://github.com/joyent/node-ufds.git#f1e8cc6",
+    "ufds": "1.2.0",
     "vasync": "1.6.3",
     "verror": "1.6.0",
-    "wf-client": "git+https://github.com/joyent/sdc-wf-client.git#f498b46",
+    "wf-client": "0.2.0",
     "xregexp": "3.1.0"
   },
   "devDependencies": {

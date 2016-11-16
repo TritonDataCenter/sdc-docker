@@ -31,6 +31,9 @@ test('docker pull', function (tt) {
      * Check for reasonable error messages for some 'docker pull' failures.
      * Some related issues: DOCKER-639, DOCKER-689
      */
+    /*
+     * XXX: Skipped pending DOCKER-976.
+     */
     tt.skip('  docker pull no-such-repo (error message)', function (t) {
         cli.docker('pull no-such-repo', function (err, stdout, stderr) {
             // JSSTYLED
@@ -54,6 +57,9 @@ test('docker pull', function (tt) {
         });
     });
 
+    /*
+     * XXX: Skipped pending DOCKER-976.
+     */
     tt.skip('  docker pull quay.io/no-such-user (error message)', function (t) {
         cli.docker('pull quay.io/no-such-user',
                 function (err, stdout, stderr) {
