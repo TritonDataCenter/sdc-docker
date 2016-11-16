@@ -30,7 +30,6 @@ var configLoader = require('../../lib/config-loader.js');
 var STATE = {
     log: require('../lib/log')
 };
-var CONFIG = configLoader.loadConfigSync({log: STATE.log});
 var ALICE;
 
 /* BEGIN JSSTYLED */

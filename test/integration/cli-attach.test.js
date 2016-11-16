@@ -29,7 +29,6 @@ var log = require('../lib/log');
 var STATE = {
     log: require('../lib/log')
 };
-var CONFIG = configLoader.loadConfigSync({log: STATE.log});
 var ALICE;
 
 

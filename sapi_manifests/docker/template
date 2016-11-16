@@ -34,7 +34,7 @@
         "retry": {
             "retries": 1000,
             "minTimeout": 100,
-            "minTimeout": 6000
+            "maxTimeout": 6000
         }
     },
     "fwapi": {
