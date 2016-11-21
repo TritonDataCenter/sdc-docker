@@ -16,6 +16,8 @@ var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
+var configLoader = require('../../lib/config-loader.js');
+var h = require('./helpers');
 
 
 // --- Globals
@@ -23,7 +25,10 @@ var cli = require('../lib/cli');
 var CONTAINER_PREFIX = 'sdcdockertest_';
 var container = CONTAINER_PREFIX + 'attach_test';
 
-var log = require('../lib/log');
+var STATE = {
+    log: require('../lib/log')
+};
+var ALICE;
 
 
 /**
@@ -31,7 +36,27 @@ var log = require('../lib/log');
  */
 
 test('setup', function (tt) {
+    tt.test('docker env', function (t) {
+        h.initDockerEnv(t, STATE, {}, function (err, accounts) {
+            t.ifErr(err);
+
+            ALICE = accounts.alice;
+
+            t.end();
+        });
+    });
+
     tt.test('DockerEnv: alice init', cli.init);
+
+    tt.test('pull nginx image', function (t) {
+        h.ensureImage({
+            name: 'nginx:latest',
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image');
+            t.end();
+        });
+    });
 });
 
 

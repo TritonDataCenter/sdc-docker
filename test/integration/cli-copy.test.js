@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2016, Joyent, Inc.
  */
 
 /*
@@ -25,7 +25,12 @@ var util = require('util');
 var cli = require('../lib/cli');
 var h = require('./helpers');
 var vm = require('../lib/vm');
+var configLoader = require('../../lib/config-loader.js');
 
+var STATE = {
+    log: require('../lib/log')
+};
+var ALICE;
 
 /* BEGIN JSSTYLED */
 /**
@@ -107,8 +112,28 @@ var nginxName2 = CONTAINER_PREFIX + 'nginx2';
  */
 
 test('setup', function (tt) {
+    tt.test('docker env', function (t) {
+        h.initDockerEnv(t, STATE, {}, function (err, accounts) {
+            t.ifErr(err);
+
+            ALICE = accounts.alice;
+
+            t.end();
+        });
+    });
+
     tt.test('DockerEnv: alice init', cli.init);
     tt.test('vmapi client', vm.init);
+
+    tt.test('pull nginx image', function (t) {
+        h.ensureImage({
+            name: 'nginx:latest',
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image');
+            t.end();
+        });
+    });
 });
 
 

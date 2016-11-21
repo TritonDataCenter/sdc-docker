@@ -111,7 +111,6 @@ test('setup', function (tt) {
             t.end();
         });
     });
-
 });
 
 test('api: create with non-string label values (DOCKER-737)', function (t) {
@@ -630,16 +629,6 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
 
         function oncreate(err, result) {
             t.ok(err, 'should err on create');
-            t.end();
-        }
-    });
-});
-
-test('cleanup', function (tt) {
-    tt.test('delete nginx image', function (t) {
-        DOCKER_ALICE.del('/images/nginx', ondel);
-        function ondel(err, req, res) {
-            t.error(err, 'should be no error deleting nginx');
             t.end();
         }
     });
