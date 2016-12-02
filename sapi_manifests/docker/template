@@ -31,6 +31,9 @@
         "host": "{{{MORAY_SERVICE}}}",
         "port": 2020
     },
+    "binder": {
+        "domain": "{{{BINDER_SERVICE}}}"
+    },
     "fwapi": {
         "url": "http://fwapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
