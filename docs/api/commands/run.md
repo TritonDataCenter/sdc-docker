@@ -544,9 +544,11 @@ Windows-based images and the associated parameters are not supported on Triton.
   [volumes](../features/volumes.md) for more details about the Triton's
   NFS volume feature.
 
-Docker Swarm's affinity filters for controlling on which server a container
-is provisioned are supported. See the [placement feature
-documentation](../features/placement.md) for details.
+Docker Swarm's affinity filters  (also called "locality hints" in Triton, see
+the [cloudapi CreateMachine notes](https://apidocs.joyent.com/cloudapi/
+#CreateMachine)) for controlling on which server a container is provisioned are 
+supported. See the [placement feature documentation](../features/placement.md) 
+for details.
 
 
 ## Related

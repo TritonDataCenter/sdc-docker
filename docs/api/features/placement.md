@@ -66,10 +66,11 @@ where node selection is described in terms of existing containers. For example:
     #                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # Run a mysql instance that is NOT on the same node as container 'db0'.
 
-For the same reasons, node selection can matter on Triton. Triton's Docker
-implements the same affinity filters as documented for Docker Swarm, with the
-difference that you don't need to setup a Swarm cluster.
-
+For the same reasons, node selection can matter on Triton. Triton's Docker 
+implements the same affinity filters as documented for Docker Swarm, with the 
+difference that you don't need to setup a Swarm cluster. Affinity Filters are 
+also called "locality hints" in Triton (see the [cloudapi CreateMachine notes](
+https://apidocs.joyent.com/cloudapi/#CreateMachine)).
 
 ### Affinity filter syntax
 
