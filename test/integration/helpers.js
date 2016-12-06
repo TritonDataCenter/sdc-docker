@@ -59,34 +59,7 @@ var CLIENT_ZONE_PAYLOAD = {
     // ... package vars
 
     customer_metadata: {
-        /* BEGIN JSSTYLED */
-        'user-script': [
-            '#!/bin/bash',
-            '',
-            'DOCKER_AVAILABLE_CLI_VERSIONS="' + process.env.DOCKER_AVAILABLE_CLI_VERSIONS + '"',
-            '',
-            'if [[ ! -d /root/bin ]]; then',
-            '    mkdir -p /root/bin',
-            '    echo \'export PATH=/root/bin:$PATH\' >>/root/.profile',
-            'fi',
-            '',
-            'cd /root/bin',
-            '',
-            'if [[ ! -x sdc-docker-setup.sh ]]; then',
-            '    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh',
-            '    chmod +x sdc-docker-setup.sh',
-            'fi',
-            '',
-            'if [[ ! -x get-docker-clients.sh ]]; then',
-            '    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/get-docker-clients.sh',
-            '    chmod +x get-docker-clients.sh',
-            'fi',
-            '',
-            'EXCLUDE_DOCKER_DEBUG=1 ./get-docker-clients.sh ${DOCKER_AVAILABLE_CLI_VERSIONS}',
-            '',
-            'touch /var/svc/user-script-done  # see waitForClientZoneUserScript'
-        ].join('\n')
-        /* END JSSTYLED */
+        'user-script': '/* from sdcdockertest_client.user-script.in */'
     },
 
     'brand': 'lx',
@@ -431,6 +404,46 @@ function stepCloudapiPublicIp(state, cb) {
 }
 
 /*
+ * Get the VM payload for the 'sdcdockertest_client' client zone.
+ *
+ * Dev Note: Some of the payload filling is done in `_stepCreateClientZone`,
+ * so this isn't as clean as it could be.
+ */
+function stepClientZonePayload(state, cb) {
+    assert.object(state, 'state');
+    assert.func(cb, 'cb');
+
+    if (state.clientZonePayload) {
+        cb();
+        return;
+    }
+
+    state.clientZonePayload = common.objCopy(CLIENT_ZONE_PAYLOAD);
+
+    // Load and render the user-script template.
+    var tmpl = path.resolve(__dirname, 'sdcdockertest_client.user-script.in');
+    fs.readFile(tmpl, {encoding: 'utf8'}, function (err, userScript) {
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        var vars = {
+            DOCKER_AVAILABLE_CLI_VERSIONS:
+                process.env.DOCKER_AVAILABLE_CLI_VERSIONS
+        };
+        Object.keys(vars).forEach(function (k) {
+            userScript = userScript.replace(
+                new RegExp('{{' + k + '}}', 'g'),
+                vars[k]);
+        });
+
+        state.clientZonePayload.customer_metadata['user-script'] = userScript;
+        cb();
+    });
+}
+
+/*
  * Get (or create) and setup the test zone in which we can run the `docker`
  * client.
  *
@@ -450,7 +463,7 @@ function stepClientZone(state_, cb) {
             var filters = {
                 state: 'active',
                 owner_uuid: state.sdcConfig.ufds_admin_uuid,
-                alias: CLIENT_ZONE_PAYLOAD.alias
+                alias: state.clientZonePayload.alias
             };
             state.vmapi.listVms(filters, function (err, vms) {
                 if (err) {
@@ -477,7 +490,7 @@ function _stepCreateClientZone(state_, cb) {
         return cb();
     }
 
-    var payload = common.objCopy(CLIENT_ZONE_PAYLOAD);
+    var payload = state_.clientZonePayload;
 
     vasync.pipeline({arg: state_, funcs: [
         stepNapi,
@@ -628,6 +641,7 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
     vasync.pipeline({arg: state_, funcs: [
         stepSysinfo,
         stepSdcConfig,
+        stepClientZonePayload,
         stepClientZone,
 
         function ensureAccount(state, next) {

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
+set -o xtrace
+
+DOCKER_AVAILABLE_CLI_VERSIONS="{{DOCKER_AVAILABLE_CLI_VERSIONS}}"
+
+if [[ ! -d /root/bin ]]; then
+    mkdir -p /root/bin
+    echo 'export PATH=/root/bin:$PATH' >>/root/.profile
+fi
+
+cd /root/bin
+
+if [[ ! -x sdc-docker-setup.sh ]]; then
+    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh
+    chmod +x sdc-docker-setup.sh
+fi
+
+if [[ ! -x get-docker-clients.sh ]]; then
+    curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/get-docker-clients.sh
+    chmod +x get-docker-clients.sh
+fi
+
+echo "Get docker CLI clients (allow 3 attempts)"
+got_docker_clients_successfully=
+for i in {3..1}; do
+    set +o errexit
+    EXCLUDE_DOCKER_DEBUG=1 ./get-docker-clients.sh ${DOCKER_AVAILABLE_CLI_VERSIONS}
+    exit_status=$?
+    set -o errexit
+    if [[ $exit_status -eq 0 ]]; then
+        got_docker_clients_successfully=yes
+        break
+    fi
+done
+if [[ "$got_docker_clients_successfully" != "yes" ]]; then
+    echo "failed to get Docker clients" >&2
+    exit 1
+fi
+
+touch /var/svc/user-script-done  # see waitForClientZoneUserScript
