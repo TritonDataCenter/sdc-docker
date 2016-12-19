@@ -1819,6 +1819,51 @@ function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
     );
 }
 
+/*
+ * Return the array of active packages in sorted (smallest to largest) order.
+ *
+ * Because of the disaster we have with cpu_cap and no-cpu_cap packages, we
+ * can't just create our own packages and expect anything to work. So we'll pull
+ * out the packagePrefix to filter the correct packages for docker.
+ */
+function getSortedPackages(callback) {
+    var configFile = __dirname + '/../../etc/config.json';
+    var packagePrefix = JSON.parse(fs.readFileSync(configFile)).packagePrefix;
+    var packages;
+    var papi;
+
+    assert.string(packagePrefix, 'configFile packagePrefix');
+
+    vasync.pipeline({funcs: [
+        function _createPapiClient(_, cb) {
+            createPapiClient(function (err, _papi) {
+                papi = _papi;
+                cb(err);
+            });
+        }, function _getPackages(_, cb) {
+            papi.list('name=' + packagePrefix + '*', {}, function (err, pkgs) {
+                if (err) {
+                    cb(err);
+                    return;
+                }
+
+                assert.arrayOfObject(pkgs, 'pkgs');
+
+                packages = pkgs.filter(function _filterPkgs(pkg) {
+                    return (Boolean(pkg.active));
+                }).sort(function _cmpPkgMemory(a, b) {
+                    return (a.max_physical_memory - b.max_physical_memory);
+                });
+
+                cb();
+            });
+        }
+    ]}, function _afterPkgPipeline(err) {
+        callback(err, packages);
+    });
+}
+
+
 // --- exports
 
 module.exports = {
@@ -1836,6 +1881,7 @@ module.exports = {
     buildDockerContainer: buildDockerContainer,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,
+    getSortedPackages: getSortedPackages,
 
     getDockerEnv: getDockerEnv,
 

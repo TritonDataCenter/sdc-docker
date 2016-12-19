@@ -55,61 +55,25 @@ if (cliVersion) {
 
 
 test('setup docker environment/cli', opts, function (tt) {
-    tt.test('DockerEnv: alice init', cli.init);
+    h.createPapiClient(function (err, _papi) {
+        tt.ifErr(err, 'create PAPI client');
+        papi = _papi;
+        tt.test('DockerEnv: alice init', cli.init);
+        tt.end();
+    });
 });
 
-/*
- * Because of the disaster we have with cpu_cap and no-cpu_cap packages, we
- * can't just create our own packages and expect anything to work. So we'll pull
- * out the packagePrefix then pick the smallest 2 packages that match that for
- * use when testing here.
- */
 test('find packages for test', opts, function (tt) {
-    var configFile = __dirname + '/../../etc/config.json';
-    var packagePrefix;
+    h.getSortedPackages(function (err, pkgs) {
+        tt.ifErr(err, 'getSortedPackages');
+        tt.ok(pkgs.length >= 2, 'need at least 2 packages, got ' + pkgs.length);
 
-    packagePrefix = JSON.parse(fs.readFileSync(configFile)).packagePrefix;
+        packageA = pkgs[1]; // 2nd smallest
+        packageB = pkgs[0]; // smallest
 
-    tt.ok(packagePrefix, 'found packagePrefix: ' + packagePrefix);
+        tt.ok(packageA.name, 'packageA: ' + packageA.name);
+        tt.ok(packageB.name, 'packageB: ' + packageB.name);
 
-    vasync.pipeline({funcs: [
-        function _createPapiClient(_, cb) {
-            h.createPapiClient(function (err, _papi) {
-                tt.ifErr(err, 'create PAPI client');
-                papi = _papi;
-                cb(err);
-            });
-        }, function _getPackages(_, cb) {
-            papi.list('name=' + packagePrefix + '*', {}, function (err, pkgs) {
-                var cleanedPkgs;
-
-                tt.ifError(err, 'list packages');
-
-                if (err) {
-                    cb(err);
-                    return;
-                }
-
-                cleanedPkgs = pkgs.filter(function _filterPkgs(pkg) {
-                    return (Boolean(pkg.active));
-                }).sort(function _cmpPkgMemory(a, b) {
-                    return (a.max_physical_memory - b.max_physical_memory);
-                });
-
-                tt.ok(cleanedPkgs.length >= 2, 'need at least 2 packages, have '
-                    + cleanedPkgs.length);
-
-                packageA = cleanedPkgs[1]; // 2nd smallest
-                packageB = cleanedPkgs[0]; // smallest
-
-                tt.ok(packageA.name, 'packageA: ' + packageA.name);
-                tt.ok(packageB.name, 'packageB: ' + packageB.name);
-
-                cb();
-            });
-        }
-    ]}, function _afterPkgPipeline(err) {
-        tt.ifError(err, 'found packages');
         tt.end();
     });
 });

@@ -33,6 +33,20 @@ var ALICE;
 var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
 
+
+function createTarStream(fileAndContents) {
+    var pack = tar.pack();
+
+    Object.keys(fileAndContents).forEach(function (name) {
+        pack.entry({ name: name }, fileAndContents[name]);
+    });
+
+    pack.finalize();
+
+    return pack;
+}
+
+
 test('setup', function (tt) {
 
     tt.test('docker env', function (t) {
@@ -158,18 +172,6 @@ test('api: build', function (tt) {
     });
 });
 
-
-function createTarStream(fileAndContents) {
-    var pack = tar.pack();
-
-    Object.keys(fileAndContents).forEach(function (name) {
-        pack.entry({ name: name }, fileAndContents[name]);
-    });
-
-    pack.finalize();
-
-    return pack;
-}
 
 /**
  * DOCKER-662: Ensure no conflicts with same images in different repositories.
@@ -409,4 +411,122 @@ test('api: build across multiple registries', function (tt) {
         );
     });
 
+});
+
+
+test('build with packagelabel', function (tt) {
+
+    var imageLabels = { 'fireworks': 'awesome' };
+
+    vasync.pipeline({ arg: {}, funcs: [
+
+        function getSmallestPackage(ctx, next) {
+            h.getSortedPackages(function (err, pkgs) {
+                if (err) {
+                    next(err);
+                    return;
+                }
+                tt.ok(pkgs.length >= 1, 'Must be at least one pkg');
+                var smallestPkg = pkgs[0];
+                tt.ok(smallestPkg.name, 'smallestPkg.name');
+                ctx.allLabels = {
+                    'com.joyent.package': smallestPkg.name,
+                    'fireworks': 'awesome'
+                };
+                next();
+            });
+        },
+
+        function createTar(ctx, next) {
+            var fileAndContents = {
+                'Dockerfile': 'FROM busybox\n'
+                            + 'LABEL fireworks=awesome\n'
+                            + 'RUN true\n'
+            };
+            ctx.tarStream = createTarStream(fileAndContents);
+            next();
+        },
+
+        function buildWithPackageLabel(ctx, next) {
+            h.buildDockerContainer({
+                dockerClient: DOCKER_ALICE_HTTP,
+                params: {
+                    'labels': JSON.stringify(ctx.allLabels),
+                    'rm': 'false'  // Don't remove container after it's built.
+                },
+                test: tt,
+                tarball: ctx.tarStream
+            }, onbuild);
+
+            function onbuild(err, result) {
+                tt.ifError(err, 'build finished');
+                ctx.result = result;
+                next(err, result);
+            }
+        },
+
+        function checkResults(ctx, next) {
+            if (!ctx.result || !ctx.result.body) {
+                next(new Error('build generated no output!?'));
+                return;
+            }
+
+            var reg;
+            var output = ctx.result.body;
+            var hasLabel = output.indexOf('LABEL fireworks=awesome') >= 0;
+            tt.ok(hasLabel, format(
+                'output contains "LABEL fireworks=awesome": output=%j',
+                output));
+
+            var hasRunningIn = output.indexOf('Running in ') >= 0;
+            tt.ok(hasRunningIn, 'output contains "Running in"');
+            if (hasRunningIn) {
+                reg = new RegExp('Running in (\\w+)');
+                ctx.containerId = output.match(reg)[1];
+                tt.ok(ctx.containerId, 'Found containerId');
+            }
+
+            var hasSuccess = output.indexOf('Successfully built') >= 0;
+            tt.ok(hasSuccess, 'output contains Successfully built');
+            if (hasSuccess) {
+                reg = new RegExp('Successfully built (\\w+)');
+                ctx.dockerImageId = output.match(reg)[1];
+                tt.ok(ctx.dockerImageId, 'Found dockerImageId');
+            }
+
+            next();
+        },
+
+        function inspectBuildContainer(ctx, next) {
+            DOCKER_ALICE.get('/containers/' + ctx.containerId + '/json',
+                    function (err, req, res, container) {
+                tt.ok(container, 'inspect container');
+                tt.deepEqual(container.Config.Labels, ctx.allLabels);
+                next();
+            });
+        },
+
+        // Make sure that the image does not include 'com.joyent.package' label.
+        function inspectBuiltImage(ctx, next) {
+            DOCKER_ALICE.get('/images/' + ctx.dockerImageId + '/json',
+                    function (err, req, res, img) {
+                tt.ok(img, 'inspect image');
+                tt.deepEqual(img.Config.Labels, imageLabels);
+                next();
+            });
+        },
+
+        function removeBuiltImage(ctx, next) {
+            tt.ok(ctx.dockerImageId, 'Got the docker image id');
+            DOCKER_ALICE.del('/images/' + ctx.dockerImageId, next);
+        },
+
+        function removeBuildContainer(ctx, next) {
+            DOCKER_ALICE.del('/containers/' + ctx.containerId, next);
+        }
+
+    ]}, function _inspectedContainers(err) {
+        tt.ifError(err, 'build with packagelabel');
+        tt.end();
+    });
 });
