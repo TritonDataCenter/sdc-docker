@@ -45,6 +45,8 @@ export SAPI_URL="http://$(vmadm lookup -j alias=sapi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
 export NAPI_URL="http://$(vmadm lookup -j alias=napi0 | json 0.nics \
     | json -c 'this.nic_tag==="admin"' 0.ip)"
+export VOLAPI_URL="http://$(vmadm lookup -j alias=volapi0 | json 0.nics \
+    | json -c 'this.nic_tag==="admin"' 0.ip)"
 
 # Docker CLI versions for testing:
 # 1. 'DOCKER_AVAILABLE_CLI_VERSIONS' is the set of 'docker' CLI versions we

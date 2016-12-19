@@ -35,7 +35,8 @@ var CONFIG = {
     papi_url: process.env.PAPI_URL,
     sapi_url: process.env.SAPI_URL,
     vmapi_url: process.env.VMAPI_URL,
-    napi_url: process.env.NAPI_URL
+    napi_url: process.env.NAPI_URL,
+    volapi_url: process.env.VOLAPI_URL
 };
 var p = console.error;
 var UA = 'sdcdockertest';
@@ -1254,6 +1255,24 @@ function createNapiClient(callback) {
     });
 }
 
+/**
+ * Get a simple restify JSON client to VOLAPI.
+ */
+function createVolapiClient(callback) {
+    assert.func(callback, 'callback');
+
+    createClientOpts('volapi', function (err, opts) {
+        if (err) {
+            return callback(err);
+        }
+
+        opts.version = '^1';
+        opts.userAgent = 'sdc-docker-integration-tests';
+
+        callback(null, new sdcClients.VOLAPI(opts));
+        return;
+    });
+}
 
 /**
  * Test the given Docker 'info' API response.
@@ -1900,6 +1919,7 @@ module.exports = {
     createPapiClient: createPapiClient,
     createVmapiClient: createVmapiClient,
     createNapiClient: createNapiClient,
+    createVolapiClient: createVolapiClient,
     dockerIdToUuid: sdcCommon.dockerIdToUuid,
     ensureImage: ensureImage,
     initDockerEnv: initDockerEnv,
