@@ -31,6 +31,7 @@ test('docker pull', function (tt) {
      * Some related issues: DOCKER-639, DOCKER-689
      */
 
+    /* BEGIN JSSTYLED */
     /**
      * Docker-docker 1.12:
      *  $ docker pull no-such-repo
@@ -43,12 +44,17 @@ test('docker pull', function (tt) {
      * Note that Triton-docker won't have that "Pulling repository ..." line.
      * In Docker-docker, that is from the docker v1 fallback pull attempt.
      * I.e. cruft, IMO.
+     *
+     * The docker 1.6 client emits the error like this:
+     *  time="2017-01-03T21:39:05Z" level=fatal msg="Error: image no-such-repo:latest not found (50e45d88-9b6e-4faa-9f92-56d81f8d27c1)"
      */
+    /* END JSSTYLED */
     tt.test('  docker pull no-such-repo', function (t) {
         cli.docker('pull no-such-repo', function (err, stdout, stderr) {
             t.ok(err, 'expect failed pull: ' + err);
 
-            t.ok(/^Error: image no-such-repo:latest not found/m.test(stderr),
+            // With Docker 1.6 the error
+            t.ok(/Error: image no-such-repo:latest not found/m.test(stderr),
                 format('stderr includes "Error: image $name not found", '
                     + 'stdout=%j, stderr=%j', stdout, stderr));
             t.ok(! /unauthorized/i.test(stderr), format('stderr does '
@@ -78,7 +84,7 @@ test('docker pull', function (tt) {
                 function (err, stdout, stderr) {
             t.ok(err, 'expect failed pull: ' + err);
 
-            t.ok(/^Error: image quay.io\/no-such-user:latest not found/m
+            t.ok(/Error: image quay.io\/no-such-user:latest not found/m
                     .test(stderr),
                 format('stderr includes "Error: image $name not found", '
                     + 'stdout=%j, stderr=%j', stdout, stderr));
@@ -108,7 +114,7 @@ test('docker pull', function (tt) {
             t.ok(err, 'expect failed pull: ' + err);
 
             /* JSSTYLED */
-            var pat = /^Error pulling image: \(ENOTFOUND\) nope.example.com host not found/m;
+            var pat = /Error pulling image: \(ENOTFOUND\) nope.example.com host not found/m;
             t.ok(pat.test(stderr), format('stderr matches %s, stderr=%j',
                 pat, stderr));
 
