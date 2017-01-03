@@ -43,6 +43,7 @@ CURL_OPTS=" -H user-agent:sdc-docker-setup/$VERSION"
 
 PROFILE_NAME_RE='^[a-z][a-z0-9\._-]+$'
 
+COAL=root@10.99.99.7
 
 
 # ---- support functions
@@ -92,6 +93,7 @@ function usage
     echo "  -h      Print this help and exit."
     echo "  -V      Print version and exit."
     echo "  -q      Quiet output. Only print out environment setup commands."
+    echo "  -c      Force CoaL ssh user@host. (Defaults to $COAL)"
     echo "  -f      Force set up without checks (check that the given login and"
     echo "          ssh key exist in the SDC CloudAPI, check that the Docker"
     echo "          hostname responds, etc)."
@@ -170,8 +172,8 @@ function cloudapiVerifyAccount() {
                     "\n    given SmartDataCenter."\
                     "\n" \
                     "\n    On CoaL you can do this via:" \
-                    "\n        scp $sshPubKeyPath root@10.99.99.7:/var/tmp/id_rsa.pub" \
-                    "\n        ssh root@10.99.99.7" \
+                    "\n        scp $sshPubKeyPath $COAL:/var/tmp/id_rsa.pub" \
+                    "\n        ssh $COAL" \
                     "\n        sdc-useradm get $account >/dev/null 2>/dev/null || \\" \
                     "\n            echo '{\"login\":\"$account\",\"userpassword\":\"secret123\",\"cn\":\"$account Test User\",\"email\":\"$account@example.com\"}' | sdc-useradm create -A" \
                     "\n        sdc-useradm add-key $account /var/tmp/id_rsa.pub"
@@ -290,7 +292,7 @@ optForce=
 optInsecure=
 optSdcSetup=
 optProfileName=
-while getopts "hVqfksp:" opt; do
+while getopts "c:hVqfksp:" opt; do
     case "$opt" in
         h)
             usage
@@ -299,6 +301,8 @@ while getopts "hVqfksp:" opt; do
         V)
             echo "$(basename $0) $VERSION"
             exit 0
+            ;;
+        c)  optCoalHost=$OPTARG
             ;;
         q)
             optQuiet=true
@@ -325,6 +329,10 @@ while getopts "hVqfksp:" opt; do
     esac
 done
 shift $((OPTIND - 1))
+
+if [[ -n $optCoalHost ]]; then
+    COAL=$optCoalHost
+fi
 
 # Ping the URL passed as the first positional parameter and outputs one
 # of three possible strings:
@@ -385,7 +393,7 @@ while true; do
         cloudapiUrl=$defaultCloudapiUrl
     elif [[ "$cloudapiUrl" == "coal" ]]; then
         coal=true
-        cloudapiUrl=https://$(ssh -o ConnectTimeout=5 root@10.99.99.7 "vmadm lookup -j alias=cloudapi0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
+        cloudapiUrl=https://$(ssh -o ConnectTimeout=5 $COAL "vmadm lookup -j alias=cloudapi0 | json -ae 'ext = this.nics.filter(function (nic) { return nic.nic_tag === \"external\"; })[0]; this.ip = ext ? ext.ip : this.nics[0].ip;' ip")
         if [[ -z "$cloudapiUrl" ]]; then
             fatal "could not find the cloudapi0 zone IP in CoaL"
         fi
