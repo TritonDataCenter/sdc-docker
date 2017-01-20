@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -93,8 +93,6 @@ var ALICE;
 /* END JSSTYLED */
 
 
-var CONTAINER_PREFIX = 'sdcdockertest_copy_';
-
 // --- Globals
 
 var log = require('../lib/log');
@@ -102,8 +100,16 @@ var state = {
     log: log
 };
 
-var nginxName = CONTAINER_PREFIX + 'nginx';
-var nginxName2 = CONTAINER_PREFIX + 'nginx2';
+var CONTAINER_PREFIX = 'sdcdockertest_copy_';
+var CONTAINER_NAME_NGINX = CONTAINER_PREFIX + 'nginx';
+var CONTAINER_NAME_NGINX2 = CONTAINER_PREFIX + 'nginx2';
+var CONTAINER_NAME_ALPINE = CONTAINER_PREFIX + 'alpine';
+
+var CONTAINERS_TO_CREATE = [
+    { name: CONTAINER_NAME_NGINX,  image: 'nginx' },
+    { name: CONTAINER_NAME_NGINX2, image: 'nginx' },
+    { name: CONTAINER_NAME_ALPINE, image: 'alpine', cmd: 'sleep 1000000' }
+];
 
 
 
@@ -138,15 +144,21 @@ test('setup', function (tt) {
 
 
 test('test initialization', function (tt) {
-
-    removeNginxTestContainers(tt);
+    removeTestContainers(tt);
 
     vasync.forEachParallel({
-        inputs: [nginxName, nginxName2],
-        func: function (name, next) {
+        inputs: CONTAINERS_TO_CREATE,
+        func: function (create, next) {
+            var name = create.name;
+            var image = create.image;
+            var cmd = create.cmd;
+
             tt.test('create container ' + name, function (t) {
                 t.plan(3);
-                cli.run(t, { args: '-d --name ' + name + ' nginx' },
+
+                var args = sprintf(
+                    '-d --name %s %s %s', name, image, cmd || '');
+                cli.run(t, { args: args},
                 function (err, id) {
                     t.ifErr(err, 'docker run ' + name);
                     t.end();
@@ -162,8 +174,97 @@ test('test initialization', function (tt) {
 
 
 /**
- * Tests
+ * Tests ---------------------------------------------------------------------
  */
+
+test('copy out of container file with funky name', function (tt) {
+    /**
+     * Test that we can copy in and copy out files that have variety of
+     * characters, some of which could be considered "problematic".  Previous
+     * version of sdc-docker escaped some of these characters in filenames, but
+     * this was deemed unnecessary in DOCKER-994, so this escaping was removed.
+     * Here we want to check that filenames with funky characters continue to
+     * work.
+     */
+
+    var remoteFilenames = [
+        'period.txt',
+        'under_score',
+        '(openparen',
+        '^caret',
+        'doyouwantobuilda☃',
+        '#filltheswamp',
+        'loudnoises\\!',
+        'equal=sign',
+        '\\"double-quote',
+        'has space',
+        'ast*risk'
+    ];
+
+    var remoteDir = '/var/tmp/';
+    var localFn = remoteDir + '/local.txt';
+    var contents = 'here come dat boi';
+
+    vasync.waterfall([
+        function (next) {
+            createLocalFile(localFn, contents, next);
+        },
+        function (next) {
+            copyFilesIn(localFn, remoteDir, next);
+        },
+        function (next) {
+            copyFilesOutAndCheckContents(remoteDir, contents, next);
+        }
+    ],
+    function (err) {
+        tt.ifErr(err, 'no errors copying files out with funky name');
+        tt.end();
+    });
+
+
+    function createLocalFile(local, fileContents, cb) {
+        var cmd = sprintf('echo "%s" > %s', fileContents, local);
+        cli.exec(cmd, function (execErr) {
+            tt.ifErr(execErr, 'creating file to be copied');
+            cb(execErr);
+        });
+    }
+
+
+    function copyFilesIn(local, remote, cb) {
+        vasync.forEachPipeline({
+            inputs: remoteFilenames,
+            func: function (filename, next) {
+                copyFileIn(tt, local,
+                            remote + filename, CONTAINER_NAME_ALPINE, next);
+            }
+        }, function (err) {
+            tt.ifErr(err, 'no error copying test files into container');
+            cb();
+        });
+    }
+
+
+    function copyFilesOutAndCheckContents(remote, fileContents, cb) {
+        vasync.forEachPipeline({
+            inputs: remoteFilenames,
+            func: function (filename, next) {
+                copyFileOutGetContents(
+                    tt, remote + filename, filename, CONTAINER_NAME_ALPINE,
+                    onCopyOut);
+
+                function onCopyOut(err, str) {
+                    tt.equal(str, fileContents, 'file contents matched');
+                    next();
+                }
+            }
+        }, function (err) {
+            tt.ifErr(err, 'no errors copying out and checking test files');
+            cb();
+        });
+    }
+
+});
 
 
 test('copy out of container file placement', function (tt) {
@@ -219,10 +320,10 @@ test('copy out of container file placement', function (tt) {
     vasync.waterfall([
         initializeFixtures,
         executeTestCases
-    ], function (err) {
+    ],
+    function (err) {
         tt.end();
     });
-
 
     function initializeFixtures(callback) {
         vasync.waterfall([
@@ -257,9 +358,9 @@ test('copy out of container file placement', function (tt) {
         var result = tc.result;
         var args = sprintf(
             'cp %s:%s %s',
-            nginxName, src, dst);
+            CONTAINER_NAME_NGINX, src, dst);
         tt.comment(args);
-        var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
+        var execOpts = { encoding: 'binary' };
         cli.docker(args, { execOpts: execOpts }, onDocker);
         function onDocker(err, stdout, stderr) {
             tt.ifErr(err, 'no `docker copy` error');
@@ -279,12 +380,15 @@ test('copy a file out of running container', function (tt) {
     tt.plan(7);
     var fnbase = '/var/tmp';
     var fn = 'copyout.test';
-    var ffn = fnbase + '/' + fn;
+
+    var remotefn = fnbase + '/' + fn;
+
     var hash;
 
     vasync.waterfall([
         function (next) {
-            createCopyOutFile(tt, ffn, nginxName, function (err, sha1) {
+            createCopyOutFile(tt, remotefn, CONTAINER_NAME_NGINX,
+            function (err, sha1) {
                 tt.ifErr(err, 'creating copy out file');
                 hash = sha1;
                 tt.comment('hash was ' + hash);
@@ -292,13 +396,15 @@ test('copy a file out of running container', function (tt) {
             });
         },
         function (next) {
-            copyFileOut(tt, ffn, fn, nginxName, function (err) {
+            copyFileOut(tt, remotefn, fn, CONTAINER_NAME_NGINX,
+            function (err) {
                 tt.ifErr(err, 'copying file out');
                 next();
             });
         },
         function (next) {
-            checkFileCopiedOut(tt, ffn, nginxName, hash, function (err) {
+            checkFileCopiedOut(tt, remotefn, hash, CONTAINER_NAME_NGINX,
+            function (err) {
                 tt.ifErr(err, 'copying file out');
                 next();
             });
@@ -314,25 +420,30 @@ test('copy a file out of stopped container', function (tt) {
 
     var fnbase = '/var/tmp';
     var fn = 'copyout.test';
-    var ffn = fnbase + '/' + fn;
+
+    var remotefn = fnbase + '/' + fn;
+
     var hash;
 
     vasync.waterfall([
         function (next) {
-            createCopyOutFile(tt, ffn, nginxName2, function (err, sha1) {
+            createCopyOutFile(tt, remotefn, CONTAINER_NAME_NGINX2,
+            function (err, sha1) {
                 tt.ifErr(err, 'creating copy out file');
                 hash = sha1;
                 next();
             });
         },
         function (next) {
-            stopContainer(tt, nginxName2, function (err) {
+            stopContainer(tt, CONTAINER_NAME_NGINX2,
+            function (err) {
                 tt.ifErr(err, 'stopping copy out container');
                 next();
             });
         },
         function (next) {
-            copyFileOut(tt, ffn, fn, nginxName2, function (err, sha1) {
+            copyFileOut(tt, remotefn, fn, CONTAINER_NAME_NGINX2,
+            function (err, sha1) {
                 tt.ifErr(err, 'copying file out');
                 tt.equal(sha1, hash);
                 next();
@@ -342,6 +453,7 @@ test('copy a file out of stopped container', function (tt) {
         tt.end();
     });
 });
+
 
 test('copy a file into running container', function (tt) {
     var cliVer = process.env.DOCKER_CLI_VERSION;
@@ -355,13 +467,15 @@ test('copy a file into running container', function (tt) {
 
     var fnbase = '/var/tmp';
     var fn = 'copy-in.test';
-    var ffn = fnbase + '/' + fn;
+
+    var remotefn = fnbase + '/' + fn;
+    var localfn = fnbase + '/' + fn;
 
     var hash;
 
     vasync.waterfall([
         function (next) {
-            createCopyInFile(tt, ffn, function (err, sha1) {
+            createCopyInFile(tt, localfn, function (err, sha1) {
                 tt.ifErr(err, 'creating copy in file (running container)');
                 hash = sha1;
                 tt.comment('running container file sha1 ' + sha1);
@@ -369,13 +483,15 @@ test('copy a file into running container', function (tt) {
             });
         },
         function (next) {
-            copyFileIn(tt, ffn, fn, nginxName, function (err) {
+            copyFileIn(tt, localfn, remotefn, CONTAINER_NAME_NGINX,
+            function (err) {
                 tt.ifErr(err, 'copying file in');
                 next();
             });
         },
         function (next) {
-            checkFileCopiedIn(tt, ffn, fn, nginxName, hash, function (err) {
+            checkFileCopiedIn(tt, remotefn, CONTAINER_NAME_NGINX, hash,
+            function (err) {
                 tt.ifErr(err, 'checking file copied in');
                 next();
             });
@@ -398,38 +514,42 @@ test('copy a file into stopped container', function (tt) {
 
     var fnbase = '/var/tmp';
     var fn = 'copy-in.test';
-    var ffn = fnbase + '/' + fn;
+
+    var localfn = fnbase + '/' + fn;
+    var remotefn = fnbase + '/' + fn;
 
     var hash;
 
     vasync.waterfall([
         function (next) {
-            createCopyInFile(tt, ffn, function (err, sha1) {
+            createCopyInFile(tt, localfn, function (err, sha1) {
                 tt.ifErr(err, 'creating copy in file (stopped container)');
                 hash = sha1;
                 next();
             });
         },
         function (next) {
-            stopContainer(tt, nginxName2, function (err) {
+            stopContainer(tt, CONTAINER_NAME_NGINX2, function (err) {
                 tt.ifErr(err, 'error stopping container');
                 next();
             });
         },
         function (next) {
-            copyFileIn(tt, ffn, fn, nginxName2, function (err) {
+            copyFileIn(tt, localfn, remotefn, CONTAINER_NAME_NGINX2,
+            function (err) {
                 tt.ifErr(err, 'copying file in');
                 next();
             });
         },
         function (next) {
-            startContainer(tt, nginxName2, function (err) {
+            startContainer(tt, CONTAINER_NAME_NGINX2, function (err) {
                 tt.ifErr(err, 'error stopping container');
                 next();
             });
         },
         function (next) {
-            checkFileCopiedIn(tt, ffn, fn, nginxName2, hash, function (err) {
+            checkFileCopiedIn(tt, remotefn, CONTAINER_NAME_NGINX2, hash,
+            function (err) {
                 tt.ifErr(err, 'checking file copied in');
                 next();
             });
@@ -444,7 +564,7 @@ test('copy a file into stopped container', function (tt) {
  * Cleanup.
  */
 test('copy container cleanup', function (tt) {
-    removeNginxTestContainers(tt);
+    removeTestContainers(tt);
 });
 
 
@@ -469,7 +589,7 @@ function startContainer(tt, containerName, callback) {
 }
 
 
-function removeNginxTestContainers(tt) {
+function removeTestContainers(tt) {
     tt.test('remove old containers', function (t) {
         cli.ps(t, {args: '-a'}, function (err, entries) {
             t.ifErr(err, 'docker ps');
@@ -501,11 +621,11 @@ function removeNginxTestContainers(tt) {
  * Copy out test auxillary support functions
  */
 
-function createCopyOutFile(tt, ffn, containerName, callback) {
+function createCopyOutFile(tt, remotefn, containerName, callback) {
     // Create a file and get a checksum of it
     var inside = [
         'dd if=/dev/urandom count=1024 bs=1024',
-        'tee ' + ffn,
+        'tee ' + remotefn,
         '/native/usr/bin/sum -x sha1'
     ].join('| \\\n');
     var args = sprintf('exec %s bash -c "%s"', containerName, inside);
@@ -518,10 +638,10 @@ function createCopyOutFile(tt, ffn, containerName, callback) {
 }
 
 
-function copyFileOut(tt, ffn, fn, containerName, callback) {
+function copyFileOut(tt, remotefn, localfn, containerName, callback) {
     var args = sprintf(
-        'cp %s:%s - | tar xOf - %s',
-        containerName, ffn, fn);
+        'cp "%s:%s" - | tar xOf - "%s"',
+        containerName, remotefn, localfn);
     var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
     cli.docker(args, { execOpts: execOpts }, onDocker);
     function onDocker(err, stdout, stderr) {
@@ -533,9 +653,9 @@ function copyFileOut(tt, ffn, fn, containerName, callback) {
     }
 }
 
-function checkFileCopiedOut(tt, ffn, containerName, hash, callback) {
+function checkFileCopiedOut(tt, remotefn, hash, containerName, callback) {
     var args = sprintf('exec %s /native/usr/bin/sum -x sha1 %s',
-        containerName, ffn);
+                        containerName, remotefn);
     cli.docker(args, onDocker);
     function onDocker(err, stdout, stderr) {
         tt.ifErr(err);
@@ -546,13 +666,13 @@ function checkFileCopiedOut(tt, ffn, containerName, hash, callback) {
 }
 
 
-function createCopyInFile(tt, ffn, callback) {
+function createCopyInFile(tt, localfn, callback) {
     var hash;
     var cmd = sprintf(
         'dd if=/dev/urandom of=%s '
         + 'count=1024 bs=1024 >/dev/null && '
         + '/native/usr/bin/sum -x sha1 %s | awk "{ print $1 }"',
-        ffn, ffn);
+        localfn, localfn);
     cli.exec(cmd, function (err, stdout, stderr) {
         tt.ifErr(err);
         hash = stdout.toString();
@@ -561,8 +681,8 @@ function createCopyInFile(tt, ffn, callback) {
 }
 
 
-function copyFileIn(tt, ffn, fn, containerName, callback) {
-    var args = sprintf('cp %s %s:%s', ffn, containerName, ffn);
+function copyFileIn(tt, localfn, remotefn, containerName, callback) {
+    var args = sprintf('cp %s "%s:%s"', localfn, containerName, remotefn);
     var execOpts = { maxBuffer: 1024*1024*2, encoding: 'binary' };
     cli.docker(args, { execOpts: execOpts }, onDocker);
     function onDocker(err, stdout, stderr) {
@@ -571,15 +691,30 @@ function copyFileIn(tt, ffn, fn, containerName, callback) {
     }
 }
 
-function checkFileCopiedIn(tt, ffn, fn, containerName, hash, callback) {
+function checkFileCopiedIn(tt, remotefn, containerName, hash, callback) {
     var args =
-        sprintf('exec %s /native/usr/bin/sum -x sha1 %s', containerName, ffn);
+        sprintf('exec %s /native/usr/bin/sum -x sha1 %s',
+                containerName, remotefn);
     cli.docker(args, onDocker);
     function onDocker(err, stdout, stderr) {
         tt.ifErr(err);
         tt.comment('sha1 before ' + hash);
         tt.comment('sha1 after ' + stdout.toString());
-        tt.equal(stdout.toString(), hash);
+        tt.equal(stdout.toString().split(' ')[0], hash.split(' ')[0]);
         callback(err);
+    }
+}
+
+function
+copyFileOutGetContents(tt, remotefn, extractfn, containerName, callback) {
+    var args = sprintf('cp "%s:%s" - | tar xOf - "%s"',
+        containerName, remotefn, extractfn);
+    var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
+    cli.docker(args, { execOpts: execOpts }, onDocker);
+    function onDocker(err, stdout, stderr) {
+        tt.ifErr(err);
+        var str = stdout.toString().trim();
+
+        callback(err, str);
     }
 }
