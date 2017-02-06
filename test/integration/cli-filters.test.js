@@ -129,6 +129,16 @@ test('container filters', function (tt) {
     checkContainerFiltering(tt, '--filter name=' + CONTAINER_PREFIX
         + ' --filter status=running',
         [containerName2]);
+
+    // Filtering using limit - should match running/stopped containers.
+    checkContainerFiltering(tt, '--filter name=' + CONTAINER_PREFIX
+        + ' --last 10',
+        [containerName1, containerName2]);
+
+    // Filtering using negative limit - should only match running containers.
+    checkContainerFiltering(tt, '--filter name=' + CONTAINER_PREFIX
+        + ' --last -10',
+        [containerName2]);
 });
 
 
