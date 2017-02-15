@@ -198,7 +198,8 @@ test('test ps filtering on package', opts, function (tt) {
     vasync.forEachPipeline({
         inputs: Object.keys(expectedResults),
         func: function _performFilteredPs(pkg, cb) {
-            var argstring = '--filter "label=com.joyent.package=' + pkg + '"';
+            var argstring = '--filter "label=com.joyent.package=' + pkg + '"'
+                + ' --all';
 
             cli.ps(tt, {
                 args: argstring
@@ -331,7 +332,8 @@ test('test lookup w/ invalid package names', opts, function (tt) {
         inputs: labels,
         func: function _lookupContainer(label, cb) {
             var argstring = '--format "{{.ID}}:\t{{.Labels}}" '
-                + '--filter "label=com.joyent.package=' + label + '"';
+                + '--filter "label=com.joyent.package=' + label + '" '
+                + ' --all';
 
             cli.ps(tt, {
                 args: argstring,
@@ -387,7 +389,7 @@ test('test creation w/ two package labels', opts, function (tt) {
 
     cli.create(tt, {args: cmdline}, function (err, id) {
         var argstring = '--filter "label=com.joyent.package=' + packageB.name
-            + '" --format '
+            + '" --all --format '
             + '\"{{.ID}},{{.Label \\\"com.joyent.package\\\"}}\"';
         var shortId;
 
