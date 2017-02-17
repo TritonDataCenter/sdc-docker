@@ -74,8 +74,8 @@ test('Volume creation with invalid size', function (tt) {
             assert.string(invalidSize, 'invalidSize');
             assert.func(callback, 'callback');
 
-            var expectedErrMsg = 'Validation error, causes: Error: size "'
-                + invalidSize + '" is not a valid volume size';
+            var expectedErrMsg = '(Validation) Volume size: "' + invalidSize
+                + '" is not a valid volume size';
 
             volumesCli.createTestVolume(ALICE_USER, {
                 size: invalidSize
