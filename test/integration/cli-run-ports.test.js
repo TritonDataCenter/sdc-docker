@@ -192,8 +192,8 @@ test('no port args', function (tt) {
                 tag: 'sdc_docker'
             },
             expected: [
-                'FROM tag sdc_docker TO tag sdc_docker ALLOW tcp PORT all',
-                'FROM tag sdc_docker TO tag sdc_docker ALLOW udp PORT all'
+                'FROM tag "sdc_docker" TO tag "sdc_docker" ALLOW tcp PORT all',
+                'FROM tag "sdc_docker" TO tag "sdc_docker" ALLOW udp PORT all'
             ]
         });
     });
