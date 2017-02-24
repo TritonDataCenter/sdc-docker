@@ -105,7 +105,7 @@ test('docker pull', function (tt) {
      * Triton-docker:
      *  $ docker --tls pull nope.example.com/nope
      *  Using default tag: latest
-     *  Error pulling image: (ENOTFOUND) nope.example.com host not found (...)
+     *  Error pulling image: (RemoteSourceError) nope.example.com host not found (...)
      */
     /* END JSSTYLED */
     tt.test('  docker pull nope.example.com/nope', function (t) {
@@ -114,7 +114,7 @@ test('docker pull', function (tt) {
             t.ok(err, 'expect failed pull: ' + err);
 
             /* JSSTYLED */
-            var pat = /Error pulling image: \(ENOTFOUND\) nope.example.com host not found/m;
+            var pat = /Error pulling image: \(RemoteSourceError\) nope.example.com host not found/m;
             t.ok(pat.test(stderr), format('stderr matches %s, stderr=%j',
                 pat, stderr));
 
