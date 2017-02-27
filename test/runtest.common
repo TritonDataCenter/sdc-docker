@@ -52,8 +52,8 @@ export NAPI_URL="http://$(vmadm lookup -j alias=napi0 | json 0.nics \
 #    This is the set of possible values for DOCKER_CLI_VERSIONS.
 # 2. 'DOCKER_CLI_VERSIONS' defines the 'docker' CLI versions against which we
 #    run the "test/integration/cli-*.test.js" files. This is overridable, e.g.:
-#       DOCKER_CLI_VERSIONS=1.6.2 .../runtests
-export DOCKER_AVAILABLE_CLI_VERSIONS="1.12.2 1.11.1 1.10.3 1.9.1 1.8.3 1.7.1 1.6.2"
+#       DOCKER_CLI_VERSIONS=1.12.2 .../runtests
+export DOCKER_AVAILABLE_CLI_VERSIONS="1.12.2 1.11.1 1.10.3 1.9.1 1.8.3"
 if [[ "$DOCKER_CLI_VERSIONS" == "all" ]]; then
     export DOCKER_CLI_VERSIONS="$DOCKER_AVAILABLE_CLI_VERSIONS"
 fi
