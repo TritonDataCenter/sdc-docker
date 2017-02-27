@@ -120,6 +120,7 @@ test('apiversion', function (tt) {
 
     testVersionHandling();        // no version
     testVersionHandling('v1.14', { shouldFail: true }); // unsupported version
+    testVersionHandling('v1.19', { shouldFail: true }); // unsupported version
     testVersionHandling('v' + constants.MIN_API_VERSION); // min ver
     testVersionHandling('v' + constants.API_VERSION); // current ver
     testVersionHandling('v9.99'); // future version
