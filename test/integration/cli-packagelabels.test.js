@@ -40,19 +40,28 @@ var papi;
 // --- Disable these tests if too old
 
 if (cliVersion) {
+    /*
+     * We don't emit content to stdout because strict TAP parsing must
+     * see the "TAP version 13" line of output before "# comments ...".
+     * Eventually <https://github.com/substack/tape/pull/197> would allow
+     * `opts.skip` to be a string reason included in the TAP output.
+     */
     cliVersion = cliVersion.split('.')[0] + '.' + cliVersion.split('.')[1];
     if (common.apiVersionCmp(cliVersion, 1.8) < 0) {
-        console.log('# disabling test, cli version is: '
-            + process.env.DOCKER_CLI_VERSION);
         opts.skip = true;
-    } else {
-        console.log('# cli version is: ' + process.env.DOCKER_CLI_VERSION);
     }
 }
 
 
 // --- Tests
 
+test('note if we are skipping due to old CLI version', function (tt) {
+    if (opts.skip) {
+        tt.comment('skipping tests because CLI version is < 1.8: it is '
+            + process.env.DOCKER_CLI_VERSION);
+    }
+    tt.end();
+});
 
 test('setup docker environment/cli', opts, function (tt) {
     h.createPapiClient(function (err, _papi) {
