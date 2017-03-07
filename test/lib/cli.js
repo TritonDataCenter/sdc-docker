@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -139,15 +139,6 @@ function cliInspect(t, opts, callback) {
  * Example:
  *  {
  *      "RepoTags": ["busybox:latest"],
- *      "Uuid": "d8473b5a-713b-6b89-e35b-40620a1da3b3",
- * `docker images <opts.args>`
- *
- * An array of entries will returned via the callback(err, entries), with each
- * entry being an object holding the docker images contents for one image.
- * Example:
- *  {
- *      "RepoTags": ["busybox:latest"],
- *      "Uuid": "d8473b5a-713b-6b89-e35b-40620a1da3b3",
  *      "Id": "bc744c4ab376115cc45c610d53f529dd2d4249ae6b35e5d6e7ae58863545aa",
  *      "IndexName": "docker.io",
  *      "Created": 1458325368,
