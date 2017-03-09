@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -281,7 +281,7 @@ function partialExp(t, opts, obj) {
  * Make a prefixed, randomized name for a test container.
  */
 function makeContainerName(prefix) {
-    return prefix + libuuid.create().split('-')[0];
+    return prefix + '-' + libuuid.create().split('-')[0];
 }
 
 
