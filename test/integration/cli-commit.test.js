@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -33,6 +33,7 @@ var STATE = {
 
 var CONTAINER_PREFIX = 'sdcdockertest_commit_';
 var IMAGE_NAME = 'busybox';
+var IMAGE_PREFIX = 'sdcdockertest-commit';
 var TP = 'api: commit: ';  // Test prefix.
 
 test(TP + 'setup', function (tt) {
@@ -50,7 +51,7 @@ test(TP + 'setup', function (tt) {
 
 test(TP + 'test add file', function (tt) {
 
-    var commitImageTag = common.makeContainerName(CONTAINER_PREFIX);
+    var commitImageTag = common.makeImageName(IMAGE_PREFIX);
     var containerName = common.makeContainerName(CONTAINER_PREFIX);
 
     tt.test('run ' + IMAGE_NAME + ' container', function (t) {
