@@ -7,7 +7,7 @@
     "assert-plus": "1.0.0",
     "async": "0.9.0",
     "docker-registry-client": "3.2.6",
-    "bunyan": "1.8.5",
+    "bunyan": "1.8.8",
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "fwrule": "git+https://github.com/joyent/sdc-fwrule.git#d1174be",
     "imgmanifest": "git+https://github.com/joyent/node-imgmanifest.git#91e5d80",
