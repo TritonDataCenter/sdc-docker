@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2016 Joyent, Inc.
+# Copyright 2017 Joyent, Inc.
 #
 
 NAME:=docker
@@ -95,7 +95,7 @@ test-integration-in-coal:
 
 .PHONY: git-hooks
 git-hooks:
-	[[ -e .git/hooks/pre-commit ]] || ln -s ./tools/pre-commit.sh .git/hooks/pre-commit
+	[[ -e .git/hooks/pre-commit ]] || ln -sf ../../tools/pre-commit.sh .git/hooks/pre-commit
 
 
 .PHONY: check-docs
