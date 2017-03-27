@@ -194,7 +194,7 @@ test('docker volumes mounting modes', function (tt) {
             expectRuntimeError: true
         }, function onContainerRun(err, output) {
             t.equal(output.stderr, expectedErrMsg, 'Error message should be: '
-                + expectedErrMsg + ' but was: ' + output.stderr);
+                + expectedErrMsg);
             t.end();
         });
     });

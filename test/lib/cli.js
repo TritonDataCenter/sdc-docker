@@ -499,7 +499,7 @@ function cliStart(t, opts, callback) {
     ALICE.docker('start ' + opts.args, function (err, stdout, stderr) {
         t.ifErr(err, 'docker start ' + opts.args);
         t.equal(stderr, '', 'stderr');
-        callback(err);
+        callback(err, stdout, stderr);
     });
 }
 
