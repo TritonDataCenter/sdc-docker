@@ -392,6 +392,8 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     var fNetwork1;
     var fNetwork2;
     var fNetwork3;
+    var nonFabricNetwork;
+    var adminNetwork;
 
     if (!FABRICS) {
         tt.comment('Fabrics not enabled, skipping tests that require them.');
@@ -480,6 +482,12 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
                 function fnw3(_, cb) {
                     h.getOrCreateFabricNetwork(NAPI, ALICE.account.uuid,
                         fVlan.vlan_id, nw3params, cb);
+                },
+                function fnonFabricNet(_, cb) {
+                    h.getNetwork(NAPI, {name: 'external'}, cb);
+                },
+                function fadminNet(_, cb) {
+                    h.getNetwork(NAPI, {name: 'admin'}, cb);
                 }
             ]
         }, function (err, results) {
@@ -491,6 +499,8 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             fNetwork1 = results.operations[0].result;
             fNetwork2 = results.operations[1].result;
             fNetwork3 = results.operations[2].result;
+            nonFabricNetwork = results.operations[3].result;
+            adminNetwork = results.operations[4].result;
 
             t.end();
         });
@@ -568,6 +578,36 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         }
     });
 
+    tt.test('create with partial network id, publish ports', function (t) {
+        var partialId = (fNetwork1.uuid + fNetwork1.uuid).replace(/-/g, '');
+        partialId = partialId.substr(0, 10);
+
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: {
+                'HostConfig.NetworkMode': partialId,
+                'HostConfig.PublishAllPorts': true
+            },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 2, 'two nics');
+            t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
+            t.equal(nics[1].network_uuid, nonFabricNetwork.uuid,
+                'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
     tt.test('prefer name over partial id', function (t) {
         // fNetwork2 is named using a partial id from fNetwork1.
 
@@ -629,6 +669,155 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
 
         function oncreate(err, result) {
             t.ok(err, 'should err on create');
+            t.end();
+        }
+    });
+
+    tt.test('create without specifying network', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            h.getNetwork(NAPI, {uuid: nics[0].network_uuid},
+                function (err2, net) {
+
+                t.ifErr(err2, 'get network');
+                t.ok(net, 'nets exists');
+                if (net) {
+                    t.equal(net.name, 'My-Fabric-Network', 'correct network');
+                }
+                DOCKER_ALICE.del('/containers/' + result.id + '?force=1',
+                    ondelete);
+            });
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('create without specifying network, publish ports', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: {'HostConfig.PublishAllPorts': true},
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 2, 'only two nics');
+            t.equal(nics[1].network_uuid, nonFabricNetwork.uuid,
+                    'correct network');
+            h.getNetwork(NAPI, {uuid: nics[0].network_uuid},
+                function (err2, net) {
+
+                t.ifErr(err2, 'get network');
+                t.ok(net, 'nets exists');
+                if (net) {
+                    t.equal(net.name, 'My-Fabric-Network', 'correct network');
+                }
+                DOCKER_ALICE.del('/containers/' + result.id + '?force=1',
+                    ondelete);
+            });
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('create with L3 nonFabric network', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': nonFabricNetwork.name },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, nonFabricNetwork.uuid,
+                'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('create with L3 nonFabric network, publish ports', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: {
+                'HostConfig.NetworkMode': nonFabricNetwork.name,
+                'HostConfig.PublishAllPorts': true
+            },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var nics = result.vm.nics;
+            t.equal(nics.length, 2, 'two nics');
+            t.equal(nics[0].network_uuid, nonFabricNetwork.uuid,
+                'correct network');
+            t.equal(nics[1].network_uuid, nonFabricNetwork.uuid,
+                'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('fail to create with admin network', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': adminNetwork.name },
+            start: false,
+            expectedErr: '(Error) network admin not found'
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ok(err, 'Expecting error');
+            t.end();
+        }
+    });
+
+    tt.test('fail to create with admin network, publish ports', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: {
+                'HostConfig.NetworkMode': adminNetwork.name,
+                'HostConfig.PublishAllPorts': true
+            },
+            start: false,
+            expectedErr: '(Error) network admin not found'
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ok(err, 'Expecting error');
             t.end();
         }
     });

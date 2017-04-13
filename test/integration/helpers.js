@@ -1843,6 +1843,38 @@ function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
     );
 }
 
+function getNetwork(client, params, callback) {
+    assert.object(client, 'napi client');
+    assert.object(params, 'network params');
+
+    client.listNetworks(params, function (err, networks) {
+        if (err) {
+            return callback(err);
+        }
+        if (networks.length !== 0) {
+            return callback(null, networks[0]);
+        }
+        callback(new Error('Network not found'));
+    });
+}
+
+function getNicsByVm(client, vm, callback) {
+    assert.object(client, 'napi client');
+    assert.object(vm, 'vm');
+
+    var listParams = { belongs_to_uuid: vm.uuid };
+    client.listNics(listParams, function (err, nics) {
+        if (err) {
+            return callback(err);
+        }
+        if (nics.length !== 0) {
+            return callback(null, nics);
+        }
+        callback(new Error('No Nics found for VM ' + vm.uuid));
+    });
+}
+
+
 /*
  * Return the array of active packages in sorted (smallest to largest) order.
  *
@@ -1906,6 +1938,8 @@ module.exports = {
     getOrCreateExternalNetwork: getOrCreateExternalNetwork,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,
+    getNetwork: getNetwork,
+    getNicsByVm: getNicsByVm,
     getSortedPackages: getSortedPackages,
 
     getDockerEnv: getDockerEnv,
