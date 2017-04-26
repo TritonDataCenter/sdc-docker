@@ -30,13 +30,13 @@ The work to support `docker network` commands is in progress. Follow
 All docker containers owned by a user have firewalls enabled by default, and
 their default policy is to block all incoming traffic and allow all outbound
 traffic. All docker VMs have a
-[Cloud Firewall](https://www.joyent.com/developers/firewall/) rule
+[Cloud Firewall](https://docs.joyent.com/public-cloud/network/firewall) rule
 automatically created that allows them to communicate with each other on all
 ports.
 
 If you specify the -p or -P options to `docker run` or `docker create`, the
 container will receive an external IP address that is reachable over the public
-internet, and [Cloud Firewall](https://www.joyent.com/developers/firewall/)
+internet, and [Cloud Firewall](https://docs.joyent.com/public-cloud/network/firewall)
 rules are automatically created that allow incoming traffic to the appropriate
 ports from any IP address. For `-P`, this means all ports that the VM's image
 exposes. For `-p`, this means all ports specified as arguments. Port remapping
