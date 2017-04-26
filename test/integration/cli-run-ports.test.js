@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -25,6 +25,8 @@ var test = require('tape');
 
 
 // --- Globals
+
+var TEST_IMAGE = 'joyentunsupported/test-run-ports:1.0.0';
 var MAX_PORTS_PER_RULE = 8;
 var FWRULE_VERSION = 1;
 
@@ -155,16 +157,16 @@ test('setup', function (tt) {
         });
     });
 
-    tt.test('pull nginx image', function (t) {
+    tt.test('pull ' + TEST_IMAGE + ' image', function (t) {
         cli.pull(t, {
-            image: 'nginx:latest'
+            image: TEST_IMAGE
         });
     });
 
 
-    tt.test('inspect nginx image', function (t) {
+    tt.test('inspect ' + TEST_IMAGE + ' image', function (t) {
         cli.inspect(t, {
-            id: 'nginx:latest'
+            id: TEST_IMAGE
         }, function (err, img) {
             if (img) {
                 EXPOSED_PORTS = img.Config.ExposedPorts;
@@ -181,7 +183,7 @@ test('setup', function (tt) {
 test('no port args', function (tt) {
 
     tt.test('docker run: no port args', function (t) {
-        cli.run(t, { args: '-d nginx:latest' });
+        cli.run(t, { args: '-d ' + TEST_IMAGE });
     });
 
 
@@ -263,7 +265,7 @@ test('no port args', function (tt) {
 test('-P', function (tt) {
 
     tt.test('docker run -P', function (t) {
-        cli.run(t, { args: '-P -d nginx:latest' });
+        cli.run(t, { args: '-P -d ' + TEST_IMAGE });
     });
 
 
@@ -338,7 +340,7 @@ test('-P', function (tt) {
 test('-p', function (tt) {
 
     tt.test('docker run -p 80:80', function (t) {
-        cli.run(t, { args: '-p 80:80 -d nginx:latest' });
+        cli.run(t, { args: '-p 80:80 -d ' + TEST_IMAGE });
     });
 
 
@@ -410,7 +412,7 @@ test('-p', function (tt) {
     tt.test('docker run -p 8080:80', function (t) {
         // We don't allow remapping of ports (for now, at least):
         cli.run(t, {
-            args: '-p 8080:80 -d nginx:latest',
+            args: '-p 8080:80 -d ' + TEST_IMAGE,
             expectedErr: 'Error response from daemon: publish port: '
                 + 'remapping of port numbers not allowed'
         });
@@ -422,7 +424,7 @@ test('-p', function (tt) {
 test('-P and -p', function (tt) {
 
     tt.test('docker run -P -p 54:54/udp -p 90:90', function (t) {
-        cli.run(t, { args: '-P -p 54:54/udp -p 90:90 -d nginx:latest' });
+        cli.run(t, { args: '-P -p 54:54/udp -p 90:90 -d ' + TEST_IMAGE });
     });
 
 
@@ -515,8 +517,8 @@ test('-p range', function (tt) {
 
     tt.test(fmt('docker run -p %d-%d:%d-%d', START_PORT, END_PORT,
         START_PORT, END_PORT), function (t) {
-        cli.run(t, { args: fmt('-p %d-%d:%d-%d/tcp -d nginx:latest', START_PORT,
-            END_PORT, START_PORT, END_PORT) });
+        cli.run(t, { args: fmt('-p %d-%d:%d-%d/tcp -d ' + TEST_IMAGE,
+            START_PORT, END_PORT, START_PORT, END_PORT) });
     });
 
 
@@ -626,7 +628,7 @@ test('-p range', function (tt) {
     // Make sure the limit of 32 ports is enforced:
     tt.test(fmt('docker run %s', large_range), function (t) {
         cli.run(t, {
-            args: fmt('%s -d nginx:latest', large_range),
+            args: fmt('%s -d ' + TEST_IMAGE, large_range),
             expectedErr: 'Error response from daemon: publish port: '
                 + fmt('only support exposing %d TCP %s',
                     constants.MAX_EXPOSED_PORTS,
