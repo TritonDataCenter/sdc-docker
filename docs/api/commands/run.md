@@ -525,4 +525,6 @@ documentation](../features/placement.md) for details.
 ## Related
 
 - [`docker ps`](../commands/ps.md)
+- [`networks`](../features/networks.md) for external and overlay networking
+- [`CPU, memory and disk resource allocation`](../features/resources.md)
 - [`sdc-createmachine`](https://apidocs.joyent.com/cloudapi/#CreateMachine) and `POST /my/machines` in CloudAPI

@@ -151,3 +151,29 @@ users access to all their logs.
 
 For the operator of SDC Docker these additional logs will require some cleanup
 process for long-lived containers when Manta support is not available.
+
+
+## Container Labels
+
+Triton uses (and reserves) a number of custom container labels, to provide
+specific Triton features. These are:
+
+The `triton.*` namespace is reserved for Triton specific use cases, these label
+names are currently defined:
+
+* `triton.cns.disable` (boolean): Can be set on a container to tell the CNS
+  service to not serve records for this instance.
+* `triton.cns.services` (string): Comma-separated list of DNS-name strings
+  for the CNS service.
+* `triton.cns.reverse_ptr` (string): DNS reverse pointer for this container.
+  Used by the CNS service.
+* `triton.network.public` (string): Set on a container, used to specify the
+  external network name the instance will use.
+
+The `com.joyent.*` namespace is reserved for Joyent/Triton specific use cases,
+these label names are currently defined:
+
+* `com.joyent.package` (string): Set on a container, used to choose a specific
+  package for the container. The value can be a package name like
+  `g4-standard-1G`, a UUID, or the first 8 characters of a UUID
+  (short-UUID).

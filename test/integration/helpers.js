@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -1794,6 +1794,30 @@ function getOrCreateFabricVLAN(client, userUuid, fabricParams, callback) {
 }
 
 /*
+ * Gets or creates an external network for use in testing; based on the
+ * network *name*.
+ */
+function getOrCreateExternalNetwork(client, params, callback) {
+    assert.object(client, 'napi client');
+    assert.object(params, 'network params');
+
+    var listParams = {
+        name: params.name
+    };
+    client.listNetworks(listParams,
+        function (err, networks) {
+            if (err) {
+                return callback(err);
+            }
+            if (networks.length !== 0) {
+                return callback(null, networks[0]);
+            }
+            client.createNetwork(params, callback);
+        }
+    );
+}
+
+/*
  * Gets or creates a fabric network for use in testing; based on the
  * network *name*.
  */
@@ -1879,6 +1903,7 @@ module.exports = {
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
     buildDockerContainer: buildDockerContainer,
+    getOrCreateExternalNetwork: getOrCreateExternalNetwork,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,
     getSortedPackages: getSortedPackages,

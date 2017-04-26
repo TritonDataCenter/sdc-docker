@@ -46,6 +46,13 @@ exposes. For `-p`, this means all ports specified as arguments. Port remapping
 If fabric networking is not enabled, all docker containers are provisioned with
 a nic on the 'external' network by default.
 
+The external network used by a container can be changed by setting the
+`triton.network.public` label to the name of the desired external network, e.g.
+
+```
+docker run --label triton.network.public=external2
+```
+
 
 ## Related
 

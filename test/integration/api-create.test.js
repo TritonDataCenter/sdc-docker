@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2016, Joyent, Inc.
+ * Copyright 2017, Joyent, Inc.
  */
 
 /*
@@ -631,5 +631,119 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             t.ok(err, 'should err on create');
             t.end();
         }
+    });
+});
+
+
+/*
+ * Tests for `docker run --label triton.network.public=foo`
+ *
+ * DOCKER-1020 Ensure we can provision to the external (public) network of our
+ * choice by setting the appropriate triton label.
+ */
+test('run external network (docker run --label triton.network.public=)',
+    function (tt) {
+
+    var externalNetwork;
+
+    tt.test('add external network', function (t) {
+        // create a new one.
+        var nwUuid = libuuid.create();
+        var nwParams = {
+            name: 'sdcdockertest_apicreate_external',
+            nic_tag: 'external',
+            subnet: '10.0.11.0/24',
+            provision_start_ip: '10.0.11.2',
+            provision_end_ip: '10.0.11.254',
+            uuid: nwUuid,
+            vlan_id: 5,
+            gateway: '10.0.11.1',
+            resolvers: ['8.8.8.8', '8.8.4.4']
+        };
+        h.getOrCreateExternalNetwork(NAPI, nwParams, function (err, network) {
+            t.ifErr(err, 'getOrCreateExternalNetwork');
+            externalNetwork = network;
+            t.end();
+        });
+    });
+
+    // Attempt a run with the external name, ensure the container is assigned
+    // the external network that was asked for.
+    tt.test('run with custom external network name', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { Labels: { 'triton.network.public': externalNetwork.name }},
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var extNic;
+            var nics = result.vm.nics;
+            if (FABRICS) {
+                // Expect two nics, one fabric and one external.
+                t.equal(nics.length, 2, 'two nics');
+                extNic = (nics[0].nic_tag === 'external' ? nics[0] : nics[1]);
+            } else {
+                t.equal(nics.length, 1, 'only one nic');
+                extNic = nics[0];
+            }
+            t.equal(extNic.network_uuid, externalNetwork.uuid,
+                'correct external network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete external network testing container');
+            t.end();
+        }
+    });
+
+    // Attempt a run with the external name whilst publishing ports, ensure the
+    // container is assigned the external network that was asked for.
+    tt.test('run custom external network name, published ports', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: {
+                'HostConfig.PublishAllPorts': true,
+                Labels: { 'triton.network.public': externalNetwork.name }
+            },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            var extNic;
+            var nics = result.vm.nics;
+            if (FABRICS) {
+                // Expect two nics, one fabric and one external.
+                t.equal(nics.length, 2, 'two nics');
+                extNic = (nics[0].nic_tag === 'external' ? nics[0] : nics[1]);
+            } else {
+                t.equal(nics.length, 1, 'one nic');
+                extNic = nics[0];
+            }
+            t.equal(extNic.network_uuid, externalNetwork.uuid,
+                'correct external network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete external network testing container');
+            t.end();
+        }
+    });
+
+    tt.test('external network cleanup', function (t) {
+        if (!externalNetwork) {
+            t.end();
+            return;
+        }
+        NAPI.deleteNetwork(externalNetwork.uuid, function (err) {
+            t.ifErr(err, 'external network deletion');
+            t.end();
+        });
     });
 });
