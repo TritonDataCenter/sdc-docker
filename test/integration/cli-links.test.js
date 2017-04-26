@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -18,19 +18,14 @@ var test = require('tape');
 var vasync = require('vasync');
 
 
-
 // --- Globals
-
 
 var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_link_';
-
-
-// --- Helpers
+var TEST_IMAGE = 'joyentunsupported/test-nginx:1.0.0';
 
 
 // --- Tests
-
 
 test('setup', function (tt) {
 
@@ -74,7 +69,7 @@ test('linked env', function (tt) {
     var nginxName = CONTAINER_PREFIX + 'nginx';
     tt.test('linked env: create custom nginx -p 80:80', function (t) {
         cli.run(t, { args: '-d --name ' + nginxName + ' -e FOO=BAR -e BAT=BAZZA'
-                    + ' -p 80:80 nginx' });
+                    + ' -p 80:80 ' + TEST_IMAGE });
     });
 
 

@@ -26,7 +26,7 @@ var test = require('tape');
 
 // --- Globals
 
-var TEST_IMAGE = 'joyentunsupported/test-run-ports:1.0.0';
+var TEST_IMAGE = 'joyentunsupported/test-nginx:1.0.0';
 var MAX_PORTS_PER_RULE = 8;
 var FWRULE_VERSION = 1;
 

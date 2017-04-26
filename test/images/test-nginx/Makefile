@@ -8,7 +8,7 @@
 # Copyright 2017 Joyent, Inc.
 #
 
-NAME=joyentunsupported/test-run-ports
+NAME=joyentunsupported/test-nginx
 VERSION=1.0.0
 
 all:
