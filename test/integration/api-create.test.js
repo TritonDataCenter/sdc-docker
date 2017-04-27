@@ -868,18 +868,17 @@ test('run external network (docker run --label triton.network.public=)',
         }, oncreate);
 
         function oncreate(err, result) {
-            var extNic;
             var nics = result.vm.nics;
             if (FABRICS) {
                 // Expect two nics, one fabric and one external.
-                t.equal(nics.length, 2, 'two nics');
-                extNic = (nics[0].nic_tag === 'external' ? nics[0] : nics[1]);
+                t.equal(nics.length, 1, 'only one nic');
+                t.equal(nics[0].nic_tag.indexOf('sdc_overlay'), 0,
+                    'no external network, only fabric');
             } else {
                 t.equal(nics.length, 1, 'only one nic');
-                extNic = nics[0];
+                t.equal(nics[0].network_uuid, externalNetwork.uuid,
+                    'correct external network');
             }
-            t.equal(extNic.network_uuid, externalNetwork.uuid,
-                'correct external network');
             DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
         }
 
