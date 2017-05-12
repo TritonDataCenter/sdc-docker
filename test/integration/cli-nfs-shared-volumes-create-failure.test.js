@@ -1,4 +1,5 @@
-/* * This Source Code Form is subject to the terms of the Mozilla Public
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
@@ -10,11 +11,16 @@
 //
 // Summary:
 //
-// These tests ensure that when provisioning fails for a volapi storage VM, we
-// get an error message from sdc-docker rather than a message telling us the
-// creation was successful. We "break" provisioning for the 10g package by
-// setting at trait which no CNs will have. The provision will then fail at
-// the workflow job when we're trying to allocate a CN.
+// These tests were added for DOCKER-1021 and ensure that when provisioning
+// fails for a volapi storage VM, we get an error message from sdc-docker rather
+// than a message telling us the creation was successful. We "break"
+// provisioning for the 10g package by setting at trait which no CNs will have.
+// The provision will then fail at the workflow job when we're trying to
+// allocate a CN.
+//
+// In the future, when we have a better mechanism for forcing a provision to
+// fail, we should use that so we don't impact other tests that might run in
+// parallel.
 //
 
 var assert = require('assert-plus');
@@ -74,21 +80,23 @@ test('setup', function (tt) {
         PAPI.list('(&(name=sdc_volume_nfs_10)(active=true))',
             {},
             function _onResults(err, pkgs, count) {
-                var results = [];
                 t.ifErr(err, 'get PAPI package');
-                if (pkgs) {
-                    results = pkgs.map(function mapUuids(pkg) {
+
+                // Ensure that if there are multiple results, the output
+                // includes the list of uuids so we can investigate, hence
+                // the pkgs.map() here when pkgs is defined.
+                t.equal(count, 1, 'should be 1 result '
+                    + JSON.stringify(pkgs ? pkgs.map(function mapUuids(pkg) {
                         return pkg.uuid;
-                    });
-                }
-                t.equal(count, 1, 'should be 1 result ' + JSON.stringify(results));
-                if (count === 1 && results.length === 1) {
-                    PAPI_PACKAGE = results[0];
+                    }) : []));
+
+                if (count === 1 && pkgs && pkgs.length === 1) {
+                    PAPI_PACKAGE = pkgs[0].uuid;
                     PAPI_ORIGINAL_TRAITS = pkgs[0].traits;
                 }
                 t.end();
             }
-         );
+        );
     });
 
     tt.test('breaking provisioning w/ 10g package', function (t) {
@@ -115,6 +123,10 @@ test('Volume creation should fail when provision fails', function (tt) {
                 var expectedErr = 'Error response from daemon: (InternalError) '
                     + 'volume creation failed';
                 var matches;
+
+                // Make a RegExp from the expectedErr but we need to escape the
+                // '(' and ')' characters to '\(' and '\)' so that the regex
+                // will not treat that as a grouping.
                 var re = new RegExp(expectedErr.replace(/[()]/g, '\\$&'));
 
                 matches = stderr.match(re);
