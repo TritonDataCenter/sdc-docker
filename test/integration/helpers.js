@@ -70,6 +70,7 @@ var CLIENT_ZONE_PAYLOAD = {
     ]
 };
 
+var FABRICS_ENABLED = null;
 
 
 // --- internal support routines
@@ -1875,6 +1876,37 @@ function getNicsByVm(client, vm, callback) {
 }
 
 
+/**
+ * Check if fabric networking is enabled.
+ *
+ * @param {Function} callback (err, enabled)
+ */
+function isFabricNetworkingEnabled(client, account, callback) {
+    assert.object(client, 'napi client');
+    assert.object(client, 'user account');
+    assert.func(callback, 'callback function');
+
+    if (FABRICS_ENABLED !== null) {
+        setImmediate(callback, null, FABRICS_ENABLED);
+        return;
+    }
+    client.listFabricVLANs(account.uuid, {}, {},
+        function (err, vlans) {
+            if (err) {
+                if (err.restCode !== 'PreconditionRequiredError') {
+                    callback(err);
+                    return;
+                }
+                FABRICS_ENABLED = false;
+            } else {
+                FABRICS_ENABLED = true;
+            }
+            callback(null, FABRICS_ENABLED);
+        }
+    );
+}
+
+
 /*
  * Return the array of active packages in sorted (smallest to largest) order.
  *
@@ -1940,6 +1972,7 @@ module.exports = {
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,
     getNetwork: getNetwork,
     getNicsByVm: getNicsByVm,
+    isFabricNetworkingEnabled: isFabricNetworkingEnabled,
     getSortedPackages: getSortedPackages,
 
     getDockerEnv: getDockerEnv,

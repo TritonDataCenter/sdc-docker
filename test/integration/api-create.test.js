@@ -102,6 +102,16 @@ test('setup', function (tt) {
         });
     });
 
+    tt.test('check if fabrics are enabled', function (t) {
+        h.isFabricNetworkingEnabled(NAPI, ALICE.account,
+            function (err, enabled) {
+                t.ifErr(err, 'check isFabricNetworkingEnabled');
+                FABRICS = enabled;
+                t.end();
+            }
+        );
+    });
+
     tt.test('pull nginx image', function (t) {
         h.ensureImage({
             name: 'nginx:latest',
@@ -345,26 +355,6 @@ test('api: create with env var that has no value (DOCKER-741)', function (tt) {
         }
     });
 });
-
-test('ensure fabrics enabled', function (tt) {
-    tt.test('fabric configuration', function (t) {
-        var listOpts = {};
-        var listParams = {};
-        NAPI.listFabricVLANs(ALICE.account.uuid, listOpts, listParams,
-            function (err, vlans) {
-                if (err) {
-                    FABRICS = false;
-                    if (err.restCode !== 'PreconditionRequiredError') {
-                        t.ifErr(err);
-                    }
-                } else {
-                    FABRICS = true;
-                }
-                t.end();
-        });
-    });
-});
-
 
 /*
  * Tests for `docker run --net`
