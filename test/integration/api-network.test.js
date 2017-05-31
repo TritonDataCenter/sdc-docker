@@ -83,6 +83,24 @@ test('docker network ls', function (tt) {
                 t.ok(net.IPAM, 'checking net.IPAM existance');
                 t.ok(net.Options, 'checking net.Options existance');
                 t.ok(net.Scope, 'checking net.Scope existance');
+                if (net.Scope === 'pool') {
+                    t.equal(Object.keys(net.Options).length, 0,
+                        'net.Options object should be empty');
+                } else {
+                    t.ok(net.Scope === 'overlay' || net.Scope === 'external',
+                        'checking net.Scope is overlay or external');
+                    t.equal(Object.keys(net.Options).length, 1,
+                        'net.Options object should have one entry');
+                    t.ok(net.Options['com.docker.network.driver.mtu'],
+                        'checking net.Options mtu existance');
+                    t.ok(net.Config, 'checking net.Config existance');
+                    t.ok(net.Config[0], 'checking net.Config[0] existance');
+                    t.ok(net.Config[0].Subnet,
+                        'checking net.Config[0].Subnet existance');
+                    // Some networks don't have a gateway (at least in
+                    // nightly-1 test rig), so we don't do a test for the
+                    // `Gateway` field
+                }
             });
             if (FABRICS_ENABLED) {
                 var aliceMyFabricNetworks = networks.filter(function (net) {
@@ -91,8 +109,8 @@ test('docker network ls', function (tt) {
 
                 t.equal(aliceMyFabricNetworks.length, 1,
                     'expect 1 My-Fabric-Network');
-                t.equal(aliceMyFabricNetworks[0].Scope, 'Overlay',
-                    'Ensure Scope === Overlay');
+                t.equal(aliceMyFabricNetworks[0].Scope, 'overlay',
+                    'Ensure Scope === overlay');
             }
             t.end();
         });
