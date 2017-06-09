@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 var common = require('../lib/common');
@@ -61,7 +61,15 @@ test('setup', function (tt) {
 
 test('Volume creation with invalid size', function (tt) {
     tt.test('creating volume with invalid sizes should fail', function (t) {
-        var INVALID_SIZES = ['invalid-size', '$%#%', ''];
+        var INVALID_SIZES = [
+            'invalid-size',
+            '$%#%',
+            '',
+            '10GB',
+            '10MB',
+            '100gb',
+            '100mb'
+        ];
 
         vasync.forEachParallel({
             func: createVolumeWithInvalidSize,
