@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright 2016, Joyent, Inc.
+# Copyright 2017, Joyent, Inc.
 #
 
 #
@@ -33,6 +33,8 @@ fi
 
 # Gather DC data.
 export DOCKER_UUID="$(vmadm lookup -j alias=docker0 | json 0.uuid)"
+export DOCKER_ADMIN_URL="http://$(vmadm lookup -j alias=docker0 | json 0.nics \
+    | json -c 'this.nic_tag==="admin"' 0.ip)"
 export DOCKER_URL="https://$(vmadm lookup -j alias=docker0 | json 0.nics \
     | json -c 'this.nic_tag==="external"' 0.ip):2376"
 export FWAPI_URL="http://$(vmadm lookup -j alias=fwapi0 | json 0.nics \
