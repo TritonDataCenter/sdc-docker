@@ -12,6 +12,7 @@
  * Integration tests for `docker create` using the Remote API directly.
  */
 
+var assert = require('assert-plus');
 var exec = require('child_process').exec;
 var format = require('util').format;
 var libuuid = require('libuuid');
@@ -849,26 +850,32 @@ test('run external network (docker run --label triton.network.public=)',
     // Attempt a run with the external name, ensure the container is assigned
     // the external network that was asked for.
     tt.test('run with custom external network name', function (t) {
+        // DOCKER-1045: when FABRICS are enabled, we expect an error if
+        // specifying a specific external network, but are not publishing any
+        // ports.
+        var expectedErr = (FABRICS ? '(Validation) triton.network.public '
+            + 'label requires a container with published ports' : null);
+
         h.createDockerContainer({
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
+            expectedErr: expectedErr,
             extra: { Labels: { 'triton.network.public': externalNetwork.name }},
             start: true
         }, oncreate);
 
         function oncreate(err, result) {
-            var nics = result.vm.nics;
             if (FABRICS) {
-                // Expect two nics, one fabric and one external.
-                t.equal(nics.length, 1, 'only one nic');
-                t.equal(nics[0].nic_tag.indexOf('sdc_overlay'), 0,
-                    'no external network, only fabric');
-            } else {
-                t.equal(nics.length, 1, 'only one nic');
-                t.equal(nics[0].network_uuid, externalNetwork.uuid,
-                    'correct external network');
+                // Note: Error is already checked in createDockerContainer.
+                assert.object(err, 'err');
+                t.end();
+                return;
             }
+            var nics = result.vm.nics;
+            t.equal(nics.length, 1, 'only one nic');
+            t.equal(nics[0].network_uuid, externalNetwork.uuid,
+                'correct external network');
             DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
         }
 
