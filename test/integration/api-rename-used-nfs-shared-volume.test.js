@@ -5,28 +5,22 @@
  */
 
 /*
- * Copyright 2016, Joyent, Inc.
+ * Copyright 2017, Joyent, Inc.
  */
 
 /*
  * Integration test for https://smartos.org/bugview/VOLAPI-42.
  */
 
-
-var mod_testVolumes = require('../lib/volumes');
-if (!mod_testVolumes.nfsSharedVolumesSupported()) {
-    console.log('Skipping test since docker volumes are not supported by this '
-        + 'installation of Triton');
-    process.exit(0);
-}
-
 var assert = require('assert-plus');
-var test = require('tape');
 var vasync = require('vasync');
 
 var common = require('../lib/common');
 var dockerTestHelpers = require('./helpers');
+var mod_testVolumes = require('../lib/volumes');
 var volumesApi = require('../lib/volumes-api');
+
+var test = mod_testVolumes.testIfEnabled;
 
 var ALICE_ACCOUNT;
 var ALICE_DOCKER_API_CLIENT;

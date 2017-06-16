@@ -9,13 +9,12 @@
  */
 
 var assert = require('assert-plus');
-var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
-var volumesCli = require('../lib/volumes-cli');
 var common = require('../lib/common');
 var testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
 
 if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     console.log('Skipping volume tests: volumes are not supported in Docker '
@@ -23,10 +22,8 @@ if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     process.exit(0);
 }
 
-var errorMeansNFSSharedVolumeSupportDisabled =
-    testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+var test = testVolumes.testIfEnabled;
 
-var NFS_SHARED_VOLUMES_SUPPORTED = testVolumes.nfsSharedVolumesSupported();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 

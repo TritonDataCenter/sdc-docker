@@ -5,17 +5,16 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 var assert = require('assert-plus');
-var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
-var volumesCli = require('../lib/volumes-cli');
 var common = require('../lib/common');
 var testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
 
 if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     console.log('Skipping volume tests: volumes are not supported in Docker '
@@ -23,10 +22,8 @@ if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     process.exit(0);
 }
 
-var errorMeansNFSSharedVolumeSupportDisabled =
-    testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+var test = testVolumes.testIfEnabled;
 
-var NFS_SHARED_VOLUMES_SUPPORTED = testVolumes.nfsSharedVolumesSupported();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var NFS_SHARED_VOLUMES_DRIVER_NAME =
@@ -79,27 +76,14 @@ test('mounting NFS shared volume at same mountpoint as local volume should '
                 args: '--name ' + volumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, volumeName + '\n',
-                        'output should be newly created volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, volumeName + '\n',
+                    'output should be newly created volume\'s name');
 
                 t.end();
             });
     });
-
-    // Skip next tests if NFS shared volumes are not supported, as they would
-    // fail since the volume that needs to be mounted would have not been
-    // created. Testing that mounting a nonexistent module fails is done in a
-    // separate test, and this allows us to make the rest of this test slightly
-    // simpler to read.
-    if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-        return;
-    }
 
     tt.test('mounting a NFS shared volume from a container should succeed',
         function (t) {

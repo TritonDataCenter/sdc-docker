@@ -27,6 +27,10 @@ var assert = require('assert-plus');
 var common = require('../lib/common');
 var mod_testVolumes = require('../lib/volumes');
 
+var cli = require('../lib/cli');
+var h = require('./helpers');
+var volumesCli = require('../lib/volumes-cli');
+
 assert.string(process.env.DOCKER_CLI_VERSION, 'process.env.DOCKER_CLI_VERSION');
 
 var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
@@ -36,19 +40,8 @@ if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
     process.exit(0);
 }
 
-if (!mod_testVolumes.nfsSharedVolumesSupported()) {
-    console.log('Skipping volume tests: volumes are not supported in this '
-        + 'Triton setup');
-    process.exit(0);
-}
-
-var test = require('tape');
-
-var cli = require('../lib/cli');
-var h = require('./helpers');
-var volumesCli = require('../lib/volumes-cli');
-
 var createTestVolume = mod_testVolumes.createTestVolume;
+var test = mod_testVolumes.testIfEnabled;
 
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();

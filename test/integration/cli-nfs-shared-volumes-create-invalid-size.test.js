@@ -8,8 +8,14 @@
  * Copyright (c) 2017, Joyent, Inc.
  */
 
+var assert = require('assert-plus');
+var vasync = require('vasync');
+
+var cli = require('../lib/cli');
 var common = require('../lib/common');
+var log = require('../lib/log');
 var mod_testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
 
 var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
 if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
@@ -18,21 +24,8 @@ if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
     process.exit(0);
 }
 
-if (!mod_testVolumes.nfsSharedVolumesSupported()) {
-    console.log('Skipping volume tests: volumes are not supported in this '
-        + 'Triton setup');
-    process.exit(0);
-}
-
-var assert = require('assert-plus');
-var test = require('tape');
-var vasync = require('vasync');
-
-var cli = require('../lib/cli');
-var log = require('../lib/log');
-var volumesCli = require('../lib/volumes-cli');
-
 var createTestVolume = mod_testVolumes.createTestVolume;
+var test = mod_testVolumes.testIfEnabled;
 
 var NFS_SHARED_VOLUMES_DRIVER_NAME =
     mod_testVolumes.getNfsSharedVolumesDriverName();
