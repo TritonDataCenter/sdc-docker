@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -27,7 +27,15 @@
  * will produce no output for the last command.
  */
 
+var assert = require('assert-plus');
+var vasync = require('vasync');
+
+var cli = require('../lib/cli');
 var common = require('../lib/common');
+var log = require('../lib/log');
+var mod_testVolumes = require('../lib/volumes');
+var volumesCli = require('../lib/volumes-cli');
+
 var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
 if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
     console.log('Skipping volume tests: volumes are not supported in Docker '
@@ -35,17 +43,9 @@ if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
     process.exit(0);
 }
 
-var assert = require('assert-plus');
-var test = require('tape');
-var vasync = require('vasync');
-
-var cli = require('../lib/cli');
-var log = require('../lib/log');
-var mod_testVolumes = require('../lib/volumes');
-var volumesCli = require('../lib/volumes-cli');
-
 var errorMeansNFSSharedVolumeSupportDisabled =
     mod_testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+var test = mod_testVolumes.testIfEnabled;
 var VOLAPI_CLIENT = mod_testVolumes.getVolapiClient();
 
 var NFS_SHARED_VOLUMES_DRIVER_NAME =

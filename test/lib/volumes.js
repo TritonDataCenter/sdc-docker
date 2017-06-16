@@ -5,12 +5,13 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 var assert = require('assert-plus');
 var jsprim = require('jsprim');
 var sdcClients = require('sdc-clients');
+var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('./cli');
@@ -30,6 +31,18 @@ if (CONFIG.experimental_nfs_shared_volumes === true) {
  * supports NFS shared volumes, false otherwise.
  */
 function nfsSharedVolumesSupported() {
+    // override config value with environment variable since runtest(s) will
+    // have looked this up from the *running* docker instance instead of
+    // trusting the current config file which may be wrong if docker wasn't
+    // restarted.
+    if (process.env.hasOwnProperty('NFS_VOLUMES_ENABLED')) {
+        if (process.env.NFS_VOLUMES_ENABLED === 'true') {
+            NFS_SHARED_VOLUMES_SUPPORTED = true;
+        } else {
+            NFS_SHARED_VOLUMES_SUPPORTED = false;
+        }
+    }
+
     return NFS_SHARED_VOLUMES_SUPPORTED;
 }
 
@@ -113,13 +126,28 @@ function getVolapiClient() {
     return VOLAPI_CLIENT;
 }
 
+function testIfNfsVolumesEnabled(testName, testFunc) {
+    assert.string(testName, 'testName');
+    assert.func(testFunc, 'testFunc');
+
+    test(testName, function (t) {
+        if (!nfsSharedVolumesSupported()) {
+            t.ok(true, 'NFS volumes disabled - skipping test');
+            t.end();
+            return;
+        }
+        testFunc(t);
+    });
+}
+
 module.exports = {
-    getNfsSharedVolumesNamePrefix: getNfsSharedVolumesNamePrefix,
-    getNfsSharedVolumesDriverName: getNfsSharedVolumesDriverName,
-    validGeneratedVolumeName: validGeneratedVolumeName,
+    dockerClientSupportsVolumes: dockerClientSupportsVolumes,
     errorMeansNFSSharedVolumeSupportDisabled:
         errorMeansNFSSharedVolumeSupportDisabled,
-    nfsSharedVolumesSupported: nfsSharedVolumesSupported,
+    getNfsSharedVolumesNamePrefix: getNfsSharedVolumesNamePrefix,
+    getNfsSharedVolumesDriverName: getNfsSharedVolumesDriverName,
     getVolapiClient: getVolapiClient,
-    dockerClientSupportsVolumes: dockerClientSupportsVolumes
+    nfsSharedVolumesSupported: nfsSharedVolumesSupported,
+    testIfEnabled: testIfNfsVolumesEnabled,
+    validGeneratedVolumeName: validGeneratedVolumeName
 };

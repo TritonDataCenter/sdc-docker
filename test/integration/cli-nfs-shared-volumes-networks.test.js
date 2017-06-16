@@ -5,13 +5,12 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 var assert = require('assert-plus');
 var bunyan = require('bunyan');
 var jsprim = require('jsprim');
-var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
@@ -28,10 +27,8 @@ if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     process.exit(0);
 }
 
-var errorMeansNFSSharedVolumeSupportDisabled =
-    testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+var test = testVolumes.testIfEnabled;
 
-var NFS_SHARED_VOLUMES_SUPPORTED = testVolumes.nfsSharedVolumesSupported();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 
@@ -149,27 +146,17 @@ test('docker volume create uses default fabric network by default',
                     user: ALICE_USER,
                     args: '--name ' + volumeName
                 }, function onVolumeCreated(err, stdout, stderr) {
-                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        t.ifErr(err,
-                            'volume with name ' + volumeName + ' should have '
-                                + 'been created successfully');
-                        t.equal(stdout, volumeName + '\n',
-                            'output is newly created volume\'s name ('
-                                + volumeName + ')');
-                    } else {
-                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                            stderr));
-                    }
+                    t.ifErr(err,
+                        'volume with name ' + volumeName + ' should have '
+                            + 'been created successfully');
+                    t.equal(stdout, volumeName + '\n',
+                        'output is newly created volume\'s name ('
+                            + volumeName + ')');
 
                     next(err);
                 });
             },
             function getVolumeStorageVm(_, next) {
-                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-                    next();
-                    return;
-                }
-
                 VOLAPI.listVolumes({
                     owner_uuid: ALICE_USER.account.uuid,
                     name: volumeName
@@ -189,11 +176,6 @@ test('docker volume create uses default fabric network by default',
                 });
             },
             function getStorageVmNetwork(_, next) {
-                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-                    next();
-                    return;
-                }
-
                 if (!storageVmUuid) {
                     next();
                     return;
@@ -289,27 +271,17 @@ test('docker volume create using non-default network uses non-default network',
                     args: '--name ' + volumeName + ' --opt network='
                         + NEW_FABRIC_NETWORK_NAME
                 }, function onVolumeCreated(err, stdout, stderr) {
-                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        t.ifErr(err,
-                            'volume with name ' + volumeName + ' should have '
-                                + 'been created successfully');
-                        t.equal(stdout, volumeName + '\n',
-                            'output is newly created volume\'s name ('
-                                + volumeName + ')');
-                    } else {
-                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                            stderr));
-                    }
+                    t.ifErr(err,
+                        'volume with name ' + volumeName + ' should have '
+                            + 'been created successfully');
+                    t.equal(stdout, volumeName + '\n',
+                        'output is newly created volume\'s name ('
+                            + volumeName + ')');
 
                     next(err);
                 });
             },
             function getVolumeStorageVm(_, next) {
-                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-                    next();
-                    return;
-                }
-
                 VOLAPI.listVolumes({
                     owner_uuid: ALICE_USER.account.uuid,
                     name: volumeName
@@ -329,11 +301,6 @@ test('docker volume create using non-default network uses non-default network',
                 });
             },
             function getStorageVmNetwork(_, next) {
-                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-                    next();
-                    return;
-                }
-
                 if (!storageVmUuid) {
                     next();
                     return;
@@ -404,13 +371,8 @@ test('docker volume create using non-existent network should fail',
                 args: '--name ' + volumeName
                     + ' --opt network=non-existent-network'
             }, function onVolumeCreated(err, stdout, stderr) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ok(err,
-                        'volume with name ' + volumeName + ' should not have '
-                            + 'been created successfully');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ok(err, 'volume with name ' + volumeName + ' should not have '
+                    + 'been created successfully');
 
                 t.end();
             });

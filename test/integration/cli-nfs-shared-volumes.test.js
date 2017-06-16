@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -14,7 +14,6 @@
  */
 
 var assert = require('assert-plus');
-var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
@@ -28,10 +27,8 @@ if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
     process.exit(0);
 }
 
-var errorMeansNFSSharedVolumeSupportDisabled =
-    testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
+var test = testVolumes.testIfEnabled;
 
-var NFS_SHARED_VOLUMES_SUPPORTED = testVolumes.nfsSharedVolumesSupported();
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var NFS_SHARED_VOLUMES_DRIVER_NAME =
@@ -83,25 +80,15 @@ test('docker volume with default driver', function (tt) {
                     user: ALICE_USER,
                     args: '--name ' + volumeName
                 }, function onVolumeCreated(err, stdout, stderr) {
-                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        t.ifErr(err,
-                            'volume should have been created successfully');
-                        t.equal(stdout, volumeName + '\n',
-                            'output is newly created volume\'s name');
-                    } else {
-                        t.notEqual(stderr.indexOf('Volumes are not supported'),
-                            -1);
-                    }
+                    t.ifErr(err,
+                        'volume should have been created successfully');
+                    t.equal(stdout, volumeName + '\n',
+                        'output is newly created volume\'s name');
 
                     next(err);
                 });
             },
             function inspectVolume(_, next) {
-                if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-                    next();
-                    return;
-                }
-
                 volumesCli.inspectVolume({
                     user: ALICE_USER,
                     args: volumeName
@@ -155,23 +142,18 @@ test('docker volume with default name', function (tt) {
                 }, function onVolumeCreated(err, stdout, stderr) {
                     var stdoutLines;
 
-                    if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                        t.ifErr(err,
-                            'volume should have been created successfully');
+                    t.ifErr(err,
+                        'volume should have been created successfully');
 
-                        stdoutLines = stdout.split('\n');
-                        t.equal(stdoutLines.length, 2,
-                            'output should be two lines');
+                    stdoutLines = stdout.split('\n');
+                    t.equal(stdoutLines.length, 2,
+                        'output should be two lines');
 
-                        volumeName = stdoutLines[0];
-                        t.ok(testVolumes.validGeneratedVolumeName(volumeName),
-                            'newly created volume\'s name "' + volumeName
-                                + '" should match automatically generated '
-                                + 'volume name pattern');
-                    } else {
-                        t.notEqual(stderr.indexOf('Volumes are not supported'),
-                            -1);
-                    }
+                    volumeName = stdoutLines[0];
+                    t.ok(testVolumes.validGeneratedVolumeName(volumeName),
+                        'newly created volume\'s name "' + volumeName
+                            + '" should match automatically generated '
+                            + 'volume name pattern');
 
                     next();
                 });
@@ -209,14 +191,10 @@ test('docker NFS shared volume simple creation', function (tt) {
                 args: '--name ' + volumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, volumeName + '\n',
-                        'output should be newly created volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, volumeName + '\n',
+                    'output should be newly created volume\'s name');
 
                 t.end();
             });
@@ -229,41 +207,28 @@ test('docker NFS shared volume simple creation', function (tt) {
             var outputLines;
             var foundNewlyCreatedVolume = false;
 
-            if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                t.ifErr(err, 'listing volumes should not error');
-                outputLines = stdout.trim().split(/\n/);
-                // Remove header from docker volume ls' output.
-                outputLines = outputLines.slice(1);
-                t.ok(outputLines.length > 0,
-                    'volumes list should not be empty');
+            t.ifErr(err, 'listing volumes should not error');
+            outputLines = stdout.trim().split(/\n/);
+            // Remove header from docker volume ls' output.
+            outputLines = outputLines.slice(1);
+            t.ok(outputLines.length > 0,
+                'volumes list should not be empty');
 
-                outputLines.forEach(function checkVolumeLsOutputLine(line) {
-                    var driverAndName = line.trim().split(/\s+/);
-                    t.equal(driverAndName[0], NFS_SHARED_VOLUMES_DRIVER_NAME,
-                        'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
-                    if (driverAndName[1] === volumeName) {
-                        foundNewlyCreatedVolume = true;
-                    }
-                });
+            outputLines.forEach(function checkVolumeLsOutputLine(line) {
+                var driverAndName = line.trim().split(/\s+/);
+                t.equal(driverAndName[0], NFS_SHARED_VOLUMES_DRIVER_NAME,
+                    'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                if (driverAndName[1] === volumeName) {
+                    foundNewlyCreatedVolume = true;
+                }
+            });
 
-                t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
-                    + 'present in volume ls output');
-            } else {
-                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-            }
+            t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
+                + 'present in volume ls output');
 
             t.end();
         });
     });
-
-    // Skip next tests if NFS shared volumes are not supported, as they would
-    // fail since the volume that needs to be mounted would have not been
-    // created. Testing that mounting a nonexistent module fails is done in a
-    // separate test, and this allows us to make the rest of this test slightly
-    // simpler to read.
-    if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-        return;
-    }
 
     tt.test('mounting a NFS shared volume from a container should succeed',
         function (t) {
@@ -348,14 +313,10 @@ test('mounting more than one NFS shared volume', function (tt) {
                 args: '--name ' + firstVolumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, firstVolumeName + '\n',
-                        'output should be newly created volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, firstVolumeName + '\n',
+                    'output should be newly created volume\'s name');
 
                 t.end();
             });
@@ -369,27 +330,14 @@ test('mounting more than one NFS shared volume', function (tt) {
                 args: '--name ' + secondVolumeName + ' --driver '
                     + NFS_SHARED_VOLUMES_DRIVER_NAME
             }, function onVolumeCreated(err, stdout, stderr) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, secondVolumeName + '\n',
-                        'output should be newly created volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, secondVolumeName + '\n',
+                    'output should be newly created volume\'s name');
 
                 t.end();
             });
     });
-
-    // Skip next tests if NFS shared volumes are not supported, as they would
-    // fail since the volume that needs to be mounted would have not been
-    // created. Testing that mounting a nonexistent module fails is done in a
-    // separate test, and this allows us to make the rest of this test slightly
-    // simpler to read.
-    if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-        return;
-    }
 
     tt.test('mounting both NFS shared volumes from a container should succeed',
         function (t) {
@@ -465,14 +413,10 @@ test('docker run mounting non-existent volume', function (tt) {
                     + ' -v ' + nonExistingVolumeName + ':/data busybox:latest'
                     + ' /bin/sh -c "touch /data/foo.txt && ls /data"'
             }, function onContainerRun(err, output) {
-                if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                    t.ifErr(err, 'Mounting a non-existent volume should not '
-                        + 'error');
-                    t.equal(output.stdout, 'foo.txt\n', 'Output should include '
-                        + 'newly created file\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, output));
-                }
+                t.ifErr(err, 'Mounting a non-existent volume should not '
+                    + 'error');
+                t.equal(output.stdout, 'foo.txt\n', 'Output should include '
+                    + 'newly created file\'s name');
 
                 t.end();
             });
@@ -485,41 +429,28 @@ test('docker run mounting non-existent volume', function (tt) {
             var outputLines;
             var foundNewlyCreatedVolume = false;
 
-            if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                t.ifErr(err, 'listing volumes should not error');
-                outputLines = stdout.trim().split(/\n/);
-                // Remove header from docker volume ls' output.
-                outputLines = outputLines.slice(1);
-                t.ok(outputLines.length > 0,
-                    'volumes list should not be empty');
+            t.ifErr(err, 'listing volumes should not error');
+            outputLines = stdout.trim().split(/\n/);
+            // Remove header from docker volume ls' output.
+            outputLines = outputLines.slice(1);
+            t.ok(outputLines.length > 0,
+                'volumes list should not be empty');
 
-                outputLines.forEach(function checkVolumeLsOutputLine(line) {
-                    var driverAndName = line.trim().split(/\s+/);
-                    t.equal(driverAndName[0], NFS_SHARED_VOLUMES_DRIVER_NAME,
-                        'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
-                    if (driverAndName[1] === nonExistingVolumeName) {
-                        foundNewlyCreatedVolume = true;
-                    }
-                });
+            outputLines.forEach(function checkVolumeLsOutputLine(line) {
+                var driverAndName = line.trim().split(/\s+/);
+                t.equal(driverAndName[0], NFS_SHARED_VOLUMES_DRIVER_NAME,
+                    'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                if (driverAndName[1] === nonExistingVolumeName) {
+                    foundNewlyCreatedVolume = true;
+                }
+            });
 
-                t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
-                    + 'present in volume ls output');
-            } else {
-                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-            }
+            t.ok(foundNewlyCreatedVolume, 'newly created volume should be '
+                + 'present in volume ls output');
 
             t.end();
         });
     });
-
-    // Skip next tests if NFS shared volumes are not supported, as they would
-    // fail since the volume that needs to be mounted would have not been
-    // created. Testing that mounting a nonexistent module fails is done in a
-    // separate test, and this allows us to make the rest of this test slightly
-    // simpler to read.
-    if (!NFS_SHARED_VOLUMES_SUPPORTED) {
-        return;
-    }
 
     tt.test('deleting mounting container should succeed', function (t) {
             cli.rm(t, {args: containerName},
@@ -556,30 +487,26 @@ test('list docker volumes', function (tt) {
             var outputLines;
             var foundDeletedVolume = false;
 
-            if (NFS_SHARED_VOLUMES_SUPPORTED) {
-                t.ifErr(err, 'listing volumes should not error');
-                outputLines = stdout.trim().split(/\n/);
-                // Remove header from docker volume ls' output.
-                outputLines = outputLines.slice(1);
+            t.ifErr(err, 'listing volumes should not error');
+            outputLines = stdout.trim().split(/\n/);
+            // Remove header from docker volume ls' output.
+            outputLines = outputLines.slice(1);
 
-                outputLines.forEach(function checkVolumeLsOutputLine(line) {
-                    var driverAndName = line.trim().split(/\s+/);
-                    var volumeDriver = driverAndName[0];
-                    var volumeName = driverAndName[1];
+            outputLines.forEach(function checkVolumeLsOutputLine(line) {
+                var driverAndName = line.trim().split(/\s+/);
+                var volumeDriver = driverAndName[0];
+                var volumeName = driverAndName[1];
 
-                    t.equal(volumeDriver, NFS_SHARED_VOLUMES_DRIVER_NAME,
-                        'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
-                    if (volumeName.match(NFS_SHARED_VOLUME_NAMES_PREFIX)) {
-                        foundDeletedVolume = true;
-                    }
-                });
+                t.equal(volumeDriver, NFS_SHARED_VOLUMES_DRIVER_NAME,
+                    'driver should be ' + NFS_SHARED_VOLUMES_DRIVER_NAME);
+                if (volumeName.match(NFS_SHARED_VOLUME_NAMES_PREFIX)) {
+                    foundDeletedVolume = true;
+                }
+            });
 
-                t.equal(foundDeletedVolume, false,
-                    'volumes created and deleted by this tests suite should '
-                        + 'not be listed in volume ls output');
-            } else {
-                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-            }
+            t.equal(foundDeletedVolume, false,
+                'volumes created and deleted by this tests suite should '
+                    + 'not be listed in volume ls output');
 
             t.end();
         });
