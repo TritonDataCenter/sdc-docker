@@ -170,7 +170,7 @@ test('renaming mounted volume', function (tt) {
                     name: testVolumeName + '-renamed',
                     uuid: testVolume.uuid
                 }, function onVolUpdated(volUpdateErr) {
-                    var expectedErrCode = 'VOLUME_IN_USE';
+                    var expectedErrCode = 'VolumeInUse';
                     var expectedErrMsg = 'Volume with name ' + testVolumeName
                         + ' is used';
 

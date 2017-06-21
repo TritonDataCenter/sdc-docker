@@ -78,7 +78,7 @@ test('Volume creation with same name as existing volume', function (tt) {
     tt.test('creating second volume with name ' + testVolumeName + ' should '
         + 'fail with appropriate error message',
         function (t) {
-            var expectedErrMsg = '(VOLUME_ALREADY_EXISTS) problem creating '
+            var expectedErrMsg = '(VolumeAlreadyExists) problem creating '
                 + 'volume: Volume with name ' + testVolumeName
                 + ' already exists';
 
