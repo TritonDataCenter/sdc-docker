@@ -37,7 +37,7 @@ var ALICE_USER;
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var SAPI_CLIENT;
-var SDC_APP;
+var SAPI_APP;
 var STATE_RETRIES = 120;
 
 // wait for /admin/config to have state either 'enabled' or 'disabled' for
@@ -122,12 +122,13 @@ test('setup', function (tt) {
             + JSON.stringify(process.env.SAPI_URL) + ')');
 
         SAPI_CLIENT = restify.createJsonClient({
-            url: process.env.SAPI_URL,
+            url: process.env.SAPI_URL
         });
 
         SAPI_CLIENT.get('/applications?name=sdc',
             function onApp(err, req, res, appList) {
                 var app;
+                var nfsVolumeSupportKey = 'experimental_nfs_shared_volumes';
 
                 t.ifErr(err, 'should succeed to GET app from SAPI');
                 t.ok(appList, 'should have an appList object');
@@ -135,11 +136,13 @@ test('setup', function (tt) {
                 t.equal(appList.length, 1, 'should have one sdc app');
 
                 app = appList[0];
-                t.ok(app.uuid, 'app should have uuid, got: ' + JSON.stringify(app.uuid));
+                t.ok(app.uuid, 'app should have uuid, got: '
+                    + JSON.stringify(app.uuid));
                 SAPI_APP = app.uuid;
                 t.ok(app.metadata, 'app should have metadata');
-                if (app.metadata.hasOwnProperty('experimental_nfs_shared_volumes')) {
-                    t.comment('current value of experimental_nfs_shared_volumes is: '
+                if (app.metadata.hasOwnProperty(nfsVolumeSupportKey)) {
+                    t.comment('current value of '
+                        + 'experimental_nfs_shared_volumes is: '
                         + app.metadata.experimental_nfs_shared_volumes);
                 }
 
@@ -148,15 +151,17 @@ test('setup', function (tt) {
                     metadata: {
                         experimental_nfs_shared_volumes: false
                     }
-                }, function onPut(err, req, res, obj) {
-                    t.ifErr(err, 'should succeed to PUT app to SAPI');
-                    t.equal(res.statusCode, 200, 'expected 200');
+                }, function onPut(sapiPutErr, sapiPutReq, sapiPutRes, obj) {
+                    t.ifErr(sapiPutErr, 'should succeed to PUT app to SAPI');
+                    t.equal(sapiPutRes.statusCode, 200, 'expected 200');
 
                     disabled_nfs_volumes = true;
-                    waitForState(t, 'disabled', function onDisabled(err) {
-                        t.ifErr(err, 'expected state to be disabled');
-                        t.end();
-                    });
+                    waitForState(t, 'disabled',
+                        function onDisabled(waitStateErr) {
+                            t.ifErr(waitStateErr,
+                                'expected state to be disabled');
+                            t.end();
+                        });
                 });
             });
         });
@@ -213,12 +218,12 @@ test('teardown', function (tt) {
         metadata: {
             experimental_nfs_shared_volumes: true
         }
-    }, function onPut(err, req, res, obj) {
-        tt.ifErr(err, 'should succeed to PUT app to SAPI');
+    }, function onPut(sapiPutErr, req, res, obj) {
+        tt.ifErr(sapiPutErr, 'should succeed to PUT app to SAPI');
         tt.equal(res.statusCode, 200, 'expected 200');
 
-        waitForState(tt, 'enabled', function onEnabled(err) {
-            tt.ifErr(err, 'expected state to be enabled');
+        waitForState(tt, 'enabled', function onEnabled(waitStateErr) {
+            tt.ifErr(waitStateErr, 'expected state to be enabled');
             tt.end();
         });
     });
