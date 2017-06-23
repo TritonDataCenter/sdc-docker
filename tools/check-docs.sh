@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2015, Joyent, Inc.
+# Copyright (c) 2017, Joyent, Inc.
 #
 
 #
@@ -29,18 +29,23 @@ fi
 set -o errexit
 set -o pipefail
 
-TOP=$(cd $(dirname $0)/../; pwd)
+TOP=$(cd "$(dirname "$0")/../"; pwd)
 
 
 #---- mainline
 
 hits=0
-for file in $(find $TOP/docs -name "*.md"); do
-    lastchar=$(tail -c1 $file | od -a | head -1 | awk '{print $2}')
-    if [[ $lastchar != 'nl' ]]; then
+
+# Check each of the files in docs/. (We use -print0 in case files
+# have spaces in their name.)
+while read -d $'\0' -r file; do
+    # Map the newline character into a space, and spaces into
+    # an underscore, since bash likes to trim trailing newlines
+    # from command outputs.
+    if [[ `tail -1c "$file" | tr ' \n' '_ '` != ' ' ]]; then
         echo "$file: does not end with a newline" >&2
-        hits=$(( $hits + 1 ))
+        hits=1
     fi
-done
+done < <(find "$TOP/docs" -name "*.md" -print0)
 
 exit $hits
