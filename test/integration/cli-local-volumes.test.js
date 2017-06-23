@@ -55,6 +55,45 @@ test('docker local volumes', function (tt) {
     var mountingContainerName =
         common.makeContainerName('local-volume-test-mounting-container');
 
+    tt.test('creating container with non-absolute mount should fail',
+        function (t) {
+            cli.create(t, {
+                args: '--name ' + containerWithLocalVolName + '0 -v data '
+                    + 'nginx:latest /bin/sh',
+                expectedErr: 'Error response from daemon: Invalid volume name '
+                    + '"data" must start with "/"'
+            }, function onContainerCreate(err, output) {
+                t.ok(err, 'expected error creating container');
+                t.end();
+            });
+    });
+
+    tt.test('creating container with volume starting with \':\' should fail',
+        function (t) {
+            cli.create(t, {
+                args: '--name ' + containerWithLocalVolName + '0 -v :/mnt '
+                    + 'nginx:latest /bin/sh',
+                expectedErr: 'Error response from daemon: Invalid volume name '
+                    + '":/mnt" must start with "/"'
+            }, function onContainerCreate(err, output) {
+                t.ok(err, 'expected error creating container');
+                t.end();
+            });
+    });
+
+    tt.test('creating container with volume target \'/\' should fail',
+        function (t) {
+            cli.create(t, {
+                args: '--name ' + containerWithLocalVolName + '0 -v / '
+                    + 'nginx:latest /bin/sh',
+                expectedErr: 'Error response from daemon: Invalid volume name: '
+                    + 'must contain at least one non-/ character'
+            }, function onContainerCreate(err, output) {
+                t.ok(err, 'expected error creating container');
+                t.end();
+            });
+    });
+
     tt.test('creating container with local volume should succeed',
         function (t) {
             cli.run(t, {
