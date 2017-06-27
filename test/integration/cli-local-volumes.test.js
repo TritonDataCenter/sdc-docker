@@ -25,6 +25,9 @@ var STATE = {
     log: require('../lib/log')
 };
 
+var DOCKER_CLIENT_VERSION =
+    common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
+
 test('setup', function (tt) {
     tt.test('docker env', function (t) {
         dockerTestsHelper.initDockerEnv(t, STATE, {}, function (err, accounts) {
@@ -57,11 +60,26 @@ test('docker local volumes', function (tt) {
 
     tt.test('creating container with non-absolute mount should fail',
         function (t) {
+            var expectedClientErr;
+            var expectedCliErr;
+
+            if (DOCKER_CLIENT_VERSION.major <= 1
+                && DOCKER_CLIENT_VERSION.minor <= 9
+                && DOCKER_CLIENT_VERSION.patch <= 1) {
+                expectedClientErr =
+                    'invalid value "data" for flag -v: data is not an absolute '
+                        + 'path';
+            } else {
+                expectedCliErr =
+                    'Error response from daemon: Invalid volume name "data" '
+                        + 'must start with "/"';
+            }
+
             cli.create(t, {
                 args: '--name ' + containerWithLocalVolName + '0 -v data '
                     + 'nginx:latest /bin/sh',
-                expectedErr: 'Error response from daemon: Invalid volume name '
-                    + '"data" must start with "/"'
+                expectedErr: expectedCliErr,
+                expectedClientErr: expectedClientErr
             }, function onContainerCreate(err, output) {
                 t.ok(err, 'expected error creating container');
                 t.end();
@@ -70,11 +88,26 @@ test('docker local volumes', function (tt) {
 
     tt.test('creating container with volume starting with \':\' should fail',
         function (t) {
+            var expectedClientErr;
+            var expectedCliErr;
+
+            if (DOCKER_CLIENT_VERSION.major <= 1
+                && DOCKER_CLIENT_VERSION.minor <= 9
+                && DOCKER_CLIENT_VERSION.patch <= 1) {
+                expectedClientErr =
+                    'invalid value ":/mnt" for flag -v: bad format for path: '
+                        + ':/mnt';
+            } else {
+                expectedCliErr =
+                    'Error response from daemon: Invalid volume name ":/mnt" '
+                        + 'must start with "/"';
+            }
+
             cli.create(t, {
                 args: '--name ' + containerWithLocalVolName + '0 -v :/mnt '
                     + 'nginx:latest /bin/sh',
-                expectedErr: 'Error response from daemon: Invalid volume name '
-                    + '":/mnt" must start with "/"'
+                expectedErr: expectedCliErr,
+                expectedClientErr: expectedClientErr
             }, function onContainerCreate(err, output) {
                 t.ok(err, 'expected error creating container');
                 t.end();
@@ -83,11 +116,24 @@ test('docker local volumes', function (tt) {
 
     tt.test('creating container with volume target \'/\' should fail',
         function (t) {
+            var expectedClientErr;
+            var expectedCliErr;
+
+            if (DOCKER_CLIENT_VERSION.major <= 1
+                && DOCKER_CLIENT_VERSION.minor <= 9
+                && DOCKER_CLIENT_VERSION.patch <= 1) {
+                expectedClientErr =
+                    'docker: Invalid volume: path can\'t be \'/\'.';
+            } else {
+                expectedCliErr = 'Error response from daemon: Invalid volume '
+                    + 'name: must contain at least one non-/ character';
+            }
+
             cli.create(t, {
                 args: '--name ' + containerWithLocalVolName + '0 -v / '
                     + 'nginx:latest /bin/sh',
-                expectedErr: 'Error response from daemon: Invalid volume name: '
-                    + 'must contain at least one non-/ character'
+                expectedErr: expectedCliErr,
+                expectedClientErr: expectedClientErr
             }, function onContainerCreate(err, output) {
                 t.ok(err, 'expected error creating container');
                 t.end();

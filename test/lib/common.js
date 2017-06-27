@@ -345,6 +345,37 @@ function parseOutputUsingHeader(stdout, opts) {
     return entries;
 }
 
+function parseDockerVersion(dockerVersionString) {
+    assert.string(dockerVersionString, 'dockerVersionString');
+
+    var dockerVersionRegExp = /^(\d+)\.(\d+)\.(\d+)(\-[a-z0-9]+)?$/;
+    var matches = dockerVersionString.match(dockerVersionRegExp);
+    var major, minor, patch, label;
+
+    if (!matches) {
+        return null;
+    }
+
+    major = Number(matches[1]);
+    minor = Number(matches[2]);
+    patch = Number(matches[3]);
+    label = matches[4];
+    if (label !== undefined) {
+        label = label.substr(1);
+    }
+
+    // major, minor and patch version info are mandatory, label is optional
+    if (isNaN(major) || isNaN(minor) || isNaN(patch)) {
+        return null;
+    }
+
+    return {
+        major: major,
+        minor: minor,
+        patch: patch,
+        label: label
+    };
+}
 
 module.exports = {
     constants: constants,
@@ -357,6 +388,7 @@ module.exports = {
     makeContainerName: makeContainerName,
     makeImageName: makeImageName,
     objCopy: objCopy,
+    parseDockerVersion: parseDockerVersion,
     parseOutputUsingHeader: parseOutputUsingHeader,
     partialExp: partialExp
 };

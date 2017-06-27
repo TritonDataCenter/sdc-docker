@@ -314,7 +314,16 @@ function cliCreate(t, opts, callback) {
 
             common.expCliErr(t, stderr, opts.expectedErr, callback);
             return;
+        } else if (opts.expectedClientErr) {
+            if (id) {
+                t.ok(false, 'expected error but got ID: ' + id);
+            }
 
+            t.ok(stderr && stderr.indexOf(opts.expectedClientErr) === 0,
+                'expected error message to be: ' + opts.expectedClientErr
+                    + ' and is: ' + stderr);
+            callback(stderr);
+            return;
         } else {
             t.ifErr(err, 'docker create');
             // Docker create may need to download the image, which produces
