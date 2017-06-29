@@ -25,8 +25,7 @@ var STATE = {
     log: require('../lib/log')
 };
 
-var DOCKER_CLIENT_VERSION =
-    common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
+var DOCKER_CLI_VERSION = process.env.DOCKER_CLI_VERSION;
 
 test('setup', function (tt) {
     tt.test('docker env', function (t) {
@@ -63,9 +62,8 @@ test('docker local volumes', function (tt) {
             var expectedClientErr;
             var expectedCliErr;
 
-            if (DOCKER_CLIENT_VERSION.major <= 1
-                && DOCKER_CLIENT_VERSION.minor <= 9
-                && DOCKER_CLIENT_VERSION.patch <= 1) {
+            if (common.dockerClientVersionCmp(DOCKER_CLI_VERSION,
+                '1.9.1') !== 1) {
                 expectedClientErr =
                     'invalid value "data" for flag -v: data is not an absolute '
                         + 'path';
@@ -91,9 +89,13 @@ test('docker local volumes', function (tt) {
             var expectedClientErr;
             var expectedCliErr;
 
-            if (DOCKER_CLIENT_VERSION.major <= 1
-                && DOCKER_CLIENT_VERSION.minor <= 9
-                && DOCKER_CLIENT_VERSION.patch <= 1) {
+            if (common.dockerClientVersionCmp(DOCKER_CLI_VERSION,
+                '1.8.3') !== 1) {
+                expectedClientErr =
+                    'invalid value ":/mnt" for flag -v: bad format for '
+                        + 'volumes: :/mnt';
+            } else if (common.dockerClientVersionCmp(DOCKER_CLI_VERSION,
+                '1.9.1') !== 1) {
                 expectedClientErr =
                     'invalid value ":/mnt" for flag -v: bad format for path: '
                         + ':/mnt';
@@ -119,9 +121,8 @@ test('docker local volumes', function (tt) {
             var expectedClientErr;
             var expectedCliErr;
 
-            if (DOCKER_CLIENT_VERSION.major <= 1
-                && DOCKER_CLIENT_VERSION.minor <= 9
-                && DOCKER_CLIENT_VERSION.patch <= 1) {
+            if (common.dockerClientVersionCmp(DOCKER_CLI_VERSION,
+                '1.9.1') !== 1) {
                 expectedClientErr =
                     'docker: Invalid volume: path can\'t be \'/\'.';
             } else {

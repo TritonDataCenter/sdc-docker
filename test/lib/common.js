@@ -17,6 +17,7 @@ var deepEqual = require('deep-equal');
 var difflet = require('difflet');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
+var jsprim = require('jsprim');
 var libuuid = require('libuuid');
 var VError = require('verror').VError;
 
@@ -377,8 +378,54 @@ function parseDockerVersion(dockerVersionString) {
     };
 }
 
+/*
+ * Compares two strings "versionA" and "versionB" that represent a docker client
+ * version (e.g '1.9.1') and returns:
+ *
+ * - -1 if versionA < versionB
+ * - 0 if version A === version B
+ * - 1 if version A > version B
+ *
+ * A docker client version can have a "label" version. For instance, a docker
+ * client version of '1.9.1-somelabel' has the label 'somelabel'. These labels
+ * are not considered when comparing versions, so versions '1.9.1-foo' and
+ * '1.9.1-bar' will be considered to be the same.
+ */
+function dockerClientVersionCmp(versionA, versionB) {
+    assert.string(versionA, 'versionA');
+    assert.string(versionB, 'versionB');
+
+    var parsedVersionA = parseDockerVersion(versionA);
+    var parsedVersionB = parseDockerVersion(versionB);
+    var versionComponentA;
+    var versionComponentB;
+    var versionComponentIdx;
+    var versionComponentName;
+    var VERSION_COMPONENT_NAMES = ['major', 'minor', 'patch'];
+
+    if (versionA === versionB) {
+        return 0;
+    }
+
+    for (versionComponentIdx in VERSION_COMPONENT_NAMES) {
+        versionComponentName = VERSION_COMPONENT_NAMES[versionComponentIdx];
+
+        versionComponentA = parsedVersionA[versionComponentName];
+        versionComponentB = parsedVersionB[versionComponentName];
+
+        if (versionComponentA < versionComponentB) {
+            return -1;
+        } else if (versionComponentA > versionComponentB) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 module.exports = {
     constants: constants,
+    dockerClientVersionCmp: dockerClientVersionCmp,
     done: done,
     execPlus: execPlus,
     expected: expectedDeepEqual,
