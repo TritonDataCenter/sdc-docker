@@ -17,7 +17,6 @@ var deepEqual = require('deep-equal');
 var difflet = require('difflet');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
-var jsprim = require('jsprim');
 var libuuid = require('libuuid');
 var VError = require('verror').VError;
 
