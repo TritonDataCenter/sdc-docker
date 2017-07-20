@@ -116,3 +116,18 @@ test('docker network ls', function (tt) {
         });
     });
 });
+
+test('docker network inspect', function (tt) {
+    tt.test('inspect external network', function (t) {
+        DOCKER_ALICE.get('/networks/external',
+            function (err, res, req, net)
+        {
+            t.ifErr(err, 'check /networks/external err');
+            t.equal(net.Driver, 'Triton', 'checking net.Driver');
+            t.ok(net.IPAM, 'checking net.IPAM existance');
+            t.ok(net.Options, 'checking net.Options existance');
+            t.equal(net.Scope, 'external', 'checking net.Scope is external');
+            t.end();
+        });
+    });
+});
