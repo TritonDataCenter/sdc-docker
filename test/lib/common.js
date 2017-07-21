@@ -184,14 +184,14 @@ function expErr(t, err, expected, isCliErr, callback) {
 
     var expectedErrRe = (isCliErr ? ERR_CLI_RE : ERR_API_RE);
     var matches = message.match(expectedErrRe);
-    if (!matches) {
-        t.ok(matches, fmt('err message does not match %s: %j',
-            expectedErrRe, message));
-        done(t, callback, new Error('unexpected error output'));
-        return;
+    if (matches) {
+        t.ok(matches[3], 'error req id: ' + matches[3]);
+        errorString = matches[2];
+    } else {
+        // Some messages (e.g. `docker inspect`) don't match the RE, so leave
+        // the error as is.
+        errorString = message;
     }
-    t.ok(matches[3], 'error req id: ' + matches[3]);
-    errorString = matches[2];
 
     if (RegExp.prototype.isPrototypeOf(expected)) {
         t.ok(expected.test(errorString),

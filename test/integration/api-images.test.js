@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2015, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -68,6 +68,8 @@ test('setup', function (tt) {
 
 test('docker images', function (tt) {
 
+    var img;
+
     tt.test('list images', function (t) {
         DOCKER_ALICE.get('/images/json',
                 function (err, req, res, images) {
@@ -106,13 +108,38 @@ test('docker images', function (tt) {
     // Ensure an image can be inspected when the name is uri decoded/encoded.
     tt.test('inspect ubuntu image', function (t) {
         var url = '/images/ubuntu:latest/json';
-        DOCKER_ALICE.get(url, function (err, req, res) {
+        DOCKER_ALICE.get(url, function (err, req, res, _img) {
             t.error(err, 'get ubuntu:latest image');
+            img = _img;
             url = url.replace(':', '%3A');
             DOCKER_ALICE.get(url, function (err2, req2, res2) {
                 t.error(err2, 'get encoded ubuntu%3Alatest image');
                 t.end();
             });
+        });
+    });
+
+
+    // Ensure an image can be found using the config digest.
+    tt.test('inspect ubuntu image by config digest', function (t) {
+        t.equal(img.Id.substr(0, 7), 'sha256:', 'id should be a digest');
+        var url = '/images/' + img.Id + '/json';
+        DOCKER_ALICE.get(url, function (err, req, res, _img) {
+            t.error(err, 'get image by digest');
+            t.equal(img.Id, _img.Id, 'images should have same digest');
+            t.end();
+        });
+    });
+
+
+    // Ensure an image can be found using the repo (manifest) digest.
+    tt.test('inspect ubuntu image by repo digest', function (t) {
+        var repoDigest = img.RepoDigests[0];
+        var url = '/images/' + repoDigest + '/json';
+        DOCKER_ALICE.get(url, function (err, req, res, _img) {
+            t.error(err, 'get image by repo digest');
+            t.equal(img.Id, _img.Id, 'images should have same digest');
+            t.end();
         });
     });
 
@@ -158,5 +185,4 @@ test('docker images', function (tt) {
             t.end();
         });
     });
-
 });

@@ -127,4 +127,5 @@ if you discover any.
 
 - [`docker inspect`](../commands/inspect.md)
 - [`docker history`](../commands/history.md)
+- [`docker pull`](../commands/pull.md)
 - [`docker rmi`](../commands/rmi.md)

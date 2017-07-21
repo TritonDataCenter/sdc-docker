@@ -13,10 +13,11 @@
  */
 
 var assert = require('assert-plus');
+var drc = require('docker-registry-client');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
 var fs = require('fs');
-var mod_log = require('../lib/log');
+var moray = require('moray');
 var os = require('os');
 var path = require('path');
 var sdcClients = require('sdc-clients');
@@ -24,8 +25,10 @@ var restify = require('restify');
 var vasync = require('vasync');
 
 var common = require('../lib/common');
-var sdcCommon = require('../../lib/common');
+var configLoader = require('../../lib/config-loader.js');
 var constants = require('../../lib/constants');
+var mod_log = require('../lib/log');
+var sdcCommon = require('../../lib/common');
 
 
 // --- globals
@@ -1378,6 +1381,16 @@ function ensureImage(opts, callback) {
     var log;
     var name = opts.name;
 
+    // Check if the name includes a tag or digest.
+    try {
+        var rat = drc.parseRepoAndRef(name);
+    } catch (e) {
+        callback(new Error(fmt('Failed to parse image name %s: %s', name, e)));
+        return;
+    }
+
+    var encodedName = encodeURIComponent(rat.localName);
+
     vasync.pipeline({ arg: {}, funcs: [
         function getJsonClient(ctx, next) {
             // Get the json client.
@@ -1420,8 +1433,10 @@ function ensureImage(opts, callback) {
         // Image doesn't exist... pull it down.
         function pullImage(ctx, next) {
             log.debug({name: name}, 'ensureImage: pulling image');
-            var url = '/images/create?fromImage='
-                + encodeURIComponent(name);
+            var url = '/images/create?fromImage=' + encodedName;
+            if (rat.tag || rat.digest) {
+                url += '&tag=' + encodeURIComponent(rat.tag || rat.digest);
+            }
             ctx.httpClient.post(url, function _onPost(err, req) {
                 if (err) {
                     next(err);
@@ -1489,11 +1504,33 @@ function ensureImage(opts, callback) {
 
 
 /**
- * Create a nginx VM fixture
+ * Create a docker container.
+ *
+ * @param opts.dockerClient {Object} A docker client.
+ * @param opts.vmapiClient {Object} A vmapi client.
+ * @param opts.test {Object} The tape test object.
+ * @param opts.imageName {String} Optional image name to base the container on.
+ *        Defaults to nginx container.
+ * @param opts.start {Boolean} Optional. Use to start container after creation.
+ *
+ * @returns callback(err, result) Result contains these fields:
+ *          - id: The id of the created container.
+ *          - inspect: The docker inspect result for the container.
+ *          - uuid: The vm uuid for the container.
+ *          - vm: The vmobj for the container.
  */
 function createDockerContainer(opts, callback) {
     assert.object(opts, 'opts');
+    assert.optionalString(opts.apiVersion, 'opts.apiVersion');
+    assert.object(opts.dockerClient, 'opts.dockerClient');
+    assert.optionalObject(opts.extra, 'opts.extra');
+    assert.optionalString(opts.imageName, 'opts.imageName');
+    assert.optionalBool(opts.start, 'opts.start');
+    assert.object(opts.test, 'opts.test');
+    assert.object(opts.vmapiClient, 'opts.vmapiClient');
     assert.func(callback, 'callback');
+
+    var imageName = opts.imageName || 'nginx';
 
     var payload = {
         'Hostname': '',
@@ -1513,7 +1550,7 @@ function createDockerContainer(opts, callback) {
         'StdinOnce': false,
         'Env': [],
         'Cmd': null,
-        'Image': 'nginx',
+        'Image': imageName,
         'Volumes': {},
         'WorkingDir': '',
         'Entrypoint': null,
@@ -1566,10 +1603,10 @@ function createDockerContainer(opts, callback) {
 
     vasync.waterfall([
         function (next) {
-            // There is a dependency here, in order to create a nginx container,
-            // the nginx image must first be downloaded.
+            // There is a dependency here, in order to create a container,
+            // the image must first be downloaded.
             ensureImage({
-                name: 'nginx:latest',
+                name: imageName,
                 user: dockerClient.user
             }, next);
         },
@@ -1952,10 +1989,65 @@ function getSortedPackages(callback) {
 }
 
 
+function createMorayClient(callback) {
+    var log = mod_log;
+    var sdcDockerConfig = configLoader.loadConfigSync({log: log});
+
+    var morayConfig = {
+        host: sdcDockerConfig.moray.host,
+        noCache: true,
+        port: sdcDockerConfig.moray.port,
+        reconnect: true,
+        dns: {
+            resolvers: [sdcDockerConfig.binder.domain]
+        }
+    };
+
+    log.debug(morayConfig, 'Creating moray client');
+    morayConfig.log = log.child({
+        component: 'moray',
+        level: 'warn'
+    });
+    var client = moray.createClient(morayConfig);
+
+    function onMorayConnect() {
+        client.removeListener('error', onMorayError);
+        client.log.info('moray: connected');
+        callback(null, client);
+    }
+
+    function onMorayError(err) {
+        client.removeListener('connect', onMorayConnect);
+        client.log.error(err, 'moray: connection failed');
+        callback(err);
+    }
+
+    client.once('connect', onMorayConnect);
+    client.once('error', onMorayError);
+
+    return client;
+}
+
+
+function createImgapiClient(callback) {
+    var sdcDockerConfig = configLoader.loadConfigSync({log: mod_log});
+
+    var client = new sdcClients.IMGAPI({
+        agent: false,
+        log: mod_log,
+        url: sdcDockerConfig.imgapi.url,
+        userAgent: UA
+    });
+    callback(null, client);
+}
+
+
 // --- exports
 
 module.exports = {
     createDockerRemoteClient: createDockerRemoteClient,
+    createImgapiClient: createImgapiClient,
+    createMorayClient: createMorayClient,
     createSapiClient: createSapiClient,
     createFwapiClient: createFwapiClient,
     createPapiClient: createPapiClient,

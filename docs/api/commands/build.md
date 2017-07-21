@@ -118,8 +118,7 @@ There should be informational output of the reason for failure output to
     $ docker build .
     Uploading context 10240 bytes
     Step 1 : FROM busybox
-    Pulling repository busybox
-     ---> e9aa60c60128MB/2.284 MB (100%) endpoint: https://cdn-registry-1.docker.io/v1/
+     ---> e9aa60c60128MB
     Step 2 : RUN ls -lh /
      ---> Running in 9c9e81692ae9
     total 24
@@ -296,34 +295,10 @@ unique to Triton.
 ### Docker build step divergence:
 
 * `ADD` with remote URL is unimplemented.
-* `ADD` with wildcard is unimplemented.
-* `image layers` are only created at the end of a successful build (instead of
-  after a successful instruction).
 * the build container is reused for each build step (instead of creating a new
   container)
 
-### Docker build multiple registry divergence:
-
-In Triton SDC Docker, the built image cannot reference images between two
-different registries.
-
-For example, this build would fail as it generates an image without a tag and
-thus the generated image is assigned a default registry of *docker.io* - and you
-cannot have images referencing two registries *docker.io* and *quay.io*:
-
-```
-    $ echo -e 'FROM quay.io/user/image\nLABEL key=val' | docker build -
-    ... build fails
-```
-
-the workaround would be to tag the image with a *quay.io* registry tag:
-
-```
-    $ echo -e 'FROM quay.io/user/image\nLABEL key=val' | docker build -t quay.io/user/othername -
-    ... build successful
-```
-
-
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [`docker commit`](../commands/commit.md)
+- [`docker images`](../commands/images.md)

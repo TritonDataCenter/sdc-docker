@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -65,7 +65,7 @@ test('setup', function (tt) {
  */
 
 test('test status code on attach exiting with implicit 0', function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
     tt.test('create container ' + container, function (t) {
         t.plan(4);
         var cmd = 'sleep 20; echo done';
@@ -87,7 +87,7 @@ test('test status code on attach exiting with implicit 0', function (tt) {
 
 
 test('test status code on attach exiting with 2', function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
     tt.test('create container ' + container, function (t) {
         t.plan(5);
         var cmd = 'sleep 20; exit 2';
@@ -112,7 +112,7 @@ test('test status code on attach exiting with 2', function (tt) {
 
 test('test status code on exec exiting with implicit 0',
 function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
     tt.test('create container ' + container, function (t) {
         t.plan(4);
 
@@ -134,7 +134,7 @@ function (tt) {
 
 test('test status code on exec exiting with 2',
 function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
     tt.test('create container ' + container, function (t) {
         t.plan(5);
 
@@ -160,38 +160,5 @@ function (tt) {
  */
 
 test('container cleanup', function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
 });
-
-
-/**
- * Support functions
- */
-
-function removeTestContainers(tt) {
-    tt.test('remove old containers', function (t) {
-        cli.ps(t, {args: '-a'}, function (err, entries) {
-            t.ifErr(err, 'docker ps');
-
-            var oldContainers = entries.filter(function (entry) {
-                return (entry.names.substr(0, CONTAINER_PREFIX.length)
-                        === CONTAINER_PREFIX);
-            });
-
-            vasync.forEachParallel({
-                inputs: oldContainers,
-                func: function _delOne(entry, cb) {
-                    cli.rm(t, {args: '-f ' + entry.container_id},
-                            function (err2)
-                    {
-                        t.ifErr(err2, 'rm container ' + entry.container_id);
-                        cb();
-                    });
-                }
-            }, function (forEachErr) {
-                tt.ifErr(forEachErr);
-                t.end();
-            });
-        });
-    });
-}

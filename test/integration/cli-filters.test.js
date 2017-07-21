@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -18,6 +18,7 @@ var vasync = require('vasync');
 
 var cli = require('../lib/cli');
 var common = require('../lib/common');
+var sdcCommon = require('../../lib/common');
 var vm = require('../lib/vm');
 
 
@@ -27,6 +28,11 @@ var CLIENTS = {};
 var CONTAINER_PREFIX = 'sdcdockertest_filters_';
 var IMAGE_NAME = 'joyentunsupported/busybox_with_label_test';
 
+var cliVersion = process.env.DOCKER_CLI_VERSION;
+if (cliVersion) {
+    // The cliVersion must be in x.y format!
+    cliVersion = cliVersion.split('.')[0] + '.' + cliVersion.split('.')[1];
+}
 
 
 // --- Tests
@@ -148,8 +154,24 @@ test('image filters', function (tt) {
             function (err, images)
         {
             t.ifErr(err, 'docker images --filter');
-            t.equal(images.length, 1, 'Check one image returned');
-            t.equal(images[0].repository, IMAGE_NAME, 'Check image name');
+            // Older docker clients 1.11 and below will return *two* image
+            // entries for every tagged image (one with '<none>' as the tag
+            // name).
+            if (sdcCommon.apiVersionCmp(cliVersion, 1.12) >= 0) {
+                t.equal(images.length, 1, 'Check one image returned');
+                t.equal(images[0].repository, IMAGE_NAME, 'Check image name');
+                t.equal(images[0].tag, 'latest', 'Check image tag');
+            } else {
+                t.equal(images.length, 2, 'Check two images returned');
+                t.equal(images[0].repository, IMAGE_NAME, 'Check image name');
+                t.equal(images[1].repository, IMAGE_NAME, 'Check image name');
+                if (images[0].tag === 'latest') {
+                    t.equal(images[1].tag, '<none>', 'Check image tag');
+                } else {
+                    t.equal(images[0].tag, '<none>', 'Check image tag');
+                    t.equal(images[1].tag, 'latest', 'Check image tag');
+                }
+            }
             t.end();
         });
     });

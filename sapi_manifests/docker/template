@@ -54,7 +54,7 @@
     },
     "wfapi": {
         "forceMd5Check": true,
-        "workflows": ["pull-image"],
+        "workflows": ["pull-image-v2"],
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
 

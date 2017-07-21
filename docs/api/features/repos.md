@@ -4,9 +4,11 @@ SDC-Docker supports the use of Docker images maintained in the following registr
 
 - Docker Hub's public registry
 - Docker Hub's private registry
-- Self-hosted v1 and v2 Docker registry, including Docker Trusted Registry
-- quay.io v1 Docker registry
-- jFrog Artifactory v1 and v2 Docker registry
+- Self-hosted Docker registry, including Docker Trusted Registry
+- quay.io Docker registry
+- jFrog Artifactory Docker registry
+
+Note that Triton sdc-docker only supports v2 registries.
 
 You can connect to multiple registries at the same time and pull images from them
 without having to switch from one to another.

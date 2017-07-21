@@ -144,7 +144,7 @@ test('setup', function (tt) {
 
 
 test('test initialization', function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
 
     vasync.forEachParallel({
         inputs: CONTAINERS_TO_CREATE,
@@ -564,7 +564,7 @@ test('copy a file into stopped container', function (tt) {
  * Cleanup.
  */
 test('copy container cleanup', function (tt) {
-    removeTestContainers(tt);
+    cli.rmContainersWithNamePrefix(tt, CONTAINER_PREFIX);
 });
 
 
@@ -585,34 +585,6 @@ function startContainer(tt, containerName, callback) {
     cli.start(tt, { args: containerName }, function (err) {
         tt.ifErr(err, 'starting container');
         callback(err);
-    });
-}
-
-
-function removeTestContainers(tt) {
-    tt.test('remove old containers', function (t) {
-        cli.ps(t, {args: '-a'}, function (err, entries) {
-            t.ifErr(err, 'docker ps');
-
-            var oldContainers = entries.filter(function (entry) {
-                return (entry.names.substr(0, CONTAINER_PREFIX.length)
-                        === CONTAINER_PREFIX);
-            });
-
-            vasync.forEachParallel({
-                inputs: oldContainers,
-                func: function _delOne(entry, cb) {
-                    cli.rm(t, {args: '-f ' + entry.container_id},
-                            function (err2)
-                    {
-                        t.ifErr(err2, 'rm container ' + entry.container_id);
-                        cb();
-                    });
-                }
-            }, function () {
-                t.end();
-            });
-        });
     });
 }
 

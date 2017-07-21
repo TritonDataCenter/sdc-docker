@@ -111,11 +111,7 @@ expect it to get shorter by the day:
 ## Images and private registries
 
 SDC Docker supports the integration with Docker Hub and third party registries through
-Docker's Registry v1 and v2 API. The use of the short or long Image ID may not uniquely
-identify an image if images of the same ID exist in more than one repo. To work around
-this Registry API limitation in such rare case, use the repo, image and tag name in
-the image management API methods (e.g. `docker pull`, `docker inspect`) instead of
-the Image ID.
+Docker's Registry v2 API (the deprecated v1 API is not supported).
 
 ### Container Logging
 

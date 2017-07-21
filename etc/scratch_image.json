@@ -49,11 +49,14 @@
         "MacAddress": "",
         "OnBuild": null
     },
-    "created": "2015-12-01T12:00:00.000Z",
-    "docker_version": "1.9.0",
-    "id": "0000000000007363726174636800aeee14d7eabd60b564604d05000000000000",
+    "created": "2016-11-09T12:00:00.000Z",
+    "docker_version": "1.12.2",
     "os": "linux",
-    "parent": "",
-    "size": 0,
-    "virtual_size": 0
+    "size": 1024,
+    "rootfs": {
+        "type": "layers",
+        "diff_ids": [
+            "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+        ]
+    }
 }

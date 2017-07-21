@@ -44,8 +44,6 @@ use `docker pull`:
 `docker pull -a` and `--disable-content-trust=true` are currently unsupported.
 Follow [DOCKER-531](http://smartos.org/bugview/DOCKER-531) for updates.
 
-Identifying a repo version by digest is not supported at this time. Use tag instead.
-
 The first status line from a `docker pull` shows a UUID:
 
     $ docker pull busybox

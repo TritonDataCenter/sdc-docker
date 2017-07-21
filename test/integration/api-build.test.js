@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2016, Joyent, Inc.
+ * Copyright (c) 2017, Joyent, Inc.
  */
 
 /*
@@ -19,11 +19,13 @@
 var format = require('util').format;
 var path = require('path');
 
+var assert = require('assert-plus');
 var tar = require('tar-stream');
 var test = require('tape');
 var vasync = require('vasync');
 
 var h = require('./helpers');
+var imageV2 = require('../../lib/models/image-v2');
 
 var STATE = {
     log: require('../lib/log')
@@ -32,6 +34,8 @@ var STATE = {
 var ALICE;
 var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
+var imgapiClient;
+var morayClient;
 
 
 function createTarStream(fileAndContents) {
@@ -55,6 +59,22 @@ test('setup', function (tt) {
 
             ALICE = accounts.alice;
 
+            t.end();
+        });
+    });
+
+    tt.test('imgapi client init', function (t) {
+        h.createImgapiClient(function (err, client) {
+            t.ifErr(err, 'imgapi client init');
+            imgapiClient = client;
+            t.end();
+        });
+    });
+
+    tt.test('moray client init', function (t) {
+        h.createMorayClient(function (err, client) {
+            t.ifErr(err, 'moray client init');
+            morayClient = client;
             t.end();
         });
     });
@@ -292,7 +312,7 @@ test('api: build image conflicts', function (tt) {
 
 
 /**
- * DOCKER-748: Cannot build an image that references multiple registries.
+ * DOCKER-756: Ensure can build an image that references multiple registries.
  */
 test('api: build across multiple registries', function (tt) {
     var imageName = 'quay.io/joyent/triton_alpine_inherit_test:latest';
@@ -310,6 +330,7 @@ test('api: build across multiple registries', function (tt) {
     });
 
     tt.test('docker build from alpine image (cross registry)', function (t) {
+        var dockerImageId;
         var tarStream;
 
         vasync.waterfall([
@@ -335,13 +356,24 @@ test('api: build across multiple registries', function (tt) {
 
                 function onbuild(err, result) {
                     t.ifErr(err, 'build should not error on post');
-                    var msg = result.body;
-                    if (msg.indexOf('different registries') === -1) {
-                        t.fail('expected a "different registries" error '
-                            + 'message, got: "' + msg + '"');
+                    var output = result.body;
+
+                    var hasSuccess = output.indexOf('Successfully built') >= 0;
+                    t.ok(hasSuccess,
+                        'output should contain: Successfully built');
+                    if (hasSuccess) {
+                        var reg = new RegExp('Successfully built (\\w+)');
+                        dockerImageId = output.match(reg)[1];
+                    } else {
+                        t.fail('Output: ' + output);
                     }
                     next();
                 }
+            },
+
+            function removeBuiltImage(next) {
+                t.ok(dockerImageId, 'Got the docker image id');
+                DOCKER_ALICE.del('/images/' + dockerImageId, next);
             }
 
         ], function allDone(err) {
@@ -529,4 +561,210 @@ test('build with packagelabel', function (tt) {
         tt.ifError(err, 'build with packagelabel');
         tt.end();
     });
+});
+
+
+/**
+ * This test ensures that `docker rmi` is working, by checking the underlying
+ * IMGAPI docker layer count and sdc-docker docker_images_v2 count before and
+ * after deletion.
+ */
+test('api: build and rmi', function (tt) {
+    // Ensure busybox image is pulled down.
+    tt.test('pull busybox image', function (t) {
+        h.ensureImage({
+            name: 'busybox',
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'pulling busybox image');
+            t.end();
+        });
+    });
+
+    tt.test('docker build test image', function (t) {
+        var currentDockerImages;
+        var dockerImageCountBefore;
+        var dockerImageId = null;
+        var imgapiLayerCountBefore;
+        var tarStream;
+
+        // Count the number of IMGAPI docker layers.
+        function getImgapiDockerLayerCount(cb) {
+            assert.object(imgapiClient, 'imgapiClient');
+            // Note that there is no owner set here, as IMGAPI docker layers are
+            // all owned by the ADMIN user.
+            var filter = {
+                state: 'active',
+                type: 'docker'
+            };
+
+            imgapiClient.listImages(filter, function (err, layers) {
+                t.ifErr(err, 'check for imgapi listImages err');
+                cb(err, layers && layers.length || 0);
+            });
+        }
+
+        // Count the number of docker_images_v2 image models.
+        function getDockerImageCount(cb) {
+            assert.object(morayClient, 'morayClient');
+            var app = {
+                moray: morayClient
+            };
+            var filter = {
+                owner_uuid: ALICE.account.uuid
+            };
+
+            imageV2.list(app, STATE.log, filter, function (err, images) {
+                t.ifErr(err, 'check for imgapi listImages err');
+                currentDockerImages = images;
+                cb(err, images && images.length || 0);
+            });
+        }
+
+        vasync.pipeline({ funcs: [
+
+            function createTar(_, next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM busybox\n'
+                                + 'LABEL rc1=true\n'
+                                + 'LABEL rc2=true\n'
+                                + 'ADD a.txt /\n'
+                                + 'LABEL rc3=true\n'
+                                + 'LABEL rc4=true\n',
+                    'a.txt': 'This is a.txt content'
+                };
+
+                tarStream = createTarStream(fileAndContents);
+                next();
+            },
+
+            function getImgapiLayerCountBefore(_, next) {
+                getImgapiDockerLayerCount(function (err, cnt) {
+                    // Remember the number of IMGAPI docker layers.
+                    imgapiLayerCountBefore = cnt;
+                    next(err);
+                });
+            },
+
+            function getDockerImageCountBefore(_, next) {
+                getDockerImageCount(function (err, cnt) {
+                    // Remember the number of docker images.
+                    dockerImageCountBefore = cnt;
+                    next(err);
+                });
+            },
+
+            function buildContainer(_, next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        'nocache': 'true',
+                        'rm': 'true'  // Remove container after it's built.
+                    },
+                    test: t,
+                    tarball: tarStream
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifError(err, 'check build err');
+                    if (!result || !result.body) {
+                        next(new Error('build generated no output!?'));
+                        return;
+                    }
+
+                    var output = result.body;
+                    var hasSuccess = output.indexOf('Successfully built') >= 0;
+
+                    t.ok(hasSuccess, 'output contains Successfully built');
+                    if (hasSuccess) {
+                        var reg = new RegExp('Successfully built (\\w+)');
+                        dockerImageId = output.match(reg)[1];
+                    } else {
+                        next(new Error('Unsuccessful build: ' + output));
+                        return;
+                    }
+
+                    next();
+                }
+            },
+
+            function getImgapiLayerCountAfterBuild(_, next) {
+                getImgapiDockerLayerCount(function (err, cnt) {
+                    t.equal(cnt, imgapiLayerCountBefore + 1,
+                        'check 1 new IMGAPI docker layer was created');
+                    next(err);
+                });
+            },
+
+            function getDockerImageCountAfterBuild(_, next) {
+                getDockerImageCount(function (err, cnt) {
+                    t.equal(cnt, dockerImageCountBefore + 5,
+                        'check 5 docker_images_v2 entries were created');
+                    next(err);
+                });
+            },
+
+            // Try removing the parent image of the just built image, there
+            // should be a failure as the built image depends on this image
+            // and won't let us delete it.
+            function checkRemoveDependentParentImage(_, next) {
+                t.ok(currentDockerImages, 'Have list of docker images');
+                var matchingImages = currentDockerImages.filter(function (img) {
+                    return img.config_digest.indexOf(dockerImageId) >= 0;
+                });
+                t.equal(matchingImages.length, 1, 'found built docker image');
+                var parentId = matchingImages[0].parent;
+                DOCKER_ALICE.del('/images/' + parentId, function (err) {
+                    t.ok(err, 'expect an error for docker rmi parentId');
+                    console.log('err:', err);
+                    console.log('err.message:', err.message);
+                    if (!err) {
+                        next(new Error('docker rmi parentId succeeded - '
+                            + 'when it should have failed'));
+                        return;
+                    }
+                    next();
+                });
+            },
+
+            function removeBuiltImage(_, next) {
+                DOCKER_ALICE.del('/images/' + dockerImageId,
+                    function (err) {
+                        t.ifErr(err, 'check for docker rmi error');
+                        next(err);
+                    });
+            },
+
+            function getImgapiLayerCountAfterRmi(_, next) {
+                getImgapiDockerLayerCount(function (err, cnt) {
+                    t.equal(cnt, imgapiLayerCountBefore,
+                        'check all built imgapi layers were deleted');
+                    next(err);
+                });
+            },
+
+            function getDockerImageCountAfterRmi(_, next) {
+                getDockerImageCount(function (err, cnt) {
+                    t.equal(cnt, dockerImageCountBefore,
+                        'check created docker_images_v2 entries are gone');
+                    next(err);
+                });
+            }
+
+        ]}, function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+    });
+});
+
+
+test('teardown', function (tt) {
+    if (imgapiClient) {
+        imgapiClient.close();
+    }
+    if (morayClient) {
+        morayClient.close();
+    }
+    tt.end();
 });
