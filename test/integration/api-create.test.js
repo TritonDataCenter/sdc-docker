@@ -384,7 +384,6 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     var fNetwork2;
     var fNetwork3;
     var nonFabricNetwork;
-    var adminNetwork;
 
     if (!FABRICS) {
         tt.comment('Fabrics not enabled, skipping tests that require them.');
@@ -476,9 +475,6 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
                 },
                 function fnonFabricNet(_, cb) {
                     h.getNetwork(NAPI, {name: 'external'}, cb);
-                },
-                function fadminNet(_, cb) {
-                    h.getNetwork(NAPI, {name: 'admin'}, cb);
                 }
             ]
         }, function (err, results) {
@@ -491,7 +487,6 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             fNetwork2 = results.operations[1].result;
             fNetwork3 = results.operations[2].result;
             nonFabricNetwork = results.operations[3].result;
-            adminNetwork = results.operations[4].result;
 
             t.end();
         });
@@ -649,12 +644,13 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
     });
 
     tt.test('create with a network that doesn\'t exist', function (t) {
+        var uuid = libuuid.create();
         h.createDockerContainer({
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
-            extra: { 'HostConfig.NetworkMode': 'netmodefoobar' },
-            expectedErr: '(Error) network netmodefoobar not found',
+            extra: { 'HostConfig.NetworkMode': uuid },
+            expectedErr: '(Error) network ' + uuid + ' not found',
             start: true
         }, oncreate);
 
@@ -778,33 +774,20 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         }
     });
 
-    tt.test('fail to create with admin network', function (t) {
-        h.createDockerContainer({
-            vmapiClient: VMAPI,
-            dockerClient: DOCKER_ALICE,
-            test: t,
-            extra: { 'HostConfig.NetworkMode': adminNetwork.name },
-            start: false,
-            expectedErr: '(Error) network admin not found'
-        }, oncreate);
+    tt.test('fail to create with a network that doesn\'t exit, publish ports',
+        function (t) {
 
-        function oncreate(err, result) {
-            t.ok(err, 'Expecting error');
-            t.end();
-        }
-    });
-
-    tt.test('fail to create with admin network, publish ports', function (t) {
+        var uuid = libuuid.create();
         h.createDockerContainer({
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
             test: t,
             extra: {
-                'HostConfig.NetworkMode': adminNetwork.name,
+                'HostConfig.NetworkMode': uuid,
                 'HostConfig.PublishAllPorts': true
             },
             start: false,
-            expectedErr: '(Error) network admin not found'
+            expectedErr: '(Error) network ' + uuid + ' not found'
         }, oncreate);
 
         function oncreate(err, result) {
