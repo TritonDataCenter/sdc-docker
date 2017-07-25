@@ -15,6 +15,7 @@
 var test = require('tape');
 
 var h = require('./helpers');
+var testcommon = require('../lib/common');
 
 
 // --- Globals
@@ -22,6 +23,7 @@ var ALICE;
 var DOCKER_ALICE;
 var FABRICS_ENABLED;
 var NAPI;
+var NETWORK_NAME_PREFIX = 'testnet';
 var STATE = {
     log: require('../lib/log')
 };
@@ -138,5 +140,39 @@ test('docker network inspect', function (tt) {
             t.ok(err.statusCode === 404, 'Expecting 404');
             t.end();
         });
+    });
+});
+
+test('docker network create', function (tt) {
+    tt.test('create overlay network', function (t) {
+        var networkPayload = {
+            Name: testcommon.makeResourceName(NETWORK_NAME_PREFIX),
+            Driver: 'overlay',
+            IPAM: {
+                Config: [
+                    {
+                        Subnet: '10.0.12.0/24'
+                    }
+                ]
+            }
+        };
+
+        DOCKER_ALICE.post('/networks/create', networkPayload,
+            function (err, res, req, result) {
+                t.ifErr(err, 'check /networks/create err');
+                if (err) {
+                    t.end();
+                    return;
+                }
+                t.ok(result, 'check for result');
+                t.ok(result.Id, 'check for result.Id');
+                DOCKER_ALICE.del('/networks/' + result.Id,
+                    function (err2) {
+                        t.ifErr(err2, 'delete /networks/ err');
+                        t.end();
+                    }
+                );
+            }
+        );
     });
 });

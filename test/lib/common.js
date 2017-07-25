@@ -298,14 +298,6 @@ function makeResourceName(prefix) {
 
 
 /*
- * Make a prefixed, randomized name for a test image.
- */
-function makeImageName(prefix) {
-    return prefix + '-' + libuuid.create().split('-')[0];
-}
-
-
-/*
  * Parse docker columnar output by using the widths in the first header row.
  */
 function parseOutputUsingHeader(stdout, opts) {
