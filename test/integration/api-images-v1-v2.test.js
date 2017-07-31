@@ -230,7 +230,7 @@ test('init docker images', function (tt) {
                     + contentLayers.length));
                 return;
             }
-            var digestChain = manifest.layers.slice(0, layerIdx).map(
+            var digestChain = manifest.layers.slice(0, layerIdx+1).map(
                 function (layer) {
                     return layer.digest;
                 }
