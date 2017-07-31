@@ -12,26 +12,56 @@
  * Integration tests for docker links.
  */
 
-var cli = require('../lib/cli');
-var vm = require('../lib/vm');
 var test = require('tape');
 var vasync = require('vasync');
+
+var cli = require('../lib/cli');
+var h = require('./helpers');
+var vm = require('../lib/vm');
 
 
 // --- Globals
 
-var CLIENTS = {};
+var ALICE;
 var CONTAINER_PREFIX = 'sdcdockertest_link_';
 var TEST_IMAGE = 'joyentunsupported/test-nginx:1.0.0';
+var BUSYBOX_IMAGE = 'busybox';
 
 
 // --- Tests
 
 test('setup', function (tt) {
 
-    tt.test('DockerEnv: alice init', cli.init);
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function (err, result) {
+            // Note that err checking and t.end() are done in cli.init()
+            if (!err) {
+                ALICE = result.user;
+            }
+        });
+    });
 
     tt.test('vmapi client', vm.init);
+
+    tt.test('pull test-nginx image', function (t) {
+        h.ensureImage({
+            name: TEST_IMAGE,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling test-nginx image');
+            t.end();
+        });
+    });
+
+    tt.test('pull busybox image', function (t) {
+        h.ensureImage({
+            name: BUSYBOX_IMAGE,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling busybox image');
+            t.end();
+        });
+    });
 });
 
 
@@ -77,7 +107,7 @@ test('linked env', function (tt) {
     tt.test('linked env: create busybox with nginx link', function (t) {
         cli.run(t, { args: '-d --name ' + bboxName
                     + ' --link ' + nginxName + ':ngx'
-                    + ' busybox top' });
+                    + ' ' + BUSYBOX_IMAGE + ' top' });
     });
 
 
@@ -202,14 +232,15 @@ test('link rename', function (tt) {
     var contNameRenamed = contName + '_r';
 
     tt.test(' create link_target', function (t) {
-        cli.run(t, { args: '-d --name ' + targName + ' busybox top' });
+        cli.run(t, { args: '-d --name ' + targName
+            + ' ' + BUSYBOX_IMAGE + ' top' });
     });
 
 
     tt.test(' create link_container', function (t) {
         cli.run(t, { args: '-d --name ' + contName
                     + ' --link ' + targName + ':target'
-                    + ' busybox top' });
+                    + ' ' + BUSYBOX_IMAGE + ' top' });
     });
 
 
