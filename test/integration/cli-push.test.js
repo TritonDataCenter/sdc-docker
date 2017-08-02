@@ -12,17 +12,12 @@
  * Integration tests for `docker push` using the docker cli.
  */
 
-var path = require('path');
-
 var tarstream = require('tar-stream');
 var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
-var common = require('../lib/common');
 var h = require('./helpers');
-
-var format = require('util').format;
 
 // -- Globals
 
@@ -31,10 +26,9 @@ var STATE = {
 };
 
 var ALICE;
-var CONTAINER_PREFIX = 'sdcdockertest_push_';
 var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
-var IMAGE_NAME = 'busybox';
+var TEST_IMAGE = 'busybox';
 var TP = 'cli: push: ';  // Test prefix.
 
 // -- Helpers
@@ -55,48 +49,34 @@ function createTarStream(fileAndContents) {
 
 test(TP + 'setup', function (tt) {
 
-    tt.test('DockerEnv: alice init', cli.init);
-
-    tt.test('docker env', function (t) {
-        h.initDockerEnv(t, STATE, {}, function (err, accounts) {
-            t.ifErr(err, 'Initializing docker env');
-
-            ALICE = accounts.alice;
-
-            t.end();
+    tt.test('DockerEnv: alice init', function (t) {
+        cli.init(t, function (err, result) {
+            // Note: err and t.end() are both checked/called in cli.init.
+            if (!err) {
+                ALICE = result.user;
+                DOCKER_ALICE = result.client;
+            }
         });
     });
 
-    tt.test('docker client init', function (t) {
-        h.createDockerRemoteClient({user: ALICE},
+    tt.test('docker client http init', function (t) {
+        h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
             function (err, client) {
-                t.ifErr(err, 'docker client init for alice');
-                DOCKER_ALICE = client;
+                t.ifError(err, 'docker client http init is successful');
+                DOCKER_ALICE_HTTP = client;
                 t.end();
             }
         );
     });
 
-    tt.test('docker client http init', function (t) {
-        vasync.parallel({ funcs: [
-            function createAliceHttp(done) {
-                h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
-                    function (err, client) {
-                        t.ifErr(err, 'docker client init for alice/http');
-                        done(err, client);
-                    });
-            }
-        ]}, function allDone(err, results) {
-            t.ifError(err, 'docker client http init should be successful');
-            DOCKER_ALICE_HTTP = results.operations[0].result;
+    // Ensure the test image is around.
+    tt.test(TP + 'pull ' + TEST_IMAGE + ' image', function (t) {
+        h.ensureImage({
+            name: TEST_IMAGE,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling ' + TEST_IMAGE);
             t.end();
-        });
-    });
-
-    // Ensure the busybox image is around.
-    tt.test(TP + 'pull busybox image', function (t) {
-        cli.pull(t, {
-            image: 'busybox:latest'
         });
     });
 });
@@ -105,15 +85,15 @@ test(TP + 'setup', function (tt) {
 test(TP + 'unathorized tag and push', function (tt) {
     var tagName = 'joyentunsupported/privatetest';
 
-    tt.test(TP + 'tag busybox as ' + tagName, function (t) {
-        cli.docker('tag busybox ' + tagName, {}, onComplete);
+    tt.test(TP + 'tag ' + TEST_IMAGE + ' as ' + tagName, function (t) {
+        cli.docker('tag ' + TEST_IMAGE + ' ' + tagName, {}, onComplete);
         function onComplete(err, stdout, stderr) {
-            t.ifErr(err, 'Tagging busybox as ' + tagName);
+            t.ifErr(err, 'Tagging ' + TEST_IMAGE + ' as ' + tagName);
             t.end();
         }
     });
 
-    tt.test(TP + 'push ' + tagName, function (t) {
+    tt.test(TP + tagName, function (t) {
         cli.docker('push ' + tagName, {}, onComplete);
         function onComplete(err, stdout, stderr) {
             t.ifErr(!err, 'Pushing ' + tagName);
@@ -144,17 +124,17 @@ test(TP + 'tag and push', function (tt) {
     var tagName = repo + ':tagpush';
     var tagName2 = repo + ':tagpush2';
 
-    tt.test(TP + 'tag busybox as ' + tagName, function (t) {
-        cli.docker('tag busybox ' + tagName, {}, onComplete);
+    tt.test(TP + 'tag ' + TEST_IMAGE + ' as ' + tagName, function (t) {
+        cli.docker('tag ' + TEST_IMAGE + ' ' + tagName, {}, onComplete);
         function onComplete(err, stdout, stderr) {
-            t.ifErr(err, 'Tagging busybox as ' + tagName);
+            t.ifErr(err, 'Tagging ' + TEST_IMAGE + ' as ' + tagName);
             t.end();
         }
     });
 
-    tt.test(TP + 'push ' + tagName, function (t) {
+    tt.test(TP + tagName, function (t) {
         if (!process.env.DOCKER_TEST_CONFIG_FILE) {
-            t.skip(TP + 'push ' + tagName);
+            t.skip(TP + tagName);
             t.end();
             return;
         }
@@ -176,19 +156,19 @@ test(TP + 'tag and push', function (tt) {
         }
     });
 
-    tt.test(TP + 'tag busybox as ' + tagName2, function (t) {
-        cli.docker('tag busybox ' + tagName2, {}, onComplete);
+    tt.test(TP + 'tag ' + TEST_IMAGE + ' as ' + tagName2, function (t) {
+        cli.docker('tag ' + TEST_IMAGE + ' ' + tagName2, {}, onComplete);
         function onComplete(err, stdout, stderr) {
-            t.ifErr(err, 'Tagging busybox as ' + tagName2);
+            t.ifErr(err, 'Tagging ' + TEST_IMAGE + ' as ' + tagName2);
             t.end();
         }
     });
 
     // Test pushing the repo name - this should push all tags for the given
     // repo.
-    tt.test(TP + 'push ' + repo, function (t) {
+    tt.test(TP + repo, function (t) {
         if (!process.env.DOCKER_TEST_CONFIG_FILE) {
-            t.skip(TP + 'push ' + repo);
+            t.skip(TP + repo);
             t.end();
             return;
         }
@@ -284,7 +264,7 @@ test(TP + 'build and push', function (tt) {
 
             function pushImage(next) {
                 if (!process.env.DOCKER_TEST_CONFIG_FILE) {
-                    t.skip(TP + 'push ' + tagName);
+                    t.skip(TP + tagName);
                     next();
                     return;
                 }
