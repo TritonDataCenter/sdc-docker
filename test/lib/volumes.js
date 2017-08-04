@@ -22,7 +22,7 @@ var log = require('./log');
 var CONFIG = configLoader.loadConfigSync({log: log});
 
 var NFS_SHARED_VOLUMES_SUPPORTED = false;
-if (CONFIG.experimental_nfs_shared_volumes === true) {
+if (CONFIG.experimental_docker_nfs_shared_volumes === true) {
     NFS_SHARED_VOLUMES_SUPPORTED = true;
 }
 

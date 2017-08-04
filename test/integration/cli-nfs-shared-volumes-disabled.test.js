@@ -41,7 +41,7 @@ var SAPI_APP;
 var STATE_RETRIES = 120;
 
 // wait for /admin/config to have state either 'enabled' or 'disabled' for
-// experimental_nfs_shared_volumes
+// experimental_docker_nfs_shared_volumes
 function waitForState(tt, state, callback) {
     var dockerAdminClient;
     var retries = STATE_RETRIES;
@@ -59,7 +59,7 @@ function waitForState(tt, state, callback) {
                 var enabled;
 
                 if (!err && cfg) {
-                    if (cfg.experimental_nfs_shared_volumes === true) {
+                    if (cfg.experimental_docker_nfs_shared_volumes === true) {
                         enabled = true;
                     } else {
                         enabled = false;
@@ -128,7 +128,8 @@ test('setup', function (tt) {
         SAPI_CLIENT.get('/applications?name=sdc',
             function onApp(err, req, res, appList) {
                 var app;
-                var nfsVolumeSupportKey = 'experimental_nfs_shared_volumes';
+                var nfsVolumeSupportKey =
+                    'experimental_docker_nfs_shared_volumes';
 
                 t.ifErr(err, 'should succeed to GET app from SAPI');
                 t.ok(appList, 'should have an appList object');
@@ -142,14 +143,14 @@ test('setup', function (tt) {
                 t.ok(app.metadata, 'app should have metadata');
                 if (app.metadata.hasOwnProperty(nfsVolumeSupportKey)) {
                     t.comment('current value of '
-                        + 'experimental_nfs_shared_volumes is: '
-                        + app.metadata.experimental_nfs_shared_volumes);
+                        + 'experimental_docker_nfs_shared_volumes is: '
+                        + app.metadata.experimental_docker_nfs_shared_volumes);
                 }
 
                 SAPI_CLIENT.put('/applications/' + SAPI_APP, {
                     action: 'update',
                     metadata: {
-                        experimental_nfs_shared_volumes: false
+                        experimental_docker_nfs_shared_volumes: false
                     }
                 }, function onPut(sapiPutErr, sapiPutReq, sapiPutRes, obj) {
                     t.ifErr(sapiPutErr, 'should succeed to PUT app to SAPI');
@@ -216,7 +217,7 @@ test('teardown', function (tt) {
     SAPI_CLIENT.put('/applications/' + SAPI_APP, {
         action: 'update',
         metadata: {
-            experimental_nfs_shared_volumes: true
+            experimental_docker_nfs_shared_volumes: true
         }
     }, function onPut(sapiPutErr, req, res, obj) {
         tt.ifErr(sapiPutErr, 'should succeed to PUT app to SAPI');

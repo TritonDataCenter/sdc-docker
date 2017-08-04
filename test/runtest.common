@@ -81,7 +81,7 @@ fi
 
 # Determine whether NFS Volumes (RFD 26) are supported in this setup
 NFS_VOLUMES_ENABLED=$(curl -sS ${DOCKER_ADMIN_URL}/admin/config \
-    | json -H experimental_nfs_shared_volumes)
+    | json -H experimental_docker_nfs_shared_volumes)
 [[ ${NFS_VOLUMES_ENABLED} == "true" ]] || NFS_VOLUMES_ENABLED="false"
 export NFS_VOLUMES_ENABLED
 
