@@ -22,6 +22,7 @@ var libuuid = require('libuuid');
 var test = require('tape');
 var vasync = require('vasync');
 
+var createTarStream = require('../lib/common').createTarStream;
 var h = require('./helpers');
 var imageV1Model = require('../../lib/models/image');
 var imageV2Model = require('../../lib/models/image-v2');
@@ -33,6 +34,7 @@ var log = require('../lib/log');
 
 var ALICE;
 var DOCKER_ALICE;
+var DOCKER_ALICE_HTTP;
 var gInitSuccessful = false;
 var gV1Image;
 var gV1ImageName = 'joyentunsupported/busybox_with_label_test_v1';
@@ -64,6 +66,16 @@ test('setup', function (tt) {
             DOCKER_ALICE = client;
             t.end();
         });
+    });
+
+    tt.test('docker client http init', function (t) {
+        h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
+            function (err, client) {
+                t.ifErr(err, 'docker client init for alice/http');
+                DOCKER_ALICE_HTTP = client;
+                t.end();
+            }
+        );
     });
 
     tt.test('imgapi client init', function (t) {
@@ -328,6 +340,95 @@ test('init docker images', function (tt) {
 });
 
 
+// Ensure no use of v1 images for docker tag.
+test('test for error on docker v1 image tag', function (tt) {
+    if (gInitSuccessful === false) {
+        tt.skip('image init failed');
+        tt.end();
+        return;
+    }
+
+    tt.test('tag v1 image', function (t) {
+        var url = util.format('/images/%s/tag?repo=tagfail&tag=latest',
+            gV1ImageName);
+
+        DOCKER_ALICE.post(url, function onpost(err) {
+            t.ok(err, 'should get an error when tagging a v1 image');
+            if (err) {
+                t.ok(String(err).indexOf('image which cannot be tagged') >= 0,
+                    'check error has correct message');
+            }
+            t.end();
+        });
+    });
+});
+
+// Ensure no use of v1 images for docker build.
+test('test for error on docker v1 image build', function (tt) {
+    if (gInitSuccessful === false) {
+        tt.skip('image init failed');
+        tt.end();
+        return;
+    }
+
+    tt.test('build from v1 image', function (t) {
+        vasync.pipeline({arg: {}, funcs: [
+
+            function createTar(ctx, next) {
+                var fileAndContents = {
+                    Dockerfile: util.format('FROM %s\n'
+                                    + 'LABEL sdcdockertest=true\n',
+                                    gV1ImageName)
+                };
+                ctx.tarStream = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer(ctx, next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {
+                        'rm': 'true'  // Remove container after it's built.
+                    },
+                    test: t,
+                    tarball: ctx.tarStream
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifErr(err, 'ensure build request worked');
+                    ctx.buildResult = result;
+                    next(err);
+                }
+            },
+
+            function checkResults(ctx, next) {
+                var result = ctx.buildResult;
+                if (!result || !result.body) {
+                    next(new Error('build generated no output!?'));
+                    return;
+                }
+
+                var output = result.body;
+                var wantedErrorMsg = 'deprecated image which cannot be used '
+                    + 'by docker build - please repull or rebuild the image';
+                var hasV1ImageError = output.indexOf(wantedErrorMsg) >= 0;
+                t.ok(hasV1ImageError, 'build has v1 image error message');
+                if (!hasV1ImageError) {
+                    t.ok(hasV1ImageError, util.format(
+                        'build received v1 image error: output=%j', output));
+                }
+
+                next();
+            }
+
+        ]}, function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+    });
+});
+
+
 // Ensure we can successful create and run a container that uses a v1 image.
 test('test docker v1/v2 images', function (tt) {
     if (gInitSuccessful === false) {
@@ -335,6 +436,8 @@ test('test docker v1/v2 images', function (tt) {
         tt.end();
         return;
     }
+
+    var containerId;
 
     tt.test('create and run v1 image', function (t) {
         assert.object(STATE.vmapi, 'STATE.vmapi');
@@ -354,7 +457,37 @@ test('test docker v1/v2 images', function (tt) {
             t.ifErr(err, 'Check for create/run container error');
             t.ok(result.id, 'container should have an id');
             t.equal(result.vm.state, 'running', 'Check container running');
-            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+
+            if (!result.id) {
+                t.end();
+                return;
+            }
+
+            containerId = result.id;
+            // Try and commit the container with the v1 image - it should fail.
+            var commitUrl = util.format(
+                '/commit?container=%s&repo=myv1image&tag=latest',
+                containerId);
+
+            DOCKER_ALICE.post(commitUrl, oncommit);
+        }
+
+        function oncommit(err) {
+            t.ok(err, 'Got a docker commit error for v1 image');
+            if (err) {
+                var wantedErrorMsg = 'This container uses a deprecated '
+                    + 'image which cannot be committed - please repull '
+                    + 'or rebuild the image';
+                var hasError = String(err).indexOf(wantedErrorMsg) >= 0;
+                t.ok(hasError, 'commit has v1 image error message');
+                if (!hasError) {
+                    t.ok(hasError, util.format(
+                        'commit error: %s', err));
+                }
+            }
+
+            DOCKER_ALICE.del('/containers/' + containerId + '?force=1',
+                ondelete);
         }
 
         function ondelete(err) {

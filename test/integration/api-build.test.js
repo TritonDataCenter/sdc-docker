@@ -20,10 +20,10 @@ var format = require('util').format;
 var path = require('path');
 
 var assert = require('assert-plus');
-var tar = require('tar-stream');
 var test = require('tape');
 var vasync = require('vasync');
 
+var createTarStream = require('../lib/common').createTarStream;
 var h = require('./helpers');
 var imageV2 = require('../../lib/models/image-v2');
 
@@ -36,19 +36,6 @@ var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
 var imgapiClient;
 var morayClient;
-
-
-function createTarStream(fileAndContents) {
-    var pack = tar.pack();
-
-    Object.keys(fileAndContents).forEach(function (name) {
-        pack.entry({ name: name }, fileAndContents[name]);
-    });
-
-    pack.finalize();
-
-    return pack;
-}
 
 
 test('setup', function (tt) {

@@ -18,6 +18,7 @@ var difflet = require('difflet');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
 var libuuid = require('libuuid');
+var tar = require('tar-stream');
 var VError = require('verror').VError;
 
 
@@ -422,8 +423,22 @@ function dockerClientVersionCmp(versionA, versionB) {
     return 0;
 }
 
+function createTarStream(fileAndContents) {
+    var pack = tar.pack();
+
+    Object.keys(fileAndContents).forEach(function (name) {
+        pack.entry({name: name}, fileAndContents[name]);
+    });
+
+    pack.finalize();
+
+    return pack;
+}
+
+
 module.exports = {
     constants: constants,
+    createTarStream: createTarStream,
     dockerClientVersionCmp: dockerClientVersionCmp,
     done: done,
     execPlus: execPlus,
