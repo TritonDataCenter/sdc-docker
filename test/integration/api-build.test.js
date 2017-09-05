@@ -703,8 +703,6 @@ test('api: build and rmi', function (tt) {
                 var parentId = matchingImages[0].parent;
                 DOCKER_ALICE.del('/images/' + parentId, function (err) {
                     t.ok(err, 'expect an error for docker rmi parentId');
-                    console.log('err:', err);
-                    console.log('err.message:', err.message);
                     if (!err) {
                         next(new Error('docker rmi parentId succeeded - '
                             + 'when it should have failed'));
@@ -736,6 +734,176 @@ test('api: build and rmi', function (tt) {
                         'check created docker_images_v2 entries are gone');
                     next(err);
                 });
+            }
+
+        ]}, function allDone(err) {
+            t.ifErr(err);
+            t.end();
+        });
+    });
+});
+
+
+test('api: build and rmi of intermediate layers', function (tt) {
+    tt.test('docker build 2 relating images', function (t) {
+        vasync.pipeline({ arg: {}, funcs: [
+
+            function createTar1(ctx, next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM busybox\n'
+                                + 'ADD file.txt /file1.txt\n'
+                                + 'ADD file.txt /file2.txt\n'
+                                + 'LABEL sdcdockertest=true\n',
+                    'file.txt': 'File contents'
+                };
+                ctx.tarStream1 = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer1(ctx, next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {'rm': 'true'}, // remove container after build
+                    test: t,
+                    tarball: ctx.tarStream1
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifError(err, 'build1 created without error');
+
+                    if (!result || !result.body) {
+                        next(new Error('build1 generated no output!?'));
+                        return;
+                    }
+
+                    var output = result.body;
+                    var hasSuccess = output.indexOf('Successfully built') >= 0;
+                    t.ok(hasSuccess, 'output contains Successfully built');
+
+                    if (!hasSuccess) {
+                        next(new Error('build1 failed - no success marker'));
+                        return;
+                    }
+
+                    var reg = new RegExp('Successfully built (\\w+)');
+                    ctx.dockerImageId1 = output.match(reg)[1];
+                    next();
+                }
+            },
+
+            function createTar2(ctx, next) {
+                var fileAndContents = {
+                    'Dockerfile': 'FROM busybox\n'
+                                + 'ADD file.txt /file1.txt\n'
+                                + 'ADD file.txt /CHANGED.txt\n'
+                                + 'LABEL sdcdockertest=CHANGED\n',
+                    'file.txt': 'File contents'
+                };
+                ctx.tarStream2 = createTarStream(fileAndContents);
+                next();
+            },
+
+            function buildContainer2(ctx, next) {
+                h.buildDockerContainer({
+                    dockerClient: DOCKER_ALICE_HTTP,
+                    params: {'rm': 'true'}, // remove container after build
+                    test: t,
+                    tarball: ctx.tarStream2
+                }, onbuild);
+
+                function onbuild(err, result) {
+                    t.ifError(err, 'build2 created without error');
+
+                    if (!result || !result.body) {
+                        next(new Error('build2 generated no output!?'));
+                        return;
+                    }
+
+                    var output = result.body;
+                    var hasSuccess = output.indexOf('Successfully built') >= 0;
+                    t.ok(hasSuccess, 'output contains Successfully built');
+
+                    if (!hasSuccess) {
+                        next(new Error('build2 failed - no success marker'));
+                        return;
+                    }
+
+                    var reg = new RegExp('Successfully built (\\w+)');
+                    ctx.dockerImageId2 = output.match(reg)[1];
+                    next();
+                }
+            },
+
+            function getImageHistory1(ctx, next) {
+                DOCKER_ALICE.get('/images/' + ctx.dockerImageId1 + '/history',
+                        function (err, req, res, history) {
+                    t.ifErr(err, 'get image1/history should not error');
+                    t.ok(history, 'image1/history returned a valid result');
+                    ctx.history1 = history;
+                    next();
+                });
+            },
+
+            function getImageHistory2(ctx, next) {
+                DOCKER_ALICE.get('/images/' + ctx.dockerImageId2 + '/history',
+                        function (err, req, res, history) {
+                    t.ifErr(err, 'get image2/history should not error');
+                    t.ok(history, 'image2/history returned a valid result');
+                    ctx.history2 = history;
+                    next();
+                });
+            },
+
+            function verifyImagesShareLayers(ctx, next) {
+                var layerIds1 = (ctx.history1 || []).map(function (hist) {
+                    return hist.Id;
+                }).filter(function (id) {
+                    return id !== '<missing>';
+                });
+
+                var layerIds2 = (ctx.history2 || []).map(function (hist) {
+                    return hist.Id;
+                }).filter(function (id) {
+                    return id !== '<missing>';
+                });
+
+                t.equal(layerIds1.length, layerIds2.length,
+                    'Number of image history layers should be equal');
+
+                // Note that the (oldest) base layer is the last layer.
+                var sharedLayers = [];
+                for (var i = layerIds1.length - 1; i >= 0; i--) {
+                    if (layerIds1[i] !== layerIds2[i]) {
+                        break;
+                    }
+                    sharedLayers.push(layerIds1[i]);
+                }
+                t.ok(sharedLayers.length > 1,
+                    'Number of shared layers should be >= 1, got '
+                    + sharedLayers.length);
+                t.ok(sharedLayers.length < layerIds1.length,
+                    'Number of shared layers should be < '
+                    + layerIds1.length);
+
+                next();
+            },
+
+            function removeBuiltImage2(ctx, next) {
+                DOCKER_ALICE.del('/images/' + ctx.dockerImageId2, next);
+            },
+
+            function checkImageHistory1(ctx, next) {
+                DOCKER_ALICE.get('/images/' + ctx.dockerImageId1 + '/history',
+                        function (err, req, res, history) {
+                    t.ok(history, 'image1/history returned a valid result');
+                    t.deepEqual(history, ctx.history1,
+                        'Image1 history should not have changed');
+                    next();
+                });
+            },
+
+            function removeBuiltImage1(ctx, next) {
+                DOCKER_ALICE.del('/images/' + ctx.dockerImageId1, next);
             }
 
         ]}, function allDone(err) {
