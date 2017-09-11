@@ -1881,6 +1881,28 @@ function getOrCreateFabricNetwork(client, userUuid, vlan_id, params, callback) {
     );
 }
 
+/*
+ * Gets or creates a network pool for use in testing; based on the
+ * network *name*.
+ */
+function getOrCreateNetworkPool(client, name, params, callback) {
+    assert.object(client, 'napi client');
+    assert.object(params, 'network params');
+
+    var listParams = {
+        name: name
+    };
+    client.listNetworkPools(listParams, function (err, networks) {
+        if (err) {
+            return callback(err);
+        }
+        if (networks.length !== 0) {
+            return callback(null, networks[0]);
+        }
+        client.createNetworkPool(name, params, callback);
+    });
+}
+
 function getNetwork(client, params, callback) {
     assert.object(client, 'napi client');
     assert.object(params, 'network params');
@@ -2062,6 +2084,7 @@ module.exports = {
     getOrCreateExternalNetwork: getOrCreateExternalNetwork,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,
+    getOrCreateNetworkPool: getOrCreateNetworkPool,
     getNetwork: getNetwork,
     getNicsByVm: getNicsByVm,
     isFabricNetworkingEnabled: isFabricNetworkingEnabled,

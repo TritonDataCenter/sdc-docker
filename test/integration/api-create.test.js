@@ -488,6 +488,15 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
             fNetwork3 = results.operations[2].result;
             nonFabricNetwork = results.operations[3].result;
 
+            t.test('create pool', function (t2) {
+                h.getOrCreateNetworkPool(NAPI, 'sdcdockertest_apicreate_netp', {
+                    networks: [ nonFabricNetwork.uuid ]
+                }, function (err2) {
+                    t2.ifErr(err2, 'create pool failed');
+                    t2.end();
+                });
+            });
+
             t.end();
         });
     });
@@ -515,6 +524,30 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         }
     });
 
+    // create with networkPool name
+    tt.test('create with a networkPool name', function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { 'HostConfig.NetworkMode': 'sdcdockertest_apicreate_netp' },
+            start: true
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create NetworkPool: networkName');
+            var nics = result.vm.nics;
+            t.equal(nics[0].network_uuid, nonFabricNetwork.uuid,
+                'correct network');
+            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+        }
+
+        function ondelete(err) {
+            t.ifErr(err, 'delete network testing container');
+            t.end();
+        }
+    });
+
     tt.test('create with a complete network id', function (t) {
         var fullId = (fNetwork1.uuid + fNetwork1.uuid).replace(/-/g, '');
 
@@ -527,6 +560,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         }, oncreate);
 
         function oncreate(err, result) {
+            t.ifErr(err, 'create network testing container');
             var nics = result.vm.nics;
             t.equal(nics.length, 1, 'only one nic');
             t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
@@ -552,6 +586,7 @@ test('create with NetworkMode (docker run --net=)', function (tt) {
         }, oncreate);
 
         function oncreate(err, result) {
+            t.ifErr(err, 'create network testing container');
             var nics = result.vm.nics;
             t.equal(nics.length, 1, 'only one nic');
             t.equal(nics[0].network_uuid, fNetwork1.uuid, 'correct network');
