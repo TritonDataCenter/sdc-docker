@@ -61,6 +61,9 @@
     "httpProxy": "{{{http_proxy}}}",
     "dockerRegistryInsecure": {{^docker_registry_insecure}}false{{/docker_registry_insecure}}{{#docker_registry_insecure}}{{{docker_registry_insecure}}}{{/docker_registry_insecure}},
 
+    {{#DOCKER_USE_CONN_WATCHER}}
+    "useConnectionStatusWatcher": true,
+    {{/DOCKER_USE_CONN_WATCHER}}
     "useTls": {{^USE_TLS}}false{{/USE_TLS}}{{#USE_TLS}}{{{USE_TLS}}}{{/USE_TLS}},
     "tls": {
         "requestCert": true,
