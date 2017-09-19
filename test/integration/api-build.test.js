@@ -32,8 +32,10 @@ var STATE = {
 };
 
 var ALICE;
+var BOB;
 var DOCKER_ALICE; // Regular JSON restify client.
 var DOCKER_ALICE_HTTP; // For sending non-JSON payload
+var DOCKER_BOB_HTTP; // For sending non-JSON payload
 var imgapiClient;
 var morayClient;
 
@@ -45,6 +47,7 @@ test('setup', function (tt) {
             t.ifErr(err);
 
             ALICE = accounts.alice;
+            BOB = accounts.bob;
 
             t.end();
         });
@@ -90,10 +93,41 @@ test('setup', function (tt) {
                         t.ifErr(err, 'docker client init for alice/http');
                         done(err, client);
                     });
+            },
+            function createBobHttp(done) {
+                h.createDockerRemoteClient({user: BOB, clientType: 'http'},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for bob/http');
+                        done(err, client);
+                    });
             }
         ]}, function allDone(err, results) {
             t.ifError(err, 'docker client http init should be successful');
             DOCKER_ALICE_HTTP = results.operations[0].result;
+            DOCKER_BOB_HTTP = results.operations[1].result;
+            t.end();
+        });
+    });
+});
+
+test('api: build without approved_for_provisioning', function (tt) {
+    tt.test('docker build for bob (no approval)', function (t) {
+        var fileAndContents = {
+            'Dockerfile': 'FROM busybox\n'
+                        + 'LABEL sdcdockertest=true\n'
+        };
+        h.buildDockerContainer({
+            dockerClient: DOCKER_BOB_HTTP,
+            test: t,
+            tarball: createTarStream(fileAndContents)
+        }, function onbuild(err, result) {
+            t.ok(err, 'should not build without approved_for_provisioning');
+            t.equal(err.statusCode, 403);
+
+            var response = result.body;
+            var expected = BOB.login + ' does not have permission to pull or '
+                + 'provision';
+            t.ok(response.match(expected));
             t.end();
         });
     });

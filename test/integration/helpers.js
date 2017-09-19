@@ -1339,9 +1339,6 @@ function buildDockerContainer(opts, callback) {
 
             res.on('end', function onEnd() {
                 removeDockerTarStreamListeners();
-                if (err) {
-                    log.error({err: err}, 'error at end of result');
-                }
                 return callback(err, buildResult);
             });
         });
