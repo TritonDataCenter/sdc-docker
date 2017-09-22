@@ -27,6 +27,8 @@ var ALICE;
 var BOB;
 var DOCKER_ALICE;
 var DOCKER_BOB;
+var IMAGE_NAME_WITH_PORT = 'registry-1.docker.io:443/'
+    + 'joyentunsupported/test-nginx:latest';
 var STATE = {
     log: require('../lib/log')
 };
@@ -184,5 +186,32 @@ test('docker images', function (tt) {
 
             t.end();
         });
+    });
+
+    tt.test('pull image name containing port', function (t) {
+        h.ensureImage({
+            name: IMAGE_NAME_WITH_PORT,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image');
+            t.end();
+        });
+    });
+
+    tt.test('inspect image name containing port', function (t) {
+        var url = '/images/' + IMAGE_NAME_WITH_PORT + '/json';
+        DOCKER_ALICE.get(url, function (err2, req2, res2) {
+            t.error(err2, 'get image name containing port');
+            t.end();
+        });
+    });
+
+    tt.test('delete image name containing port', function (t) {
+        DOCKER_ALICE.del('/images/' + IMAGE_NAME_WITH_PORT,
+            function ondel(err, req, res) {
+                t.error(err, 'should be no error deleting image');
+                t.end();
+            }
+        );
     });
 });
