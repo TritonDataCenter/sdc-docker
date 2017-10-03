@@ -123,6 +123,7 @@ release: all
 		$(TOP)/bin \
 		$(TOP)/etc \
 		$(TOP)/lib \
+		$(TOP)/plugins \
 		$(TOP)/node_modules \
 		$(TOP)/smf \
 		$(TOP)/tls \

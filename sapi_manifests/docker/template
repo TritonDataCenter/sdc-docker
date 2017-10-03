@@ -90,6 +90,10 @@
     "fwrule_version": {{{FWRULE_VERSION}}},
 {{/FWRULE_VERSION}}
 
+{{#DOCKER_PLUGINS}}
+    "plugins": {{{DOCKER_PLUGINS}}},
+{{/DOCKER_PLUGINS}}
+
     "ufds": {
         "url": "ldaps://{{{ufds_domain}}}",
         "bindDN": "{{{ufds_ldap_root_dn}}}",
