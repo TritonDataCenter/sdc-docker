@@ -1271,7 +1271,6 @@ function createVolapiClient(callback) {
             return callback(err);
         }
 
-        opts.version = '^1';
         opts.userAgent = 'sdc-docker-integration-tests';
 
         callback(null, new sdcClients.VOLAPI(opts));

@@ -20,7 +20,7 @@ different from Docker Inc's docker:
 
 ## Experimental support for NFS shared volumes
 
-The NFS shared volumes feature is described in details by its corresponding [RFD
+The NFS shared volumes feature is described in detail by its corresponding [RFD
 document](https://github.com/joyent/rfd/blob/master/rfd/0026/README.md).
 
 To enable support for NFS shared volumes in Triton, run the following command

@@ -109,7 +109,8 @@ test('docker volume created with docker create', function (tt) {
         });
     });
 
-    tt.test('starting container should mount volume succesffuly', function (t) {
+    tt.test('starting container should mount volume successfully',
+        function (t) {
         cli.start(t, {
                 args: '-a -i ' + containerName
             }, function onContainerStart(err, stdout, stderr) {

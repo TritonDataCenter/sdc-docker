@@ -117,7 +117,6 @@ function getVolapiClient() {
     if (VOLAPI_CLIENT === undefined) {
         volapiConfig = jsprim.deepCopy(CONFIG.volapi);
 
-        volapiConfig.version = '^1';
         volapiConfig.userAgent = 'sdc-docker-tests';
 
         VOLAPI_CLIENT = new sdcClients.VOLAPI(volapiConfig);
