@@ -783,6 +783,26 @@ GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
 
 
 /*
+ * Run '$cmd' in the global zone (Gz).
+ *
+ * @param cmd {String} The command to run.
+ * @param opts {Object} Optional: {log: Logger}
+ * @param callback {Function} `function (err, stdout, stderr)`
+ */
+GzDockerEnv.prototype.execGz = function execGz(cmd, opts, callback) {
+    assert.string(cmd, 'cmd');
+    assert.object(opts, 'opts');
+    assert.optionalObject(opts.log, 'opts.log');
+    assert.func(callback, 'callback');
+
+    common.execPlus({
+        command: cmd,
+        log: opts.log
+    }, callback);
+};
+
+
+/*
  * --- LocalDockerEnv
  *
  * A wrapper object for running docker client stuff as a particular account.
@@ -956,6 +976,28 @@ LocalDockerEnv.prototype.exec = function ldenvExec(cmd, opts, cb) {
 };
 
 
+/*
+ * Run '$cmd' in the global zone (Gz).
+ *
+ * @param cmd {String} The command to run.
+ * @param opts {Object} Optional: {log: Logger}
+ * @param callback {Function} `function (err, stdout, stderr)`
+ */
+LocalDockerEnv.prototype.execGz = function ldenvExecGz(cmd, opts, callback) {
+    assert.string(cmd, 'cmd');
+    assert.object(opts, 'opts');
+    assert.string(opts.headnodeSsh, 'opts.headnodeSsh');
+    assert.optionalObject(opts.log, 'opts.log');
+    assert.func(callback, 'callback');
+
+    var sshCmd = fmt('ssh %s %s', opts.headnodeSsh, cmd);
+
+    common.execPlus({
+        command: sshCmd,
+        log: opts.log
+    }, callback);
+};
+
 
 /*
  * --- Test helper functions
@@ -989,20 +1031,19 @@ function initDockerEnv(t, state, opts, cb) {
     assert.object(opts, 'opts');
     assert.func(cb, 'cb');
 
-    // if account does not have approved_for_provisioning set to val, set it
-    function setProvisioning(env, val, next) {
+    // If account does not have 'attr' set to 'val', then make it so.
+    function setAccountAttribute(env, attr, val, next) {
         assert.object(env, 'env');
         assert.bool(val, 'val');
         assert.func(next, 'next');
 
-        if (env.account.approved_for_provisioning === '' + val) {
+        if (env.account[attr] === '' + val) {
             next(null);
             return;
         }
 
-        var s = '/opt/smartdc/bin/sdc sdc-useradm replace-attr %s \
-            approved_for_provisioning %s';
-        var cmd = fmt(s, env.login, val);
+        var cmd = fmt('/opt/smartdc/bin/sdc sdc-useradm replace-attr %s %s %s',
+            env.login, attr, val);
 
         if (env.state.runningFrom === 'remote') {
             cmd = 'ssh ' + env.state.headnodeSsh + ' ' + cmd;
@@ -1016,6 +1057,15 @@ function initDockerEnv(t, state, opts, cb) {
         t.ifErr(err, 'docker env: alice');
         t.ok(alice, 'have a DockerEnv for alice');
 
+        setAccountAttribute(alice, 'triton_cns_enabled', true,
+            function (err2) {
+
+            t.ifErr(err2, 'docker env: alice set triton_cns_enabled true');
+            setupBob(alice);
+        });
+    });
+
+    function setupBob(alice) {
         // We create Bob here, who is permanently set as unprovisionable
         // below. Docker's ufds client caches account values, so mutating
         // Alice isn't in the cards (nor is Bob -- which is why we don't
@@ -1025,7 +1075,9 @@ function initDockerEnv(t, state, opts, cb) {
             t.ifErr(err2, 'docker env: bob');
             t.ok(bob, 'have a DockerEnv for bob');
 
-            setProvisioning(bob, false, function (err3) {
+            setAccountAttribute(bob, 'approved_for_provisioning', false,
+                function (err3) {
+
                 t.ifErr(err3, 'set bob unprovisionable');
 
                 var accounts = {
@@ -1037,7 +1089,7 @@ function initDockerEnv(t, state, opts, cb) {
                 return;
             });
         });
-    });
+    }
 }
 
 /*

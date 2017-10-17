@@ -334,7 +334,7 @@ test('api: create', function (tt) {
 });
 
 
-test('api: create with env var that has no value (DOCKER-741)', function (tt) {
+test('api: test DOCKER-741 and DOCKER-898', function (tt) {
     tt.test('create empty-env-var container', function (t) {
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -347,6 +347,29 @@ test('api: create with env var that has no value (DOCKER-741)', function (tt) {
         function oncreate(err, result) {
             t.ifErr(err, 'create empty-env-var container');
             t.equal(result.vm.state, 'running', 'Check container running');
+
+            if (err) {
+                t.end();
+                return;
+            }
+
+            checkForCnsDnsEntries(result);
+        }
+
+        function checkForCnsDnsEntries(result) {
+            var cmd = format('cat %s/root/etc/resolv.conf', result.vm.zonepath);
+            ALICE.execGz(cmd, STATE, function (cmdErr, stdout) {
+                t.ifErr(cmdErr, 'Check cat /etc/resolv.conf result');
+
+                // Stdout should contain a CNS 'search' entry.
+                var hasCnsSearch = stdout.match(/^search\s.*?\.cns\./m);
+                t.ok(hasCnsSearch, 'find cns entry in /etc/resolv.conf');
+                if (!hasCnsSearch) {
+                    t.fail('cns not found in /etc/resolv.conf file: ' + stdout);
+                }
+
+            });
+
             DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
         }
 
