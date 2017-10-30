@@ -20,6 +20,7 @@ var fs = require('fs');
 var moray = require('moray');
 var os = require('os');
 var path = require('path');
+var querystring = require('querystring');
 var sdcClients = require('sdc-clients');
 var restify = require('restify');
 var vasync = require('vasync');
@@ -29,6 +30,7 @@ var configLoader = require('../../lib/config-loader.js');
 var constants = require('../../lib/constants');
 var mod_log = require('../lib/log');
 var sdcCommon = require('../../lib/common');
+var tar = require('tar-stream');
 
 
 // --- globals
@@ -1418,6 +1420,75 @@ function buildDockerContainer(opts, callback) {
     }
 }
 
+
+/**
+ * Fetch a file's contents from within a docker container (using 'docker cp').
+ *
+ * @param {Object} opts
+ *      opts.dockerHttpClient - A restify HTTP client.
+ *      opts.path - The absolute file path inside the container.
+ *      opts.vmId - The container's id.
+ * @param {Function} callback (err, fileContents)
+ */
+function getFileContentFromContainer(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.object(opts.dockerHttpClient, 'opts.dockerHttpClient');
+    assert.string(opts.path, 'opts.path');
+    assert.string(opts.vmId, 'opts.vmId');
+    assert.func(callback, 'callback');
+
+    var dockerHttpClient = opts.dockerHttpClient;
+    var log = dockerHttpClient.log;
+    var urlPath = fmt('/containers/%s/archive?path=%s', opts.vmId,
+        querystring.escape(opts.path));
+
+    dockerHttpClient.get(urlPath, function onget(connectErr, req) {
+        if (connectErr) {
+            log.error({err: connectErr}, 'getFileFromContainer: connect err');
+            callback(connectErr);
+            return;
+        }
+
+        req.on('result', function onResponse(err, res) {
+            if (err) {
+                log.error({err: err}, 'getFileFromContainer: response err');
+                callback(err);
+                return;
+            }
+
+            var contents = '';
+            var tarExtracter = tar.extract();
+
+            tarExtracter.on('entry', function _tarEntry(header, stream, next) {
+                stream.on('data', function (data) {
+                    contents += data.toString();
+                });
+                stream.on('error', function _tarStreamError(streamErr) {
+                    log.error({err: streamErr},
+                        'getFileFromContainer: stream err');
+                    next(streamErr);
+                });
+                stream.on('end', function _tarStreamEnd() {
+                    next(); // ready for next tar file entry
+                });
+                stream.resume(); // start reading
+            });
+
+            tarExtracter.on('error', function _tarError(tarErr) {
+                log.error({err: tarErr}, 'getFileFromContainer: tar err');
+                callback(tarErr);
+            });
+
+            tarExtracter.on('finish', function _tarFinish() {
+                callback(null, contents);
+            });
+
+            res.pipe(tarExtracter);
+        });
+    });
+}
+
+
 /**
  * Ensure the given image has been pulled, and if not then pull it down.
  */
@@ -2130,6 +2201,7 @@ module.exports = {
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
     buildDockerContainer: buildDockerContainer,
+    getFileContentFromContainer: getFileContentFromContainer,
     getOrCreateExternalNetwork: getOrCreateExternalNetwork,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,

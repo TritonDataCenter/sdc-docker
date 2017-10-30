@@ -32,6 +32,7 @@ var BYTES_IN_MB = 1024 * 1024;
 var ALICE;
 var BOB;
 var DOCKER_ALICE;
+var DOCKER_ALICE_HTTP; // For sending non-JSON payload
 var DOCKER_BOB;
 var STATE = {
     log: require('../lib/log')
@@ -76,11 +77,20 @@ test('setup', function (tt) {
                         return done(err, client);
                     }
                 );
+            },
+            function createAliceHttp(done) {
+                h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for alice/http');
+                        done(err, client);
+                    }
+                );
             }
         ]}, function allDone(err, results) {
             t.ifError(err, 'docker client init should be successful');
             DOCKER_ALICE = results.operations[0].result;
             DOCKER_BOB = results.operations[1].result;
+            DOCKER_ALICE_HTTP = results.operations[2].result;
             t.end();
         });
     });
@@ -357,20 +367,30 @@ test('api: test DOCKER-741 and DOCKER-898', function (tt) {
         }
 
         function checkForCnsDnsEntries(result) {
-            var cmd = format('cat %s/root/etc/resolv.conf', result.vm.zonepath);
-            ALICE.execGz(cmd, STATE, function (cmdErr, stdout) {
-                t.ifErr(cmdErr, 'Check cat /etc/resolv.conf result');
+            // Get the resolv.conf from the container.
+            var opts = {
+                dockerHttpClient: DOCKER_ALICE_HTTP,
+                path: '/etc/resolv.conf',
+                vmId: result.id
+            };
+            h.getFileContentFromContainer(opts, function (err, contents) {
+                t.ifErr(err, 'Unable to fetch /etc/resolv.conf file');
 
-                // Stdout should contain a CNS 'search' entry.
-                var hasCnsSearch = stdout.match(/^search\s.*?\.cns\./m);
-                t.ok(hasCnsSearch, 'find cns entry in /etc/resolv.conf');
-                if (!hasCnsSearch) {
-                    t.fail('cns not found in /etc/resolv.conf file: ' + stdout);
+                if (err) {
+                    t.end();
+                    return;
                 }
 
-            });
+                var hasCnsSearch = contents.match(/^search\s.*?\.cns\./m);
+                t.ok(hasCnsSearch, 'find cns entry in /etc/resolv.conf');
+                if (!hasCnsSearch) {
+                    t.fail('cns not found in /etc/resolv.conf file contents: '
+                        + contents);
+                }
 
-            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+                DOCKER_ALICE.del('/containers/' + result.id + '?force=1',
+                    ondelete);
+            });
         }
 
         function ondelete(err) {
