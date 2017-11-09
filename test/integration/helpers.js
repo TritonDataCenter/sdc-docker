@@ -20,6 +20,7 @@ var fs = require('fs');
 var moray = require('moray');
 var os = require('os');
 var path = require('path');
+var querystring = require('querystring');
 var sdcClients = require('sdc-clients');
 var restify = require('restify');
 var vasync = require('vasync');
@@ -29,6 +30,7 @@ var configLoader = require('../../lib/config-loader.js');
 var constants = require('../../lib/constants');
 var mod_log = require('../lib/log');
 var sdcCommon = require('../../lib/common');
+var tar = require('tar-stream');
 
 
 // --- globals
@@ -784,6 +786,26 @@ GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
 
 
 /*
+ * Run '$cmd' in the global zone (Gz).
+ *
+ * @param cmd {String} The command to run.
+ * @param opts {Object} Optional: {log: Logger}
+ * @param callback {Function} `function (err, stdout, stderr)`
+ */
+GzDockerEnv.prototype.execGz = function execGz(cmd, opts, callback) {
+    assert.string(cmd, 'cmd');
+    assert.object(opts, 'opts');
+    assert.optionalObject(opts.log, 'opts.log');
+    assert.func(callback, 'callback');
+
+    common.execPlus({
+        command: cmd,
+        log: opts.log
+    }, callback);
+};
+
+
+/*
  * --- LocalDockerEnv
  *
  * A wrapper object for running docker client stuff as a particular account.
@@ -957,6 +979,28 @@ LocalDockerEnv.prototype.exec = function ldenvExec(cmd, opts, cb) {
 };
 
 
+/*
+ * Run '$cmd' in the global zone (Gz).
+ *
+ * @param cmd {String} The command to run.
+ * @param opts {Object} Optional: {log: Logger}
+ * @param callback {Function} `function (err, stdout, stderr)`
+ */
+LocalDockerEnv.prototype.execGz = function ldenvExecGz(cmd, opts, callback) {
+    assert.string(cmd, 'cmd');
+    assert.object(opts, 'opts');
+    assert.string(opts.headnodeSsh, 'opts.headnodeSsh');
+    assert.optionalObject(opts.log, 'opts.log');
+    assert.func(callback, 'callback');
+
+    var sshCmd = fmt('ssh %s %s', opts.headnodeSsh, cmd);
+
+    common.execPlus({
+        command: sshCmd,
+        log: opts.log
+    }, callback);
+};
+
 
 /*
  * --- Test helper functions
@@ -990,20 +1034,19 @@ function initDockerEnv(t, state, opts, cb) {
     assert.object(opts, 'opts');
     assert.func(cb, 'cb');
 
-    // if account does not have approved_for_provisioning set to val, set it
-    function setProvisioning(env, val, next) {
+    // If account does not have 'attr' set to 'val', then make it so.
+    function setAccountAttribute(env, attr, val, next) {
         assert.object(env, 'env');
         assert.bool(val, 'val');
         assert.func(next, 'next');
 
-        if (env.account.approved_for_provisioning === '' + val) {
+        if (env.account[attr] === '' + val) {
             next(null);
             return;
         }
 
-        var s = '/opt/smartdc/bin/sdc sdc-useradm replace-attr %s \
-            approved_for_provisioning %s';
-        var cmd = fmt(s, env.login, val);
+        var cmd = fmt('/opt/smartdc/bin/sdc sdc-useradm replace-attr %s %s %s',
+            env.login, attr, val);
 
         if (env.state.runningFrom === 'remote') {
             cmd = 'ssh ' + env.state.headnodeSsh + ' ' + cmd;
@@ -1017,6 +1060,15 @@ function initDockerEnv(t, state, opts, cb) {
         t.ifErr(err, 'docker env: alice');
         t.ok(alice, 'have a DockerEnv for alice');
 
+        setAccountAttribute(alice, 'triton_cns_enabled', true,
+            function (err2) {
+
+            t.ifErr(err2, 'docker env: alice set triton_cns_enabled true');
+            setupBob(alice);
+        });
+    });
+
+    function setupBob(alice) {
         // We create Bob here, who is permanently set as unprovisionable
         // below. Docker's ufds client caches account values, so mutating
         // Alice isn't in the cards (nor is Bob -- which is why we don't
@@ -1026,7 +1078,9 @@ function initDockerEnv(t, state, opts, cb) {
             t.ifErr(err2, 'docker env: bob');
             t.ok(bob, 'have a DockerEnv for bob');
 
-            setProvisioning(bob, false, function (err3) {
+            setAccountAttribute(bob, 'approved_for_provisioning', false,
+                function (err3) {
+
                 t.ifErr(err3, 'set bob unprovisionable');
 
                 var accounts = {
@@ -1038,7 +1092,7 @@ function initDockerEnv(t, state, opts, cb) {
                 return;
             });
         });
-    });
+    }
 }
 
 /*
@@ -1384,6 +1438,75 @@ function buildDockerContainer(opts, callback) {
         }
     }
 }
+
+
+/**
+ * Fetch a file's contents from within a docker container (using 'docker cp').
+ *
+ * @param {Object} opts
+ *      opts.dockerHttpClient - A restify HTTP client.
+ *      opts.path - The absolute file path inside the container.
+ *      opts.vmId - The container's id.
+ * @param {Function} callback (err, fileContents)
+ */
+function getFileContentFromContainer(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.object(opts.dockerHttpClient, 'opts.dockerHttpClient');
+    assert.string(opts.path, 'opts.path');
+    assert.string(opts.vmId, 'opts.vmId');
+    assert.func(callback, 'callback');
+
+    var dockerHttpClient = opts.dockerHttpClient;
+    var log = dockerHttpClient.log;
+    var urlPath = fmt('/containers/%s/archive?path=%s', opts.vmId,
+        querystring.escape(opts.path));
+
+    dockerHttpClient.get(urlPath, function onget(connectErr, req) {
+        if (connectErr) {
+            log.error({err: connectErr}, 'getFileFromContainer: connect err');
+            callback(connectErr);
+            return;
+        }
+
+        req.on('result', function onResponse(err, res) {
+            if (err) {
+                log.error({err: err}, 'getFileFromContainer: response err');
+                callback(err);
+                return;
+            }
+
+            var contents = '';
+            var tarExtracter = tar.extract();
+
+            tarExtracter.on('entry', function _tarEntry(header, stream, next) {
+                stream.on('data', function (data) {
+                    contents += data.toString();
+                });
+                stream.on('error', function _tarStreamError(streamErr) {
+                    log.error({err: streamErr},
+                        'getFileFromContainer: stream err');
+                    next(streamErr);
+                });
+                stream.on('end', function _tarStreamEnd() {
+                    next(); // ready for next tar file entry
+                });
+                stream.resume(); // start reading
+            });
+
+            tarExtracter.on('error', function _tarError(tarErr) {
+                log.error({err: tarErr}, 'getFileFromContainer: tar err');
+                callback(tarErr);
+            });
+
+            tarExtracter.on('finish', function _tarFinish() {
+                callback(null, contents);
+            });
+
+            res.pipe(tarExtracter);
+        });
+    });
+}
+
 
 /**
  * Ensure the given image has been pulled, and if not then pull it down.
@@ -2122,6 +2245,7 @@ module.exports = {
     listContainers: listContainers,
     createDockerContainer: createDockerContainer,
     buildDockerContainer: buildDockerContainer,
+    getFileContentFromContainer: getFileContentFromContainer,
     getOrCreateExternalNetwork: getOrCreateExternalNetwork,
     getOrCreateFabricVLAN: getOrCreateFabricVLAN,
     getOrCreateFabricNetwork: getOrCreateFabricNetwork,

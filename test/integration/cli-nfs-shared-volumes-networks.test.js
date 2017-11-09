@@ -18,7 +18,7 @@ var common = require('../lib/common');
 var configLoader = require('../../lib/config-loader');
 var helpers = require('./helpers');
 var testVolumes = require('../lib/volumes');
-var ufds = require('../../lib/ufds');
+var ufds = require('ufds');
 var volumesCli = require('../lib/volumes-cli');
 
 if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
@@ -87,10 +87,15 @@ test('setup', function (tt) {
         var ufdsOptions = jsprim.deepCopy(CONFIG.ufds);
         ufdsOptions.log = LOG;
 
-        ufds.createUfdsClient(ufdsOptions, function (err, ufdsClient) {
-            UFDS = ufdsClient;
+        UFDS = new ufds(ufdsOptions);
 
-            t.ifErr(err, 'creating UFDS client should succeed');
+        UFDS.once('connect', function onUfdsConnected() {
+            t.ok(true, 'Connecting to UFDS should succeed');
+            t.end();
+        });
+
+        UFDS.once('error', function onUfdsConnectError(ufdsErr) {
+            t.ok(false, 'error when connecting to UFDS: ' + ufdsErr);
             t.end();
         });
     });

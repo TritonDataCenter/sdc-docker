@@ -114,6 +114,10 @@ var VOLAPI_CLIENT;
 function getVolapiClient() {
     var volapiConfig;
 
+    if (!CONFIG.volapi) {
+        return undefined;
+    }
+
     if (VOLAPI_CLIENT === undefined) {
         volapiConfig = jsprim.deepCopy(CONFIG.volapi);
 

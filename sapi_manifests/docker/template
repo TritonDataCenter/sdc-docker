@@ -52,6 +52,11 @@
     "cnapi": {
         "url": "http://cnapi.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
+    {{#CNS_SERVICE}}
+    "cns": {
+        "url": "http://{{{cns_domain}}}"
+    },
+    {{/CNS_SERVICE}}
     "wfapi": {
         "forceMd5Check": true,
         "workflows": ["pull-image-v2"],
@@ -93,6 +98,10 @@
 {{#FWRULE_VERSION}}
     "fwrule_version": {{{FWRULE_VERSION}}},
 {{/FWRULE_VERSION}}
+
+{{#DOCKER_PLUGINS}}
+    "plugins": {{{DOCKER_PLUGINS}}},
+{{/DOCKER_PLUGINS}}
 
     "ufds": {
         "url": "ldaps://{{{ufds_domain}}}",

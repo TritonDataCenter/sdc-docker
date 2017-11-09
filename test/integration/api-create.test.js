@@ -32,6 +32,7 @@ var BYTES_IN_MB = 1024 * 1024;
 var ALICE;
 var BOB;
 var DOCKER_ALICE;
+var DOCKER_ALICE_HTTP; // For sending non-JSON payload
 var DOCKER_BOB;
 var STATE = {
     log: require('../lib/log')
@@ -76,11 +77,20 @@ test('setup', function (tt) {
                         return done(err, client);
                     }
                 );
+            },
+            function createAliceHttp(done) {
+                h.createDockerRemoteClient({user: ALICE, clientType: 'http'},
+                    function (err, client) {
+                        t.ifErr(err, 'docker client init for alice/http');
+                        done(err, client);
+                    }
+                );
             }
         ]}, function allDone(err, results) {
             t.ifError(err, 'docker client init should be successful');
             DOCKER_ALICE = results.operations[0].result;
             DOCKER_BOB = results.operations[1].result;
+            DOCKER_ALICE_HTTP = results.operations[2].result;
             t.end();
         });
     });
@@ -334,7 +344,7 @@ test('api: create', function (tt) {
 });
 
 
-test('api: create with env var that has no value (DOCKER-741)', function (tt) {
+test('api: test DOCKER-741 and DOCKER-898', function (tt) {
     tt.test('create empty-env-var container', function (t) {
         h.createDockerContainer({
             vmapiClient: VMAPI,
@@ -347,7 +357,40 @@ test('api: create with env var that has no value (DOCKER-741)', function (tt) {
         function oncreate(err, result) {
             t.ifErr(err, 'create empty-env-var container');
             t.equal(result.vm.state, 'running', 'Check container running');
-            DOCKER_ALICE.del('/containers/' + result.id + '?force=1', ondelete);
+
+            if (err) {
+                t.end();
+                return;
+            }
+
+            checkForCnsDnsEntries(result);
+        }
+
+        function checkForCnsDnsEntries(result) {
+            // Get the resolv.conf from the container.
+            var opts = {
+                dockerHttpClient: DOCKER_ALICE_HTTP,
+                path: '/etc/resolv.conf',
+                vmId: result.id
+            };
+            h.getFileContentFromContainer(opts, function (err, contents) {
+                t.ifErr(err, 'Unable to fetch /etc/resolv.conf file');
+
+                if (err) {
+                    t.end();
+                    return;
+                }
+
+                var hasCnsSearch = contents.match(/^search\s.*?\.cns\./m);
+                t.ok(hasCnsSearch, 'find cns entry in /etc/resolv.conf');
+                if (!hasCnsSearch) {
+                    t.fail('cns not found in /etc/resolv.conf file contents: '
+                        + contents);
+                }
+
+                DOCKER_ALICE.del('/containers/' + result.id + '?force=1',
+                    ondelete);
+            });
         }
 
         function ondelete(err) {

@@ -85,15 +85,10 @@ test('docker volumes mounting modes', function (tt) {
             volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, testVolumeName + '\n',
-                        'output is newly created volume\'s name');
-                } else {
-                    t.notEqual(stderr.indexOf('Volumes are not supported'),
-                        -1);
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, testVolumeName + '\n',
+                    'output is newly created volume\'s name');
 
                 t.end();
             });

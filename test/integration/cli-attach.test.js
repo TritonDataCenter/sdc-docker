@@ -57,6 +57,16 @@ test('setup', function (tt) {
             t.end();
         });
     });
+
+    tt.test('pull ubuntu image', function (t) {
+        h.ensureImage({
+            name: 'ubuntu:latest',
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image');
+            t.end();
+        });
+    });
 });
 
 

@@ -24,7 +24,7 @@ JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 SMF_MANIFESTS_IN = smf/manifests/docker.xml.in
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v4.6.1
+NODE_PREBUILT_VERSION=v4.8.5
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone
 	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
@@ -123,6 +123,7 @@ release: all
 		$(TOP)/bin \
 		$(TOP)/etc \
 		$(TOP)/lib \
+		$(TOP)/plugins \
 		$(TOP)/node_modules \
 		$(TOP)/smf \
 		$(TOP)/tls \

@@ -96,12 +96,7 @@ test('cleanup leftover resources from previous tests run', function (tt) {
 
     tt.test('leftover volumes should be cleaned up', function (t) {
         volumesCli.deleteAllVolumes(ALICE_USER, function done(err, errMsg) {
-            if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                t.ifErr(err, 'deleting leftover volumes should succeed');
-            } else {
-                t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, errMsg));
-            }
-
+            t.ifErr(err, 'deleting leftover volumes should succeed');
             t.end();
         });
     });
@@ -118,15 +113,10 @@ test('DOCKER-880', function (tt) {
             volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, testVolumeName + '\n',
-                        'output is newly created volume\'s name');
-                } else {
-                    t.notEqual(stderr.indexOf('Volumes are not supported'),
-                        -1);
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, testVolumeName + '\n',
+                    'output is newly created volume\'s name');
 
                 t.end();
             });
@@ -141,42 +131,36 @@ test('DOCKER-880', function (tt) {
                 var outputLines;
                 var testVolumes;
 
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err, 'listing volumes should not error');
-                    outputLines = stdout.trim().split(/\n/);
-                    // Remove header from docker volume ls' output.
-                    outputLines = outputLines.slice(1);
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
 
-                    testVolumes = outputLines.filter(filterTestVolumesFn);
+                testVolumes = outputLines.filter(filterTestVolumesFn);
 
-                    t.equal(testVolumes.length, 1, 'only one volume with name '
-                        + testVolumeName + ' should be listed');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.equal(testVolumes.length, 1, 'only one volume with name '
+                    + testVolumeName + ' should be listed');
 
                 t.end();
             });
         });
 
-    if (mod_testVolumes.nfsSharedVolumesSupported() && VOLAPI_CLIENT) {
-        tt.test('getting first created volume\'s UUID should succeed',
-            function (t) {
-                VOLAPI_CLIENT.listVolumes({
-                    name: testVolumeName,
-                    predicate: JSON.stringify({
-                        eq: ['state', 'ready']
-                    })
-                }, function volumesListed(err, volumes) {
-                    t.ifErr(err, 'list volumes should not error');
-                    t.equal(volumes.length, 1, 'only one volume with name '
-                        + testVolumeName + ' should be in state \'ready\'');
-                    firstVolumeUuid = volumes[0].uuid;
+    tt.test('getting first created volume\'s UUID should succeed',
+        function (t) {
+            VOLAPI_CLIENT.listVolumes({
+                name: testVolumeName,
+                predicate: JSON.stringify({
+                    eq: ['state', 'ready']
+                })
+            }, function volumesListed(err, volumes) {
+                t.ifErr(err, 'list volumes should not error');
+                t.equal(volumes.length, 1, 'only one volume with name '
+                    + testVolumeName + ' should be in state \'ready\'');
+                firstVolumeUuid = volumes[0].uuid;
 
-                    t.end();
-                });
+                t.end();
             });
-    }
+        });
 
     tt.test('removing volume with name ' + testVolumeName + ' should succeed',
         function (t) {
@@ -185,18 +169,13 @@ test('DOCKER-880', function (tt) {
                 args: testVolumeName
             }, function onVolumeDeleted(err, stdout, stderr) {
                 var dockerVolumeOutput;
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    dockerVolumeOutput = stdout;
+                dockerVolumeOutput = stdout;
 
-                    t.ifErr(err,
-                        'Removing an existing shared volume should not '
-                            + 'error');
-                    t.equal(dockerVolumeOutput, testVolumeName + '\n',
-                        'Output should be shared volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                        stderr));
-                }
+                t.ifErr(err,
+                    'Removing an existing shared volume should not '
+                        + 'error');
+                t.equal(dockerVolumeOutput, testVolumeName + '\n',
+                    'Output should be shared volume\'s name');
 
                 t.end();
             });
@@ -210,19 +189,15 @@ test('DOCKER-880', function (tt) {
                 var outputLines;
                 var testVolumes;
 
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err, 'listing volumes should not error');
-                    outputLines = stdout.trim().split(/\n/);
-                    // Remove header from docker volume ls' output.
-                    outputLines = outputLines.slice(1);
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
 
-                    testVolumes = outputLines.filter(filterTestVolumesFn);
+                testVolumes = outputLines.filter(filterTestVolumesFn);
 
-                    t.equal(testVolumes.length, 0, 'no volume with name '
-                        + testVolumeName + ' should be listed');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.equal(testVolumes.length, 0, 'no volume with name '
+                    + testVolumeName + ' should be listed');
 
                 t.end();
             });
@@ -233,44 +208,38 @@ test('DOCKER-880', function (tt) {
             volumesCli.createTestVolume(ALICE_USER, {
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err,
-                        'volume should have been created successfully');
-                    t.equal(stdout, testVolumeName + '\n',
-                        'output is newly created volume\'s name');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.ifErr(err,
+                    'volume should have been created successfully');
+                t.equal(stdout, testVolumeName + '\n',
+                    'output is newly created volume\'s name');
 
                 t.end();
             });
         }
     );
 
-    if (mod_testVolumes.nfsSharedVolumesSupported() && VOLAPI_CLIENT) {
-        tt.test('getting second created volume\'s UUID should succeed',
-            function (t) {
-                VOLAPI_CLIENT.listVolumes({
-                    name: testVolumeName,
-                    predicate: JSON.stringify({
-                        eq: ['state', 'ready']
-                    })
-                }, function volumesListed(err, volumes) {
-                    var volumeUuid;
+    tt.test('getting second created volume\'s UUID should succeed',
+        function (t) {
+            VOLAPI_CLIENT.listVolumes({
+                name: testVolumeName,
+                predicate: JSON.stringify({
+                    eq: ['state', 'ready']
+                })
+            }, function volumesListed(err, volumes) {
+                var volumeUuid;
 
-                    t.ifErr(err, 'list volumes should not error');
-                    t.equal(volumes.length, 1, 'only one volume with name '
-                        + testVolumeName + ' should be in state \'ready\'');
+                t.ifErr(err, 'list volumes should not error');
+                t.equal(volumes.length, 1, 'only one volume with name '
+                    + testVolumeName + ' should be in state \'ready\'');
 
-                    volumeUuid = volumes[0].uuid;
-                    t.notEqual(volumeUuid, firstVolumeUuid,
-                        'UUID of volume with name ' + testVolumeName
-                            + ' should be different than the first created '
-                            + 'volume ('+ firstVolumeUuid + ')');
-                    t.end();
-                });
+                volumeUuid = volumes[0].uuid;
+                t.notEqual(volumeUuid, firstVolumeUuid,
+                    'UUID of volume with name ' + testVolumeName
+                        + ' should be different than the first created '
+                        + 'volume ('+ firstVolumeUuid + ')');
+                t.end();
             });
-    }
+        });
 
     tt.test('listing volumes with name ' + testVolumeName + ' after second '
         + 'volume created should output only one volume', function (t) {
@@ -280,19 +249,15 @@ test('DOCKER-880', function (tt) {
                 var outputLines;
                 var testVolumes;
 
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err, 'listing volumes should not error');
-                    outputLines = stdout.trim().split(/\n/);
-                    // Remove header from docker volume ls' output.
-                    outputLines = outputLines.slice(1);
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
 
-                    testVolumes = outputLines.filter(filterTestVolumesFn);
+                testVolumes = outputLines.filter(filterTestVolumesFn);
 
-                    t.equal(testVolumes.length, 1, 'only one volume with name '
-                        + testVolumeName + ' should be listed');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.equal(testVolumes.length, 1, 'only one volume with name '
+                    + testVolumeName + ' should be listed');
 
                 t.end();
             });
@@ -303,25 +268,19 @@ test('DOCKER-880', function (tt) {
             volumesCli.rmVolume({
                 user: ALICE_USER,
                 args: testVolumeName
-            },
-                function onVolumeDeleted(err, stdout, stderr) {
-                    var dockerVolumeOutput;
+            }, function onVolumeDeleted(err, stdout, stderr) {
+                var dockerVolumeOutput;
 
-                    if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                        dockerVolumeOutput = stdout;
+                dockerVolumeOutput = stdout;
 
-                        t.ifErr(err,
-                            'Removing an existing shared volume should not '
-                                + 'error');
-                        t.equal(dockerVolumeOutput, testVolumeName + '\n',
-                            'Output should be shared volume\'s name');
-                    } else {
-                        t.ok(errorMeansNFSSharedVolumeSupportDisabled(err,
-                            stderr));
-                    }
+                t.ifErr(err,
+                    'Removing an existing shared volume should not '
+                        + 'error');
+                t.equal(dockerVolumeOutput, testVolumeName + '\n',
+                    'Output should be shared volume\'s name');
 
-                    t.end();
-                });
+                t.end();
+            });
         });
 
     tt.test('listing volumes should output no volume with name after second '
@@ -332,19 +291,15 @@ test('DOCKER-880', function (tt) {
                 var outputLines;
                 var testVolumes;
 
-                if (mod_testVolumes.nfsSharedVolumesSupported()) {
-                    t.ifErr(err, 'listing volumes should not error');
-                    outputLines = stdout.trim().split(/\n/);
-                    // Remove header from docker volume ls' output.
-                    outputLines = outputLines.slice(1);
+                t.ifErr(err, 'listing volumes should not error');
+                outputLines = stdout.trim().split(/\n/);
+                // Remove header from docker volume ls' output.
+                outputLines = outputLines.slice(1);
 
-                    testVolumes = outputLines.filter(filterTestVolumesFn);
+                testVolumes = outputLines.filter(filterTestVolumesFn);
 
-                    t.equal(testVolumes.length, 0, 'no volume with name '
-                        + testVolumeName + ' should be listed');
-                } else {
-                    t.ok(errorMeansNFSSharedVolumeSupportDisabled(err, stderr));
-                }
+                t.equal(testVolumes.length, 0, 'no volume with name '
+                    + testVolumeName + ' should be listed');
 
                 t.end();
             });

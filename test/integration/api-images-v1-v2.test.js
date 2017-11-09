@@ -388,7 +388,7 @@ test('test for error on docker v1 image build', function (tt) {
                 h.buildDockerContainer({
                     dockerClient: DOCKER_ALICE_HTTP,
                     params: {
-                        'rm': 'true'  // Remove container after it's built.
+                        'forcerm': 'true'  // Remove container after it's built.
                     },
                     test: t,
                     tarball: ctx.tarStream

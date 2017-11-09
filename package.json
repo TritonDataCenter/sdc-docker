@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.4.8",
+  "version": "0.4.9",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -21,7 +21,7 @@
     "openssl-wrapper": "0.2.1",
     "restify": "4.3.0",
     "sdc-bunyan-serializers": "git+https://github.com/joyent/sdc-bunyan-serializers.git#a3e7780",    
-    "sdc-clients": "git+https://github.com/joyent/node-sdc-clients.git#tritonnfs",
+    "sdc-clients": "10.4.0",
     "sprintf": "0.1.5",
     "sshpk": "1.11.0",
     "strsplit": "1.0.0",
