@@ -129,28 +129,49 @@ function getVolapiClient() {
     return VOLAPI_CLIENT;
 }
 
-function testIfNfsVolumesEnabled(testName, testFunc) {
-    assert.string(testName, 'testName');
-    assert.func(testFunc, 'testFunc');
+function createTestFunc(options) {
+    assert.object(options, 'options');
+    assert.optionalBool(options.checkDockerClientSupportsNfsVols,
+        'options.checkDockerClientSupportsNfsVols');
+    assert.optionalBool(options.checkTritonSupportsNfsVols,
+        'options.checkTritonSupportsNfsVol');
 
-    test(testName, function (t) {
-        if (!nfsSharedVolumesSupported()) {
-            t.ok(true, 'NFS volumes disabled - skipping test');
-            t.end();
-            return;
-        }
-        testFunc(t);
-    });
+    var dockerClientSupportsVols =
+        process.env.DOCKER_CLI_VERSION !== undefined
+            && dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION);
+
+    return function testWrapper(testName, testFunc) {
+        assert.string(testName, 'testName');
+        assert.func(testFunc, 'testFunc');
+
+        test(testName, function (t) {
+            if (options.checkDockerClientSupportsNfsVols
+                && !dockerClientSupportsVols) {
+                t.ok(true,
+                    'Docker client doesn\'t support volumes - skipping test');
+                t.end();
+                return;
+            }
+
+            if (options.checkTritonSupportsNfsVols
+                && !nfsSharedVolumesSupported()) {
+                t.ok(true, 'NFS volumes disabled - skipping test');
+                t.end();
+                return;
+            }
+
+            testFunc(t);
+        });
+    };
 }
 
 module.exports = {
-    dockerClientSupportsVolumes: dockerClientSupportsVolumes,
+    createTestFunc: createTestFunc,
     errorMeansNFSSharedVolumeSupportDisabled:
         errorMeansNFSSharedVolumeSupportDisabled,
     getNfsSharedVolumesNamePrefix: getNfsSharedVolumesNamePrefix,
     getNfsSharedVolumesDriverName: getNfsSharedVolumesDriverName,
     getVolapiClient: getVolapiClient,
     nfsSharedVolumesSupported: nfsSharedVolumesSupported,
-    testIfEnabled: testIfNfsVolumesEnabled,
     validGeneratedVolumeName: validGeneratedVolumeName
 };

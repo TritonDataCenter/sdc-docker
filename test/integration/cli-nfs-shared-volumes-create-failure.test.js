@@ -31,17 +31,11 @@ var cli = require('../lib/cli');
 var h = require('./helpers');
 var volumesCli = require('../lib/volumes-cli');
 
-assert.string(process.env.DOCKER_CLI_VERSION, 'process.env.DOCKER_CLI_VERSION');
-
-var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
-if (dockerVersion.major < 1 || dockerVersion.minor < 9) {
-    console.log('Skipping volume tests: volumes are not supported in Docker '
-        + 'versions < 1.9');
-    process.exit(0);
-}
-
 var createTestVolume = mod_testVolumes.createTestVolume;
-var test = mod_testVolumes.testIfEnabled;
+var test = mod_testVolumes.createTestFunc({
+    checkTritonSupportsNfs: true,
+    checkDockerClientSupportsNfsVols: true
+});
 
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
     mod_testVolumes.getNfsSharedVolumesNamePrefix();

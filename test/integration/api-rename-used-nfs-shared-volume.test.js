@@ -20,7 +20,9 @@ var dockerTestHelpers = require('./helpers');
 var mod_testVolumes = require('../lib/volumes');
 var volumesApi = require('../lib/volumes-api');
 
-var test = mod_testVolumes.testIfEnabled;
+var test = mod_testVolumes.createTestFunc({
+    checkTritonSupportsNfs: true
+});
 
 var ALICE_ACCOUNT;
 var ALICE_DOCKER_API_CLIENT;

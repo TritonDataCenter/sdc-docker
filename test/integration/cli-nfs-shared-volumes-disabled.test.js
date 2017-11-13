@@ -13,7 +13,6 @@
  */
 
 var restify = require('restify');
-var test = require('tape');
 var vasync = require('vasync');
 
 var cli = require('../lib/cli');
@@ -21,17 +20,15 @@ var common = require('../lib/common');
 var testVolumes = require('../lib/volumes');
 var volumesCli = require('../lib/volumes-cli');
 
-if (!testVolumes.dockerClientSupportsVolumes(process.env.DOCKER_CLI_VERSION)) {
-    console.log('Skipping volume tests: volumes are not supported in Docker '
-        + 'versions < 1.9');
-    process.exit(0);
-}
+var disabled_nfs_volumes = false;
 
 var errorMeansNFSSharedVolumeSupportDisabled =
     testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
-var nfsSharedVolumesSupported = testVolumes.nfsSharedVolumesSupported;
 
-var disabled_nfs_volumes = false;
+var test = testVolumes.createTestFunc({
+    checkTritonSupportsNfs: true,
+    checkDockerClientSupportsNfsVols: true
+});
 
 var ALICE_USER;
 var NFS_SHARED_VOLUME_NAMES_PREFIX =
@@ -110,12 +107,6 @@ test('setup', function (tt) {
             image: 'busybox:latest'
         });
     });
-
-    if (!nfsSharedVolumesSupported()) {
-        tt.ok(true, 'NFS volumes are already disabled, no need to do anything');
-        tt.end();
-        return;
-    }
 
     tt.test('disable NFS volumes', function (t) {
         t.ok(process.env.SAPI_URL, 'have SAPI_URL ('
