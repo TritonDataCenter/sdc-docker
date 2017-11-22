@@ -30,7 +30,7 @@ var volumesCli = require('../lib/volumes-cli');
 var createTestVolume = mod_testVolumes.createTestVolume;
 var dockerVersion = common.parseDockerVersion(process.env.DOCKER_CLI_VERSION);
 var test = mod_testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true,
+    checkTritonSupportsNfsVols: true,
     checkDockerClientSupportsNfsVols: true
 });
 var VOLAPI_CLIENT = mod_testVolumes.getVolapiClient();

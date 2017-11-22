@@ -22,7 +22,7 @@ var ufds = require('ufds');
 var volumesCli = require('../lib/volumes-cli');
 
 var test = testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true,
+    checkTritonSupportsNfsVols: true,
     checkDockerClientSupportsNfsVols: true
 });
 

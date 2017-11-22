@@ -22,7 +22,7 @@ var common = require('../lib/common');
 var testVolumes = require('../lib/volumes');
 
 var test = testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true,
+    checkTritonSupportsNfsVols: true,
     checkDockerClientSupportsNfsVols: true
 });
 

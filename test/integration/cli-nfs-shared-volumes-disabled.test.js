@@ -26,7 +26,6 @@ var errorMeansNFSSharedVolumeSupportDisabled =
     testVolumes.errorMeansNFSSharedVolumeSupportDisabled;
 
 var test = testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true,
     checkDockerClientSupportsNfsVols: true
 });
 
@@ -136,6 +135,14 @@ test('setup', function (tt) {
                     t.comment('current value of '
                         + 'experimental_docker_nfs_shared_volumes is: '
                         + app.metadata.experimental_docker_nfs_shared_volumes);
+                }
+
+                if (app.metadata.experimental_docker_nfs_shared_volumes ===
+                    false) {
+                    t.comment('NFS volumes support already disabled, no need '
+                        + 'to turn it off');
+                    t.end();
+                    return;
                 }
 
                 SAPI_CLIENT.put('/applications/' + SAPI_APP, {

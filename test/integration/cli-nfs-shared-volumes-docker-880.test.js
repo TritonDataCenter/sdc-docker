@@ -37,7 +37,7 @@ var mod_testVolumes = require('../lib/volumes');
 var volumesCli = require('../lib/volumes-cli');
 
 var test = mod_testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true,
+    checkTritonSupportsNfsVols: true,
     checkDockerClientSupportsNfsVols: true
 });
 

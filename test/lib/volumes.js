@@ -134,7 +134,7 @@ function createTestFunc(options) {
     assert.optionalBool(options.checkDockerClientSupportsNfsVols,
         'options.checkDockerClientSupportsNfsVols');
     assert.optionalBool(options.checkTritonSupportsNfsVols,
-        'options.checkTritonSupportsNfsVol');
+        'options.checkTritonSupportsNfsVols');
 
     var dockerClientSupportsVols =
         process.env.DOCKER_CLI_VERSION !== undefined
