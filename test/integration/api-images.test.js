@@ -86,7 +86,6 @@ test('docker images', function (tt) {
             name: 'ubuntu:latest',
             user: ALICE
         }, function (err) {
-            console.log('ubuntu pull err: ', err);
             t.error(err, 'should be no error pulling image');
             t.end();
         });
@@ -186,6 +185,26 @@ test('docker images', function (tt) {
 
             t.end();
         });
+    });
+
+    // Ensure an image can be pulled using the manifest digest.
+    tt.test('pull ubuntu image by manifest digest', function (t) {
+        var repoDigest = img.RepoDigests[0];
+        h.ensureImage({
+            name: repoDigest,
+            user: ALICE
+        }, function (err) {
+            t.error(err, 'should be no error pulling image by digest');
+            t.end();
+        });
+    });
+
+    tt.test('delete image', function (t) {
+        DOCKER_ALICE.del('/images/ubuntu', ondel);
+        function ondel(err, req, res) {
+            t.error(err, 'should be no error retrieving images');
+            t.end();
+        }
     });
 
     tt.test('pull image name containing port', function (t) {
