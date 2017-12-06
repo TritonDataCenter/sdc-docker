@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2017, Joyent, Inc.
+ * Copyright 2018, Joyent, Inc.
  */
 
 /*
@@ -337,6 +337,70 @@ test('api: create', function (tt) {
         DOCKER_ALICE.del('/containers/' + created.id, ondel);
 
         function ondel(err, res, req, body) {
+            t.ifErr(err, 'rm container');
+            t.end();
+        }
+    });
+
+    tt.test('docker create with instance protection',
+            function (t) {
+        h.createDockerContainer({
+            vmapiClient: VMAPI,
+            dockerClient: DOCKER_ALICE,
+            test: t,
+            extra: { Labels: { 'triton.instance.undeletable': 'true' } }
+        }, oncreate);
+
+        function oncreate(err, result) {
+            t.ifErr(err, 'create container');
+            created = result;
+            t.equal(created.vm.tags['triton.instance.undeletable'], true,
+                'Instance protection tag set');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm with instance protection should fail', function (t) {
+        DOCKER_ALICE.del('/containers/' + created.id, ondel);
+
+        function ondel(err, req, res, body) {
+            t.ok(err, 'rm container should fail');
+            t.ok(err.message.match('has "triton.instance.undeletable"'),
+                'check err message');
+            t.equal(res.statusCode, 409, '409 Conflict');
+            t.end();
+        }
+    });
+
+    tt.test('docker rm with instance protection removed', function (t) {
+        VMAPI.deleteMetadata('tags', { uuid: created.vm.uuid },
+            'triton.instance.undeletable', ondelmeta);
+
+        function ondelmeta(err) {
+            t.ifErr(err, 'remove instance tag');
+            waitmeta(15);
+        }
+
+        function waitmeta(count) {
+            if (count === 0) {
+                t.fail('instance protection tag did not delete in time');
+                t.end();
+                return;
+            }
+
+            VMAPI.getVm({ uuid: created.vm.uuid }, function (err, vm) {
+                t.ifErr(err, 'fetch VM');
+                if (vm.tags['triton.instance.undeletable']) {
+                    setTimeout(function () {
+                        waitmeta(count - 1);
+                    }, 2000); // wait 2s before next check
+                } else {
+                    DOCKER_ALICE.del('/containers/' + created.id, ondel);
+                }
+            });
+        }
+
+        function ondel(err, req, res, body) {
             t.ifErr(err, 'rm container');
             t.end();
         }

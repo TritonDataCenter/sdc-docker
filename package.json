@@ -27,7 +27,7 @@
     "strsplit": "1.0.0",
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
-    "triton-tags": "1.1.4",
+    "triton-tags": "git+https://github.com/joyent/node-triton-tags.git#9485976bc579411619fe2bb9536fdcbeef907c97",
     "ufds": "1.2.0",
     "vasync": "2.1.0",
     "verror": "1.9.0",

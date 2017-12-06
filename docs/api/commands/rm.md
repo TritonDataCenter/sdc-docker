@@ -35,6 +35,19 @@ This command will delete all stopped containers. The command `docker ps
 command which will delete them. Any running containers will not be
 deleted.
 
+## Instance Protection
+
+It's possible to create containers that cannot be removed by adding a label
+during container creation: triton.instance.undeletable=true. To remove such a
+container, the tag must first be removed.
+
+An example of creating such a container with the instance-protection label:
+
+    $ docker run -d --label triton.instance.undeletable=true nginx
+
+To remove such labels, see [Instance Protection](https://apidocs.joyent.com/cloudapi/#instance-protection).
+It cannot be done through docker directly.
+
 ## Divergence
 
 The SDC Docker implementation does not support the following arguments:
