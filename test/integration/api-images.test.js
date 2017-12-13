@@ -199,10 +199,22 @@ test('docker images', function (tt) {
         });
     });
 
+    // Try and delete 'ubuntu:latest' - should be a 404 error, as the image
+    // was pulled by digest, which means no tag was assigned to the image.
     tt.test('delete image', function (t) {
         DOCKER_ALICE.del('/images/ubuntu', ondel);
         function ondel(err, req, res) {
-            t.error(err, 'should be no error retrieving images');
+            t.ok(err, 'should be an error deleting ubuntu image by tag');
+            t.end();
+        }
+    });
+
+    // Delete ubuntu image using it's manifest digest.
+    tt.test('delete image', function (t) {
+        var repoDigest = img.RepoDigests[0];
+        DOCKER_ALICE.del('/images/' + repoDigest, ondel);
+        function ondel(err, req, res) {
+            t.error(err, 'no error deleting image by manifest digest');
             t.end();
         }
     });
