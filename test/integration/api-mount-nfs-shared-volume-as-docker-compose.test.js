@@ -20,15 +20,13 @@
  */
 
 
-var jsprim = require('jsprim');
-
 var common = require('../lib/common');
 var dockerTestHelpers = require('./helpers');
 var mod_testVolumes = require('../lib/volumes');
 var volumesApi = require('../lib/volumes-api');
 
 var test = mod_testVolumes.createTestFunc({
-    checkTritonSupportsNfs: true
+    checkTritonSupportsNfsVols: true
 });
 
 var ALICE_ACCOUNT;

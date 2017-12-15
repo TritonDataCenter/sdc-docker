@@ -28,8 +28,8 @@ line from the head node:
 
 ```
 sdcadm post-setup volapi
-sdcadm experimental docker-nfs-volumes
-sdcadm experimental docker-nfs-volumes-automount
+sdcadm experimental nfs-volumes docker
+sdcadm experimental nfs-volumes docker-automount
 ```
 
 This command will create a new core zone that runs the VOLAPI service, which
@@ -48,7 +48,7 @@ SAPI to disable support for NFS shared volumes by running the following command
 line:
 
 ```
-sdcadm experimental docker-nfs-volumes -d
+sdcadm experimental nfs-volumes docker -d
 ```
 
 After disabling this setting, running `docker volume` commands will result in an
