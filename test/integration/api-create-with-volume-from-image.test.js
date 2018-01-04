@@ -50,15 +50,6 @@ test('setup', function (tt) {
         });
     });
 
-    tt.test('pull test-image-with-volume image', function (t) {
-        h.ensureImage({
-            name: TEST_IMAGE,
-            user: ALICE
-        }, function (err) {
-            t.error(err, 'should be no error pulling image');
-            t.end();
-        });
-    });
 });
 
 test('api: create', function (tt) {
@@ -67,6 +58,8 @@ test('api: create', function (tt) {
 
     tt.test('docker create', function (t) {
         h.createDockerContainer({
+            start: true,
+            wait: true,
             imageName: TEST_IMAGE,
             vmapiClient: VMAPI,
             dockerClient: DOCKER_ALICE,
@@ -74,7 +67,19 @@ test('api: create', function (tt) {
         }, oncreate);
 
         function oncreate(err, result) {
+            var expectedExitCode = 0;
+
             t.ifErr(err, 'create container');
+            t.ok(result, 'result should not be empty');
+            t.ok(result.inspect, 'inspect info should not be empty');
+            t.ok(result.inspect.State,
+                'inspect info should have a State property');
+            if (result && result.inspect && result.inspect.State) {
+                t.equal(result.inspect.State.ExitCode, expectedExitCode,
+                    'exit code should be ' + expectedExitCode + ', got: '
+                        + result.inspect.State.ExitCode);
+            }
+
             created = result;
             t.end();
         }

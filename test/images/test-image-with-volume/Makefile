@@ -9,7 +9,7 @@
 #
 
 NAME=joyentunsupported/test-image-with-volume
-VERSION=1.0.0
+VERSION=1.0.1
 
 all:
 	docker build -t $(NAME):$(VERSION) .
