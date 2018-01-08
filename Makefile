@@ -90,7 +90,10 @@ test: $(TAPE)
 #
 .PHONY: test-integration-in-coal
 test-integration-in-coal:
-	@ssh root@$(COAL) 'DOCKER_CLI_VERSIONS="$(DOCKER_CLI_VERSIONS)" LOG_LEVEL=$(LOG_LEVEL) /zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests $(TEST_ARGS)'
+	@ssh root@$(COAL) 'DOCKER_CLI_VERSIONS="$(DOCKER_CLI_VERSIONS)" \
+		COMPOSE_CLI_VERSIONS="$(COMPOSE_CLI_VERSIONS)" \
+		LOG_LEVEL=$(LOG_LEVEL) \
+		/zones/$$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests $(TEST_ARGS)'
 
 
 .PHONY: git-hooks

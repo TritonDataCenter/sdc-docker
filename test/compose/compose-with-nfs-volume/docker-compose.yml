@@ -1,0 +1,10 @@
+version: "2.1"
+services:
+  foo:
+    image: busybox
+    volumes:
+      - compose-with-nfs-volume-test:/bar
+    network_mode: bridge
+volumes:
+    compose-with-nfs-volume-test:
+      driver: "tritonnfs"

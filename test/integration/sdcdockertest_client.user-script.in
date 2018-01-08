@@ -5,7 +5,11 @@ set -o pipefail
 export PS4='[\D{%FT%TZ}] ${BASH_SOURCE}:${LINENO}: ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 set -o xtrace
 
+ARCH=x86_64
+COMPOSE_AVAILABLE_CLI_VERSIONS="{{COMPOSE_AVAILABLE_CLI_VERSIONS}}"
+COMPOSE_RELEASES_BASE_URL=https://github.com/docker/compose/releases/download
 DOCKER_AVAILABLE_CLI_VERSIONS="{{DOCKER_AVAILABLE_CLI_VERSIONS}}"
+OS=$(uname)
 
 if [[ ! -d /root/bin ]]; then
     mkdir -p /root/bin
@@ -23,6 +27,13 @@ if [[ ! -x get-docker-clients.sh ]]; then
     curl -sSO https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/get-docker-clients.sh
     chmod +x get-docker-clients.sh
 fi
+
+for compose_cli_version in ${COMPOSE_AVAILABLE_CLI_VERSIONS}; do
+    if [[ ! -x docker-compose-${compose_cli_version} ]]; then
+        curl -LsS $COMPOSE_RELEASES_BASE_URL/$compose_cli_version/docker-compose-$OS-$ARCH > docker-compose-${compose_cli_version}
+        chmod +x docker-compose-${compose_cli_version}
+    fi
+done
 
 echo "Get docker CLI clients (allow 3 attempts)"
 got_docker_clients_successfully=

@@ -112,6 +112,19 @@ for test_file in $test_files; do
                 [[ -n "$opt_stop_on_failure" ]] && break
             fi
         done
+    elif [[ ${test_base:0:8} == "compose-" ]]; then
+        for compose_cli_version in $COMPOSE_CLI_VERSIONS; do
+            echo "# $test_base (COMPOSE_CLI_VERSION=$compose_cli_version)"
+            COMPOSE_CLI_VERSION=$compose_cli_version \
+                PATH=$NODE_INSTALL/bin:$PATH \
+                $TAPE $test_file \
+                | tee $OUTPUT_DIR/$test_base-$compose_cli_version.tap
+            if [[ "$?" != "0" ]]; then
+                echo "$test_file (COMPOSE_CLI_VERSION=$compose_cli_version)" \
+                    >> $OUTPUT_DIR/failing-tests.txt
+                [[ -n "$opt_stop_on_failure" ]] && break
+            fi
+        done
     else
         echo "# $test_base"
         PATH=$NODE_INSTALL/bin:$PATH $TAPE $test_file \

@@ -437,7 +437,9 @@ function stepClientZonePayload(state, cb) {
 
         var vars = {
             DOCKER_AVAILABLE_CLI_VERSIONS:
-                process.env.DOCKER_AVAILABLE_CLI_VERSIONS
+                process.env.DOCKER_AVAILABLE_CLI_VERSIONS,
+            COMPOSE_AVAILABLE_CLI_VERSIONS:
+                process.env.COMPOSE_AVAILABLE_CLI_VERSIONS
         };
         Object.keys(vars).forEach(function (k) {
             userScript = userScript.replace(
@@ -757,6 +759,30 @@ GzDockerEnv.prototype.docker = function denvDocker(cmd, opts, cb) {
         '(source /root/.sdc/docker/%s/env.sh; /root/bin/docker-%s --tls %s)',
         this.login, process.env.DOCKER_CLI_VERSION, cmd);
     this.exec(dockerCmd, opts, cb);
+};
+
+/*
+ * Run 'docker-compose $cmd' as this user.
+ *
+ * @param config {String} The compose configuration to deploy, typically the
+ *   full content of a docker-compose.yml file.
+ * @param cmd {String} The command (after the 'docker-compose ') to run. E.g.
+ *  'up -d'.
+ * @param cb {Function} `function (err, stdout, stderr)`
+ */
+GzDockerEnv.prototype.compose = function compose(config, cmd, cb) {
+    assert.string(config, 'config');
+    assert.string(cmd, 'cmd');
+    assert.func(cb, 'cb');
+
+    assert.ok(process.env.COMPOSE_CLI_VERSION,
+        '$COMPOSE_CLI_VERSION is not set, do not know which '
+            + '"docker-compose-$ver" to execute');
+    var dockerCmd = fmt('(source /root/.sdc/docker/%s/env.sh; '
+        + '/root/bin/docker-compose-%s -f - %s <<EOC\n' + config + '\n'
+        + 'EOC' + '\n)',
+        this.login, process.env.COMPOSE_CLI_VERSION, cmd);
+    this.exec(dockerCmd, cb);
 };
 
 /*

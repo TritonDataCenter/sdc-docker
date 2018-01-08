@@ -66,6 +66,29 @@ if [[ -z "$DOCKER_CLI_VERSIONS" || "$DOCKER_CLI_VERSIONS" == "latest" ]]; then
     export DOCKER_CLI_VERSIONS="${DOCKER_AVAILABLE_CLI_VERSIONS%% *}"
 fi
 
+# docker-compose versions for testing:
+# 1. 'COMPOSE_AVAILABLE_CLI_VERSIONS' is the set of 'docker-compose' CLI
+#    versions we install in the "sdcdockertest_client" zone from which we run
+#    'docker-compose'. This is the set of possible values for
+#    COMPOSE_CLI_VERSIONS.
+# 2. 'COMPOSE_CLI_VERSIONS' defines the 'docker-compose' CLI versions against
+#    which we run the "test/integration/compose-*.test.js" files. This is
+#    overridable, e.g.: COMPOSE_CLI_VERSIONS=1.9.0 .../runtests
+#
+# The only available compose version for now is 1.9.0 because it is what
+# triton-docker uses (see
+# https://github.com/joyent/triton-docker-cli/blob/4cc524dcb1a9d12adf192e057ca737fcf80069be/triton-docker#L5)
+# and triton-docker represents the closest thing to what's officially supported
+# by sdc-docker as possible.
+export COMPOSE_AVAILABLE_CLI_VERSIONS="1.9.0"
+if [[ "$COMPOSE_CLI_VERSIONS" == "all" ]]; then
+    export COMPOSE_CLI_VERSIONS="$COMPOSE_AVAILABLE_CLI_VERSIONS"
+fi
+if [[ -z "$COMPOSE_CLI_VERSIONS" || "$COMPOSE_CLI_VERSIONS" == "latest" ]]; then
+    # Use the first (latest) version, splitting on the space separator.
+    export COMPOSE_CLI_VERSIONS="${COMPOSE_AVAILABLE_CLI_VERSIONS%% *}"
+fi
+
 # Guard
 guard_file=/lib/sdc/.sdc-test-no-production-data
 if [[ $(uname) == "SunOS" && ! -f "$guard_file" ]]; then
@@ -133,6 +156,8 @@ echo "# Test config:"
 echo "#  DOCKER_ADMIN_URL=${DOCKER_ADMIN_URL}"
 echo "#  DOCKER_AVAILABLE_CLI_VERSIONS=${DOCKER_AVAILABLE_CLI_VERSIONS}"
 echo "#  DOCKER_CLI_VERSIONS=${DOCKER_CLI_VERSIONS}"
+echo "#  COMPOSE_AVAILABLE_CLI_VERSIONS=${COMPOSE_AVAILABLE_CLI_VERSIONS}"
+echo "#  COMPOSE_CLI_VERSIONS=${COMPOSE_CLI_VERSIONS}"
 echo "#  DOCKER_URL=${DOCKER_URL}"
 echo "#  DOCKER_UUID=${DOCKER_UUID}"
 echo "#  FWAPI_URL=${FWAPI_URL}"
