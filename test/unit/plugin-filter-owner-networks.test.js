@@ -5,14 +5,16 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 var test = require('tape').test;
+var clone = require('jsprim').deepCopy;
 var plugin = require('../../plugins/filter_owner_networks');
 
 
 // --- Globals
+
 
 var ACCOUNT = { uuid: '572c169e-a287-11e7-b95d-28cfe91f7d53' };
 var OTHER_ACCOUNT = { uuid: '5cc54706-a287-11e7-b33c-28cfe91f7d53' };
@@ -50,23 +52,19 @@ var FILTER_GET_NETWORKS_OR_POOLS;
 var FIND_OWNER_EXTERNAL_NETWORK;
 
 
-// --- Helpers
-
-function clone(o) {
-    return JSON.parse(JSON.stringify(o));
-}
-
-
 // --- Tests
+
 
 test('Setup filterListNetworks without api',
 function (t) {
     try {
         plugin.filterListNetworks();
+        t.fail('exception not thrown');
     } catch (e) {
         t.equal(e.message, 'api (object) is required', 'err message');
-        t.end();
     }
+
+    t.end();
 });
 
 
@@ -74,10 +72,12 @@ test('Setup filterListNetworks without cfg',
 function (t) {
     try {
         plugin.filterListNetworks(API);
+        t.fail('exception not thrown');
     } catch (e) {
         t.equal(e.message, 'cfg (object) is required', 'err message');
-        t.end();
     }
+
+    t.end();
 });
 
 
@@ -85,10 +85,12 @@ test('Setup filterListNetworks with invalid cfg',
 function (t) {
     try {
         plugin.filterListNetworks(API, { accounts: 'foo' });
+        t.fail('exception not thrown');
     } catch (e) {
         t.equal(e.message, 'cfg.accounts ([uuid]) is required', 'err message');
-        t.end();
     }
+
+    t.end();
 });
 
 
@@ -265,8 +267,8 @@ function (t) {
     function getNapiNetworksForAccountStub(opts, cb) {
         t.deepEqual(opts, {
             log: API.log,
-            reqId: '1180af02-a8ee-11e7-86c1-28cfe91f7d53',
-            accountUuid: ACCOUNT.uuid
+            req_id: '1180af02-a8ee-11e7-86c1-28cfe91f7d53',
+            account: ACCOUNT
         }, 'stub opts');
 
         var nets = NETWORKS.filter(function (network) {

@@ -5,16 +5,17 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
  * Forces specific accounts to only use networks or network pools which belong
  * to that account. Specifically, it filters out networks and network pools in
- * backends/sdc/networks.js, which later prevents the listing of non-owner
- * networks or pools, and prevent the creation of containers with those networks
- * or pools too. It also hooks into backends/sdc/container.js to override the
- * default external network.
+ * lib/middleware/networks.js (cloudapi) and lib/backends/sdc/networks.js
+ * (sdc-docker), which later prevents the listing of non-owner networks or
+ * pools, and prevent the creation of containers with those networks or pools
+ * too. It also hooks into lib/backends/sdc/container.js (sdc-docker) to
+ * override the default external network.
  *
  * Each network or pool has an optional array of UUIDs associated with users.
  * When filtering networks, we check that the UUID of the current account
@@ -31,8 +32,8 @@
  *        "accounts": [ ... list of UUIDs here ... ],
  *    }
  * }
- * This is added to DOCKER_PLUGINS, serialized to JSON, and PUT to sdc-docker's
- * sapi service. E.g.:
+ * This is added to CLOUDAPI_PLUGINS and DOCKER_PLUGINS, serialized to JSON,
+ * and PUT to cloudapi and sdc-docker's sapi services. E.g.:
  *
  * sdc-sapi /services/$(sdc-sapi /services?name=docker | json -Ha uuid) -X PUT
  * -d '{
@@ -51,10 +52,10 @@ var EXTERNAL_NIC_TAG = 'external';
 
 
 /*
- * This hook runs after sdc-docker has retrieved an array from napi, but before
- * backends/sdc/networks.js returns the results any higher up the stack. It
- * filters 'networks' so that it only contains networks or network pools which
- * have the account UUID in their owner_uuids.
+ * This hook runs after sdc-docker and cloudapi have retrieved an array from
+ * napi, but before the array is returned any higher up the stack. It filters
+ * 'networks' so that it only contains networks or network pools which have the
+ * account UUID in their owner_uuids.
  */
 function filterListNetworks(api, cfg) {
     assert.object(api, 'api');
@@ -90,7 +91,7 @@ function filterListNetworks(api, cfg) {
  * This hook is run when creating a container, before assigning
  * a default external network to that container. The default network
  * may not belong to the account creating the container, then this
- * gets invoked. It finds a pools or network which is owned by an
+ * gets invoked. It finds a pool or network which is owned by an
  * account, and has an 'external' nic tag.
  */
 function findOwnerExternalNetwork(api, cfg) {
@@ -117,9 +118,9 @@ function findOwnerExternalNetwork(api, cfg) {
         log.debug('Looking up external pools and networks for account',
             accountUuid);
 
-        api.getNapiNetworksForAccount({
-            accountUuid: accountUuid,
-            reqId: opts.req_id,
+        return api.getNapiNetworksForAccount({
+            account: opts.account,
+            req_id: opts.req_id,
             log: log
         }, function onAccountNetworks(err, networks) {
             if (err) {
@@ -129,16 +130,16 @@ function findOwnerExternalNetwork(api, cfg) {
             var owned = networks.filter(function filterOwner(network) {
                 var owners = network.owner_uuids;
                 return owners && owners.indexOf(accountUuid) !== -1;
-            })
+            });
 
             var external = owned.filter(function filterExternal(network) {
                 var tags = network.nic_tags_present;
-                return network.nic_tag === EXTERNAL_NIC_TAG ||
-                    (tags && tags.indexOf(EXTERNAL_NIC_TAG) !== -1);
+                return network.nic_tag === EXTERNAL_NIC_TAG
+                    || (tags && tags.indexOf(EXTERNAL_NIC_TAG) !== -1);
             });
 
             if (external.length === 0) {
-                var msg = 'Found no external network accessible to account'
+                var msg = 'Found no external network accessible to account';
                 return cb(new Error(msg));
             }
 
