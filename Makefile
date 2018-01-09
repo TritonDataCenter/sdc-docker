@@ -16,7 +16,7 @@ RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 
 TAPE	:= ./node_modules/.bin/tape
 
-JS_FILES	:= $(shell find lib test -name '*.js' | grep -v '/tmp/')
+JS_FILES	:= $(shell find lib plugins test -name '*.js' | grep -v '/tmp/')
 JSL_CONF_NODE	 = tools/jsl.node.conf
 JSL_FILES_NODE	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
