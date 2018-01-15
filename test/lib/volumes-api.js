@@ -51,7 +51,7 @@ function createDockerVolume(opts, callback) {
             var volumeName = opts.name;
             var volumeType = testVolumes.getNfsSharedVolumesDriverName();
 
-            if (!volumeName) {
+            if (volumeName === undefined) {
                 volumeName = common.makeResourceName(volumeNamesPrefix);
             }
 
