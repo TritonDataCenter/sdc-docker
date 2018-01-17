@@ -39,8 +39,6 @@ function createDockerVolume(opts, callback) {
     assert.optionalString(opts.name, 'opts.name');
     assert.func(callback, 'callback');
 
-    assert.ok(testVolumes.nfsSharedVolumesSupported());
-
     var dockerClient = opts.dockerClient;
     var dockerApiVersion = opts.apiVersion || ('v' + constants.API_VERSION);
 

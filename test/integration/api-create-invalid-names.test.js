@@ -8,9 +8,9 @@
  * Copyright 2018, Joyent, Inc.
  */
 
-var test = require('tape');
 var vasync = require('vasync');
 
+var mod_testVolumes = require('../lib/volumes');
 var testHelpers = require('./helpers');
 var volumesApi = require('../lib/volumes-api');
 
@@ -19,6 +19,10 @@ var DOCKER_ALICE;
 var STATE = {
     log: require('../lib/log')
 };
+
+var test = mod_testVolumes.createTestFunc({
+    checkTritonSupportsNfsVols: true
+});
 
 test('setup', function (tt) {
 
@@ -52,7 +56,7 @@ test('api: create volumes with invalid name', function (tt) {
          * 'x'.repeat(257) generates a volume name that is one character too
          * long, as the max length for volume names is 256 characters.
          */
-        var INVALID_VOLUME_NAMES = ['', '-foo', '.foo', 'x'.repeat(257)];
+        var INVALID_VOLUME_NAMES = ['-foo', '.foo', 'x'.repeat(257)];
 
         vasync.forEachParallel({
             func: function createVolume(volumeName, done) {
