@@ -37,6 +37,7 @@ function createDockerVolume(opts, callback) {
     assert.object(opts, 'opts');
     assert.object(opts.dockerClient, 'opts.dockerClient');
     assert.optionalString(opts.name, 'opts.name');
+    assert.optionalString(opts.network, 'opts.network');
     assert.func(callback, 'callback');
 
     var dockerClient = opts.dockerClient;
@@ -60,6 +61,10 @@ function createDockerVolume(opts, callback) {
                 Labels: {}
             };
 
+            if (opts.network) {
+                payload.DriverOpts.network = opts.network;
+            }
+
             dockerClient.post('/' + dockerApiVersion + '/volumes/create',
                 payload,
                 function onVolumeCreated(err, res, req, body) {
@@ -81,6 +86,34 @@ function createDockerVolume(opts, callback) {
     ], callback);
 }
 
+/*
+ * Deletes a docker volume.
+ *
+ * @param {Object} opts: object with the following fields:
+ *   - apiVersion {String}: the desired Docker engine API version
+ *   - dockerClient {Object}: the docker client to use to perform the request
+ *   - name {String}: the name of the volume to delete
+ * @param {Function} callback: a function called when volume creation completes
+ *   either successfully or with an error. The function signature is:
+ *   function (err, body).
+ */
+function deleteDockerVolume(opts, callback) {
+    assert.object(opts, 'opts');
+    assert.optionalString(opts.apiVersion, 'opts.apiVersion');
+    assert.object(opts.dockerClient, 'opts.dockerClient');
+    assert.string(opts.name, 'opts.name');
+    assert.func(callback, 'callback');
+
+    var dockerApiVersion = opts.apiVersion || ('v' + constants.API_VERSION);
+    var dockerClient = opts.dockerClient;
+
+    dockerClient.del('/' + dockerApiVersion + '/volumes/' + opts.name,
+        function onVolumeDelete(delErr, res, req, body) {
+            callback(delErr, body);
+        });
+}
+
 module.exports = {
-    createDockerVolume: createDockerVolume
+    createDockerVolume: createDockerVolume,
+    deleteDockerVolume: deleteDockerVolume
 };

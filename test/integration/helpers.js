@@ -1672,11 +1672,13 @@ function ensureImage(opts, callback) {
  * Create a docker container.
  *
  * @param opts.dockerClient {Object} A docker client.
- * @param opts.vmapiClient {Object} A vmapi client.
- * @param opts.test {Object} The tape test object.
+ * @param opts.expectedErr {RegExp} or {String} a regular expression or a string
+ *        that matches the error sent back by the server.
  * @param opts.imageName {String} Optional image name to base the container on.
  *        Defaults to nginx container.
  * @param opts.start {Boolean} Optional. Use to start container after creation.
+ * @param opts.test {Object} The tape test object.
+ * @param opts.vmapiClient {Object} A vmapi client.
  *
  * @returns callback(err, result) Result contains these fields:
  *          - id: The id of the created container.
