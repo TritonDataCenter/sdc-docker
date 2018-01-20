@@ -137,7 +137,7 @@ test('api: attach containers to volumes on different networks', function (tt) {
                 function createContainer(_, next) {
                     testHelpers.createDockerContainer({
                         dockerClient: DOCKER_ALICE,
-                        expectedErr: /unreachable on network/,
+                        expectedErr: /Volumes not reachable from container/,
                         extra: {
                             Binds: [volumeName + ':/data'],
                             Cmd: ['/bin/sh', '-c', 'touch', '/data/foo']
@@ -184,7 +184,7 @@ test('api: attach containers to volumes on different networks', function (tt) {
                 function createContainer(_, next) {
                     testHelpers.createDockerContainer({
                         dockerClient: DOCKER_ALICE,
-                        expectedErr: /unreachable on network/,
+                        expectedErr: /Volumes not reachable from container/,
                         extra: {
                             Binds: [volumeName + ':/data'],
                             Cmd: ['/bin/sh', '-c', 'touch', '/data/foo'],
