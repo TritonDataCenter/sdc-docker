@@ -59,7 +59,7 @@
     {{/CNS_SERVICE}}
     "wfapi": {
         "forceMd5Check": true,
-        "workflows": ["pull-image-v2"],
+        "workflows": ["pull-image-v2", "push-image"],
         "url": "http://workflow.{{{datacenter_name}}}.{{{dns_domain}}}"
     },
 {{#experimental_docker_nfs_shared_volumes}}

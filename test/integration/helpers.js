@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
@@ -17,6 +17,7 @@ var drc = require('docker-registry-client');
 var exec = require('child_process').exec;
 var fmt = require('util').format;
 var fs = require('fs');
+var mkdirp = require('mkdirp');
 var moray = require('moray');
 var os = require('os');
 var path = require('path');
@@ -487,7 +488,8 @@ function stepClientZone(state_, cb) {
             });
         },
         // Create the client zone if necessary.
-        _stepCreateClientZone
+        _stepCreateClientZone,
+        _stepCopyClientZoneDockerConfig
     ]}, cb);
 }
 
@@ -618,6 +620,26 @@ function _stepCreateClientZone(state_, cb) {
     ]}, cb);
 }
 
+function _stepCopyClientZoneDockerConfig(state, cb) {
+    var gzConfigPath = process.env.DOCKER_TEST_CONFIG_FILE;
+    if (!gzConfigPath) {
+        cb();
+        return;
+    }
+    p('# Copying docker config file (%s) into client zone',
+        gzConfigPath);
+    var zoneConfigPath = fmt('/zones/%s/root/root/.docker/config.json',
+        state.clientZone.uuid);
+
+    mkdirp(path.dirname(zoneConfigPath), function (err) {
+        if (err) {
+            cb(err);
+            return;
+        }
+        fs.writeFileSync(zoneConfigPath, fs.readFileSync(gzConfigPath));
+        cb();
+    });
+}
 
 
 /*
