@@ -27,6 +27,8 @@ var h = require('./helpers');
 var vm = require('../lib/vm');
 var configLoader = require('../../lib/config-loader.js');
 
+var STDIO_ON_ERROR_SIZE = 0;
+
 var STATE = {
     log: require('../lib/log')
 };
@@ -615,7 +617,8 @@ function copyFileOut(tt, remotefn, localfn, containerName, callback) {
         'cp "%s:%s" - | tar xOf - "%s"',
         containerName, remotefn, localfn);
     var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
-    cli.docker(args, { execOpts: execOpts }, onDocker);
+    cli.docker(args, {
+        maxStdoutOnError: STDIO_ON_ERROR_SIZE, execOpts: execOpts }, onDocker);
     function onDocker(err, stdout, stderr) {
         tt.ifErr(err);
         var str = stdout.toString();

@@ -93,6 +93,8 @@ function execPlus(args, cb) {
     assert.string(args.command, 'args.command');
     assert.optionalString(args.errMsg, 'args.errMsg');
     assert.optionalObject(args.execOpts, 'args.execOpts');
+    assert.optionalNumber(args.maxStdoutOnError, 'args.maxStdoutOnError');
+    assert.optionalNumber(args.maxStderrOnError, 'args.maxStderrOnError');
     assert.object(args.log, 'args.log');
     assert.func(cb);
     var command = args.command;
@@ -104,15 +106,24 @@ function execPlus(args, cb) {
         args.log.trace({exec: true, command: command, execOpts: execOpts,
             err: err, stdout: stdout, stderr: stderr}, 'exec done');
         if (err) {
+
+            // Render stdio as something we can send to the console.
+            if (args.hasOwnProperty('maxStdoutOnError')) {
+                stdout = stdout.slice(0, args.maxStdoutOnError);
+            }
+            if (args.hasOwnProperty('maxStderrOnError')) {
+                stderr = stderr.slice(0, args.maxStderrOnError);
+            }
+
             cb(
                 new VError(err,
                     '%s:\n'
                     + '\tcommand: %s\n'
                     + '\texit status: %s\n'
-                    + '\tstdout:\n%s\n'
-                    + '\tstderr:\n%s',
+                    + '\tstdout: %s\n'
+                    + '\tstderr: %s',
                     args.errMsg || 'exec error', command, err.code,
-                    stdout.trim(), stderr.trim()),
+                    JSON.stringify(stdout), JSON.stringify(stderr)),
                 stdout, stderr);
         } else {
             cb(null, stdout, stderr);

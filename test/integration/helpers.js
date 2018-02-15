@@ -828,6 +828,8 @@ GzDockerEnv.prototype.exec = function denvExec(cmd, opts, cb) {
         // TODO: escaping single-quotes
         command: fmt('zlogin %s \'%s\'', this.clientZone.uuid, cmd),
         log: this.log,
+        maxStdoutOnError: opts.maxStdoutOnError,
+        maxStderrOnError: opts.maxStderrOnError,
         execOpts: opts.execOpts
     }, cb);
 };
