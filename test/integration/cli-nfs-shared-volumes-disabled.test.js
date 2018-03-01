@@ -34,7 +34,7 @@ var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var SAPI_CLIENT;
 var SAPI_APP;
-var STATE_RETRIES = 120;
+var STATE_RETRIES = 180;
 
 // wait for /admin/config to have state either 'enabled' or 'disabled' for
 // experimental_docker_nfs_shared_volumes
