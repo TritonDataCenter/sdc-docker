@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
@@ -34,7 +34,7 @@ var NFS_SHARED_VOLUME_NAMES_PREFIX =
     testVolumes.getNfsSharedVolumesNamePrefix();
 var SAPI_CLIENT;
 var SAPI_APP;
-var STATE_RETRIES = 120;
+var STATE_RETRIES = 180;
 
 // wait for /admin/config to have state either 'enabled' or 'disabled' for
 // experimental_docker_nfs_shared_volumes
@@ -137,8 +137,8 @@ test('setup', function (tt) {
                         + app.metadata.experimental_docker_nfs_shared_volumes);
                 }
 
-                if (app.metadata.experimental_docker_nfs_shared_volumes ===
-                    false) {
+                if (app.metadata.experimental_docker_nfs_shared_volumes !==
+                    true) {
                     t.comment('NFS volumes support already disabled, no need '
                         + 'to turn it off');
                     t.end();
