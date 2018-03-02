@@ -15,6 +15,7 @@
       -f, --file=""                   Name of the Dockerfile (Default is 'PATH/Dockerfile')
       --force-rm                      Always remove intermediate containers
       --help                          Print usage
+      --label                         Set metadata for an image (default [])
       --isolation=""                  Container isolation technology
       -m, --memory=""                 Memory limit for all build containers
       --memory-swap=""                A positive integer equal to memory plus swap. Specify -1 to enable unlimited swap.
@@ -288,6 +289,7 @@ unique to Triton.
 * `--cpuset-cpus` and `--cpuset-mems` (controls which CPUs and memory nodes to run on) are ignored. See [resource allocation](../features/resources.md).
 * `--cpu-period` and `--cpu-quota` (limit the CPU CFS settings) are ignored. See [resource allocation](../features/resources.md).
 * `--isolation` is unsupported.
+* `--label` is unimplemented.
 * `--quiet` is unimplemented.
 * `--shm-size` is ignored.
 * `--ulimit` (ulimit options) is unsupported.
@@ -302,3 +304,4 @@ unique to Triton.
 
 - [`docker commit`](../commands/commit.md)
 - [`docker images`](../commands/images.md)
+- [`docker push`](../commands/push.md)

@@ -5,6 +5,7 @@
     Return low-level information on a container or image
 
       -f, --format=""            Format the output using the given go template
+      -s, --size                 Display total file sizes if the type is container
       --type=container|image     Return JSON for specified type, permissible
                                  values are "image" or "container"
 
@@ -82,6 +83,8 @@ value which will be set to the current name of the package associated with this
 VM.
 
 Read more about container [security on Triton](features/security.md) and see [notes about exit status](../divergence.md).
+
+The `-s` and `--size` options are currently unsupported.
 
 Please contact Joyent support or file a ticket if you discover any additional divergence.
 

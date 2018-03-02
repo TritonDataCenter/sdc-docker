@@ -150,11 +150,13 @@ SDC Docker offers a number of features unique to Triton's container-native infra
 
 ## Docker CLI commands and Docker Remote API methods
 
-`docker attach`, `docker build`, `docker commit`, `docker cp`, `docker create`, `docker exec`,
-`docker history`, `docker images`, `docker info`, `docker inspect`, `docker kill`, `docker login`,
-`docker logout`, `docker logs`, `docker port`, `docker ps`, `docker pull`, `docker rename`,
-`docker restart`, `docker rm`, `docker rmi`, `docker run`, `docker search`, `docker start`,
-`docker stop`, `docker tag`, `docker top`, `docker version`, `docker wait`
+`docker attach`, `docker build`, `docker commit`, `docker cp`, `docker create`,
+`docker exec`, `docker history`, `docker images`, `docker info`, `docker inspect`,
+`docker kill`, `docker login`, `docker logout`, `docker logs`, `docker port`,
+`docker ps`, `docker pull`, `docker push`, `docker rename`, `docker restart`,
+`docker rm`, `docker rmi`, `docker run`, `docker search`, `docker start`,
+`docker stop`, `docker tag`, `docker top`, `docker version`, `docker volume`,
+`docker wait`
 
 ## Divergence
 

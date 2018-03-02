@@ -4,6 +4,7 @@
 
     Attach to a running container
 
+      --detach-keys       Override the key sequence for detaching a container
       --no-stdin=false    Do not attach STDIN
       --sig-proxy=true    Proxy all received signals to the process
 
@@ -79,7 +80,7 @@ is returned by the `docker attach` command to its caller too:
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+- `--detach-keys` option is unsupported.
 
 ## Related
 

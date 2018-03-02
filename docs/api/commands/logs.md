@@ -4,6 +4,7 @@
 
     Fetch the logs of a container
 
+      --details                 Show extra details provided to logs
       -f, --follow=false        Follow log output
       --since=""                Show logs since timestamp
       -t, --timestamps=false    Show timestamps
@@ -29,7 +30,7 @@ The --since option shows only the container logs generated after a given date. Y
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+- `--details` option is unsupported.
 
 ## Related
 

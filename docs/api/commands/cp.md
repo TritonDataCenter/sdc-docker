@@ -6,6 +6,7 @@ Copy files/folders between a container and the local filesystem.
             docker cp [options] LOCALPATH|- CONTAINER:PATH
 
     --help  Print usage statement
+    -L, --follow-link   Always follow symbol link in SRC_PATH
 
 In the first synopsis form, the `docker cp` utility copies the contents of `PATH`
 from the filesystem of `CONTAINER` to the `LOCALPATH` (or stream as a tar archive
@@ -76,9 +77,7 @@ of the resource from the source container as a tar archive to `STDOUT`.
 
 ## Divergence
 
-With sdc-docker, `docker cp` does not work against stopped containers. ([DOCKER-374](http://smartos.org/bugview/DOCKER-374))
-
-Copying of files from local path to container path is not supported. Follow [DOCKER-527](http://smartos.org/bugview/DOCKER-527) for updates.
+- `-L` and --follow-link` options are unsupported.
 
 ## Related
 

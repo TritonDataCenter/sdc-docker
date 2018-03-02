@@ -4,8 +4,9 @@ Usage: docker stats CONTAINER [CONTAINER...]
 
 Display a live stream of one or more containers' resource usage statistics
 
-  --help=false       Print usage
-  --no-stream=false  Disable streaming stats and only pull the first result
+    -a, --all          Show all containers (default shows just running)
+    --help=false       Print usage
+    --no-stream=false  Disable streaming stats and only pull the first result
 
 Example:
 
@@ -22,6 +23,9 @@ underlying docker stats (cgroups) data points are available, see:
 
 - [docker-stats.js](https://github.com/joyent/sdc-cn-agent/blob/master/bin/docker-stats.js)
 
+Also the `-a` and `--all` options are not supported.
+
 ## Related
 
-- Insert a list of related Docker and CloudAPI methods here
+- [Container Monitor 'cmon'](https://github.com/joyent/triton-cmon/tree/master/docs)
+- [Container Monitor with Prometheus](https://docs.joyent.com/public-cloud/api-access/prometheus)

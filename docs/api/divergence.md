@@ -87,15 +87,11 @@ Here's the list of API methods currently unimplemented as of this writing, but
 expect it to get shorter by the day:
 
 `docker diff`, `docker events`, `docker export`, `docker import`, `docker load`,
-`docker network`, `docker node`, `docker pause`, `docker push`, `docker save`,
-`docker service`, `docker swarm`, `docker unpause`, `docker update`, `docker volume`
+`docker network`, `docker node`, `docker pause`, `docker save`,
+`docker service`, `docker swarm`, `docker unpause`, `docker update`
 
 ### Roadmap:
-- `docker push` is close to completion, it will be available in a later release
-  in 2016.
-- `docker volume` is in active development, more [details](https://github.com/joyent/rfd/blob/master/rfd/0026/README.md)
-  here.
-- `docker network` is also on our near-term roadmap, follow 
+- `docker network` is on our near-term roadmap, follow
 [DOCKER-722](http://smartos.org/bugview/DOCKER-722), [DOCKER-723](http://smartos.org/bugview/DOCKER-723),
 [DOCKER-724](http://smartos.org/bugview/DOCKER-724), [DOCKER-725](http://smartos.org/bugview/DOCKER-725)
   for updates.
@@ -173,3 +169,10 @@ these label names are currently defined:
   package for the container. The value can be a package name like
   `g4-standard-1G`, a UUID, or the first 8 characters of a UUID
   (short-UUID).
+
+
+## Other Differences
+
+SDC Docker supports certain versions of Docker CLI and Compose clients. Check
+the [supported versions](../#docker-version) and the individual command
+references to see which command options can be used with SDC Docker.
