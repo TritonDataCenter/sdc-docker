@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2018, Joyent, Inc.
  */
 
 /*
@@ -417,7 +417,9 @@ test('copy a file out of running container', function (tt) {
 });
 
 
-test('copy a file out of stopped container', function (tt) {
+test('copy a file out of stopped container (skipped until OS-6699 fixed)',
+{ skip: true },
+function testCopyOutOfStoppedContainer(tt) {
     tt.plan(9);
 
     var fnbase = '/var/tmp';
