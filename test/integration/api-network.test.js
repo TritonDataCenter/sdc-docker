@@ -130,4 +130,13 @@ test('docker network inspect', function (tt) {
             t.end();
         });
     });
+    tt.test('inspect non-existent network', function (t) {
+        DOCKER_ALICE.get('/networks/some_random_name',
+            function (err, res, req, net)
+        {
+            t.ok(err, 'expecting error');
+            t.ok(err.statusCode === 404, 'Expecting 404');
+            t.end();
+        });
+    });
 });
