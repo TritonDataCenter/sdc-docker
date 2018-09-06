@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -28,7 +28,7 @@
     "strsplit": "1.0.0",
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
-    "triton-tags": "1.1.4",
+    "triton-tags": "1.2.2",
     "ufds": "1.2.0",
     "vasync": "2.1.0",
     "verror": "1.9.0",
