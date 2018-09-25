@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
