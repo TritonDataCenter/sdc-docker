@@ -79,7 +79,7 @@ are working on, and intend to keep improving over time.
 
 ## Docker Remote API methods and Docker CLI commands
 
-In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see restart policies). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
+In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see [restart policies](./features/restart.md)). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
 
 SDC Docker implements all the API methods necessary to build and deploy Docker
 containers in the cloud, though there are some missing docker API methods.
