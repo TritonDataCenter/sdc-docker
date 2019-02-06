@@ -132,6 +132,7 @@ function findOwnerExternalNetwork(api, cfg) {
                 return owners && owners.indexOf(accountUuid) !== -1;
             });
 
+            // TODO: MSAN/RAN
             var external = owned.filter(function filterExternal(network) {
                 var tags = network.nic_tags_present;
                 return network.nic_tag === EXTERNAL_NIC_TAG
