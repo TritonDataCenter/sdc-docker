@@ -13,3 +13,6 @@
 [submodule "deps/restdown-brand-remora"]
 	path = deps/restdown-brand-remora
 	url = https://github.com/joyent/restdown-brand-remora.git
+[submodule "deps/eng"]
+	path = deps/eng
+	url = https://github.com/joyent/eng.git

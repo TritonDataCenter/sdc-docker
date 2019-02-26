@@ -1,9 +1,11 @@
+/make_stamps
 /node_modules
 /tmp
+/bits
 /build
 /smf/manifests/docker.xml
 .*.swp
-/docker-pkg*.tar.bz2
+/docker-pkg*.tar.gz
 /docs/*.html
 /docs/*.json
 .DS_Store
