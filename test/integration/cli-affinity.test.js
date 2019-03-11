@@ -45,8 +45,8 @@ test('affinities a la Swarm', function (tt) {
             + '*\' -d --name %s alpine sleep 3600', containerName);
         cli.run(t, {
             args: args,
-            // JSSTYLED
-            expectedErr: /\(ResourceNotFound\) no active containers found matching "sdcdockertest_affinity_\*" for affinity "container==sdcdockertest_affinity_\*"/
+            expectedErr: 'Error response from daemon: (DockerNoCompute'
+                + 'ResourcesError) No compute resources available.'
         }, function (err) {
             t.end();
         });
@@ -77,9 +77,8 @@ test('affinities a la Swarm', function (tt) {
             containerName);
         cli.run(t, {
             args: args,
-            expectedErr: 'Error response from daemon: (ResourceNotFound) '
-                + 'no active containers found matching tag "foo=bar2" for '
-                + 'affinity "foo==bar2"'
+            expectedErr: 'Error response from daemon: (DockerNoCompute'
+                + 'ResourcesError) No compute resources available.'
         }, function (err) {
             t.end();
         });
