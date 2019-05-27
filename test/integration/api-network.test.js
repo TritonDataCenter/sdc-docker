@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2017, Joyent, Inc.
+ * Copyright 2019, Joyent, Inc.
  */
 
 /*
@@ -194,7 +194,7 @@ test('docker network create with existing vlan_id', function (tt) {
 
             function createNet1(_, next) {
                 var networkPayload = {
-                    Name: testcommon.makeNetworkName(NETWORK_NAME_PREFIX),
+                    Name: testcommon.makeResourceName(NETWORK_NAME_PREFIX),
                     Driver: 'overlay',
                     IPAM: {
                         Config: [
@@ -242,7 +242,7 @@ test('docker network create with existing vlan_id', function (tt) {
 
             function createNet2(_, next) {
                 var networkPayload = {
-                    Name: testcommon.makeNetworkName(NETWORK_NAME_PREFIX),
+                    Name: testcommon.makeResourceName(NETWORK_NAME_PREFIX),
                     Driver: 'overlay',
                     IPAM: {
                         Config: [
@@ -310,7 +310,7 @@ test('docker network create with existing vlan_id', function (tt) {
                 return;
 
                 // var networkPayload = {
-                //     Name: testcommon.makeNetworkName(NETWORK_NAME_PREFIX),
+                //     Name: testcommon.makeResourceName(NETWORK_NAME_PREFIX),
                 //     Driver: 'overlay',
                 //     IPAM: {
                 //         Config: [
@@ -346,7 +346,7 @@ test('docker network create with existing vlan_id', function (tt) {
 test('docker network create bogus vlan_id', function (tt) {
     tt.test('create overlay network', function (t) {
         var networkPayload = {
-            Name: testcommon.makeNetworkName(NETWORK_NAME_PREFIX),
+            Name: testcommon.makeResourceName(NETWORK_NAME_PREFIX),
             Driver: 'overlay',
             IPAM: {
                 Config: [
