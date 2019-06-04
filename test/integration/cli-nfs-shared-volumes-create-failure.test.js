@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2017, Joyent, Inc.
+ * Copyright (c) 2019, Joyent, Inc.
  */
 
 //
@@ -107,21 +107,14 @@ test('Volume creation should fail when provision fails', function (tt) {
                 size: '10G',
                 name: testVolumeName
             }, function volumeCreated(err, stdout, stderr) {
-                var expectedErr = 'Error response from daemon: (InternalError) '
-                    + 'volume creation failed';
-                var matches;
-
-                // Make a RegExp from the expectedErr but we need to escape the
-                // '(' and ')' characters to '\(' and '\)' so that the regex
-                // will not treat that as a grouping.
-                var re = new RegExp(expectedErr.replace(/[()]/g, '\\$&'));
-
-                matches = stderr.match(re);
+                var expectedErr = 'Error response from daemon: '
+                    + 'problem creating volume';
+                var matches = stderr.match(expectedErr);
 
                 t.ok(err, 'volume creation should not succeed');
                 // with this, we get the actual error message if it fails
                 t.equal((matches ? matches[0] : stderr), expectedErr,
-                    'expected InternalError');
+                    'expected "problem creating volume" error message');
 
                 t.end();
             });
