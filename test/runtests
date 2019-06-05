@@ -6,7 +6,7 @@
 #
 
 #
-# Copyright (c) 2016, Joyent, Inc.
+# Copyright (c) 2019, Joyent, Inc.
 #
 
 #
@@ -48,6 +48,7 @@ start_time=$(date +%s)
 API=docker
 TOP=$(cd $(dirname $0)/../; pwd)
 NODE_INSTALL=$TOP/build/node
+NODE_EXECUTABLE=$TOP/build/node/bin/node
 OUTPUT_DIR=/var/tmp/${API}test
 TAPE=$TOP/node_modules/.bin/tape
 FAILING_LIST=$OUTPUT_DIR/failing-tests.txt
@@ -77,6 +78,24 @@ done
 
 # Include common functions (e.g. fatal) and perform prereq checks.
 source $(dirname $0)/runtest.common
+
+# TRITON-1713
+# As the docker test suite is run from the GZ (boo), the gcc libraries are not
+# found/loaded correctly (since the rpath of the node executable is set to the
+# path inside the zone), and the node executable *may* crash, e.g.:
+#   ld.so.1: node: fatal: relocation error: file /zones/${docker}/root/opt/
+#     smartdc/docker/build/node/bin/node: symbol
+#     _ZNSt8__detail15_List_node_base7_M_hookEPS0_: referenced symbol not found
+# To work around this we specifically add the necessary gcc library paths to the
+# node executable, but using the GZ path in addition to the zone path.
+NODE_RPATH=$(elfdump $NODE_EXECUTABLE | grep RPATH | awk '{print $4}')
+if [[ $NODE_RPATH != *"/zones/"* ]]; then
+    # Replace '/opt/local/' with the path from $TOP, so we end up with a GZ
+    # path, then append these GZ library paths to the existing node RPATH.
+    ESCAPED_TOP=$(printf '%s' "$TOP" | sed 's/[[\.*^$/]/\\&/g')
+    NODE_GZ_RPATH=$(printf '%s' "$NODE_RPATH" | sed "s/\/opt\/local\//$ESCAPED_TOP\/..\/..\/local\//g")
+    /usr/bin/elfedit -e "dyn:runpath $NODE_RPATH:$NODE_GZ_RPATH" $NODE_EXECUTABLE
+fi
 
 # Setup a clean output dir.
 echo "# Setup a clean output dir ($OUTPUT_DIR)."
