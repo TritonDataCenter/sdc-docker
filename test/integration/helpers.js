@@ -96,6 +96,11 @@ function createClientOpts(name, callback) {
         agent: false
     };
 
+    if (name === 'sapi') {
+        // The SAPI client demands a version field.
+        opts.version = '~2';
+    }
+
     if (configVal) {
         opts.url = configVal;
         callback(null, opts);
