@@ -712,7 +712,8 @@ GzDockerEnv.prototype.init = function denvInit(t, state_, cb) {
             p('# Creating "%s" SSH key for "%s" account', keyName, self.login);
             var cmds = [
                 fmt('rm -rf %s %s', self.privKeyPath, self.pubKeyPath),
-                fmt('ssh-keygen -t rsa -f %s -b 2048 -N ""', self.privKeyPath),
+                fmt('ssh-keygen -t rsa -m PEM -f %s -b 2048 -N ""',
+                    self.privKeyPath),
                 fmt('cp %s '
                     + '/zones/$(vmadm lookup -1 alias=sdc0)/root/var/tmp/',
                     self.pubKeyPath)
@@ -937,7 +938,8 @@ LocalDockerEnv.prototype.init = function ldenvInit(t, state_, cb) {
             p('# Creating "%s" SSH key for "%s" account', keyName, self.login);
             var cmds = [
                 fmt('rm -rf %s %s', self.privKeyPath, self.pubKeyPath),
-                fmt('ssh-keygen -t rsa -f %s -b 2048 -N ""', self.privKeyPath),
+                fmt('ssh-keygen -t rsa -m PEM -f %s -b 2048 -N ""',
+                    self.privKeyPath),
                 fmt('scp %s %s:/zones/%s/root/var/tmp/',
                     self.pubKeyPath, state.headnodeSsh, state.sdcZonename)
             ];

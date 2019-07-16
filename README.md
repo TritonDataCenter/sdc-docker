@@ -95,7 +95,7 @@ and add an SSH key for access.
 2. Create a test user (we'll use "jill"):
 
         # On your dev machine, create a key
-        ssh-keygen -t rsa -f ~/.ssh/sdc-docker-jill.id_rsa -b 2048 -N ""
+        ssh-keygen -t rsa -m PEM -f ~/.ssh/sdc-docker-jill.id_rsa -b 2048 -N ""
 
         # Copy it to COAL so we can add it to the 'jill' account.
         scp ~/.ssh/sdc-docker-jill.id_rsa.pub root@10.99.99.7:/var/tmp/
