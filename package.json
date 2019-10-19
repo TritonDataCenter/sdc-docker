@@ -24,7 +24,7 @@
     "sdc-bunyan-serializers": "git+https://github.com/joyent/sdc-bunyan-serializers.git#a3e7780",    
     "sdc-clients": "10.4.0",
     "sprintf": "0.1.5",
-    "sshpk": "1.11.0",
+    "sshpk": "1.16.1",
     "strsplit": "1.0.0",
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
