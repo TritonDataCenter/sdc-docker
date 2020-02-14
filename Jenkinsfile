@@ -21,6 +21,18 @@ pipeline {
         timestamps()
     }
 
+    parameters {
+        string(
+            name: 'AGENT_PREBUILT_AGENT_BRANCH',
+            defaultValue: '',
+            description: 'The branch to use for the agents ' +
+                'that are included in this component.<br/>' +
+                'With an empty value, the build will look for ' +
+                'agents from the same branch name as the ' +
+                'component, before falling back to "master".'
+        )
+    }
+
     stages {
         stage('check') {
             steps{
