@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright (c) 2018, Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 /*
@@ -91,6 +91,7 @@ var ALICE;
  *      - single file (and permuted permisisons)
  *      - directory structure with sub directories and files (and permuted
  *        permissions)
+ *      - parallel copy in operations
  */
 /* END JSSTYLED */
 
@@ -179,7 +180,7 @@ test('test initialization', function (tt) {
  * Tests ---------------------------------------------------------------------
  */
 
-test('copy out of container file with funky name', function (tt) {
+function testFunkyFiles(tt, mode) {
     /**
      * Test that we can copy in and copy out files that have variety of
      * characters, some of which could be considered "problematic".  Previous
@@ -198,7 +199,10 @@ test('copy out of container file with funky name', function (tt) {
         '#filltheswamp',
         'loudnoises\\!',
         'equal=sign',
-        '\\"double-quote',
+        'double"quote',
+        'single\'quote',
+        'semi;colon',
+        'shell$param',
         'has space',
         'ast*risk'
     ];
@@ -234,11 +238,11 @@ test('copy out of container file with funky name', function (tt) {
 
 
     function copyFilesIn(local, remote, cb) {
-        vasync.forEachPipeline({
+        vasync.forEachParallel({
             inputs: remoteFilenames,
             func: function (filename, next) {
-                copyFileIn(tt, local,
-                            remote + filename, CONTAINER_NAME_ALPINE, next);
+                var remotePath = remote + filename + '.' + mode;
+                copyFileIn(tt, local, remotePath, CONTAINER_NAME_ALPINE, next);
             }
         }, function (err) {
             tt.ifErr(err, 'no error copying test files into container');
@@ -248,11 +252,13 @@ test('copy out of container file with funky name', function (tt) {
 
 
     function copyFilesOutAndCheckContents(remote, fileContents, cb) {
-        vasync.forEachPipeline({
+        vasync.forEachParallel({
             inputs: remoteFilenames,
             func: function (filename, next) {
+                var remoteName = filename + '.' + mode;
+                var remotePath = remote + remoteName;
                 copyFileOutGetContents(
-                    tt, remote + filename, filename, CONTAINER_NAME_ALPINE,
+                    tt, remotePath, remoteName, CONTAINER_NAME_ALPINE,
                     onCopyOut);
 
                 function onCopyOut(err, str) {
@@ -265,9 +271,22 @@ test('copy out of container file with funky name', function (tt) {
             cb();
         });
     }
+}
 
+test('parallel copy funky files in/out of a running container', function (tt) {
+    testFunkyFiles(tt, 'running');
 });
 
+test('parallel copy funky files in/out of a stopped container', function (tt) {
+    stopContainer(tt, CONTAINER_NAME_ALPINE, function (err) {
+        tt.ifErr(err, 'stopping alpine container');
+        if (err) {
+            tt.end();
+            return;
+        }
+        testFunkyFiles(tt, 'stopped');
+    });
+});
 
 test('copy out of container file placement', function (tt) {
     var directoryName = 'local-dir-' + process.pid;
@@ -418,7 +437,6 @@ test('copy a file out of running container', function (tt) {
 
 
 test('copy a file out of stopped container (skipped until OS-6699 fixed)',
-{ skip: true },
 function testCopyOutOfStoppedContainer(tt) {
     tt.plan(9);
 
@@ -597,6 +615,16 @@ function startContainer(tt, containerName, callback) {
  * Copy out test auxillary support functions
  */
 
+// The command will already be fully single quoted, so we need to convert the
+// string to $'string' format - which means the string expands to the literal
+// string, although note that any backslash-escaped characters will be replaced
+// as specified by the ANSI C standard - we use that to our advantage to escape
+// any single quoted characters in the string.
+function zloginQuote(s) {
+    var singleQuoteEscaped = s.replace('\'', '\\x27');
+    return '$\'"\'"\'' + singleQuoteEscaped + '\'"\'"\'';
+}
+
 function createCopyOutFile(tt, remotefn, containerName, callback) {
     // Create a file and get a checksum of it
     var inside = [
@@ -616,8 +644,8 @@ function createCopyOutFile(tt, remotefn, containerName, callback) {
 
 function copyFileOut(tt, remotefn, localfn, containerName, callback) {
     var args = sprintf(
-        'cp "%s:%s" - | tar xOf - "%s"',
-        containerName, remotefn, localfn);
+        'cp %s - | tar xOf - %s',
+        zloginQuote(containerName + ':' + remotefn), zloginQuote(localfn));
     var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
     cli.docker(args, {
         maxStdoutOnError: STDIO_ON_ERROR_SIZE, execOpts: execOpts }, onDocker);
@@ -632,7 +660,7 @@ function copyFileOut(tt, remotefn, localfn, containerName, callback) {
 
 function checkFileCopiedOut(tt, remotefn, hash, containerName, callback) {
     var args = sprintf('exec %s /native/usr/bin/sum -x sha1 %s',
-                        containerName, remotefn);
+        containerName, zloginQuote(remotefn));
     cli.docker(args, onDocker);
     function onDocker(err, stdout, stderr) {
         tt.ifErr(err);
@@ -649,7 +677,7 @@ function createCopyInFile(tt, localfn, callback) {
         'dd if=/dev/urandom of=%s '
         + 'count=1024 bs=1024 >/dev/null && '
         + '/native/usr/bin/sum -x sha1 %s | awk "{ print $1 }"',
-        localfn, localfn);
+        zloginQuote(localfn), zloginQuote(localfn));
     cli.exec(cmd, function (err, stdout, stderr) {
         tt.ifErr(err);
         hash = stdout.toString();
@@ -659,7 +687,8 @@ function createCopyInFile(tt, localfn, callback) {
 
 
 function copyFileIn(tt, localfn, remotefn, containerName, callback) {
-    var args = sprintf('cp %s "%s:%s"', localfn, containerName, remotefn);
+    var args = sprintf('cp %s %s', zloginQuote(localfn),
+        zloginQuote(containerName + ':' + remotefn));
     var execOpts = { maxBuffer: 1024*1024*2, encoding: 'binary' };
     cli.docker(args, { execOpts: execOpts }, onDocker);
     function onDocker(err, stdout, stderr) {
@@ -671,7 +700,7 @@ function copyFileIn(tt, localfn, remotefn, containerName, callback) {
 function checkFileCopiedIn(tt, remotefn, containerName, hash, callback) {
     var args =
         sprintf('exec %s /native/usr/bin/sum -x sha1 %s',
-                containerName, remotefn);
+                containerName, zloginQuote(remotefn));
     cli.docker(args, onDocker);
     function onDocker(err, stdout, stderr) {
         tt.ifErr(err);
@@ -684,8 +713,8 @@ function checkFileCopiedIn(tt, remotefn, containerName, hash, callback) {
 
 function
 copyFileOutGetContents(tt, remotefn, extractfn, containerName, callback) {
-    var args = sprintf('cp "%s:%s" - | tar xOf - "%s"',
-        containerName, remotefn, extractfn);
+    var args = sprintf('cp %s - | tar xOf - %s',
+        zloginQuote(containerName + ':' + remotefn), zloginQuote(extractfn));
     var execOpts = { maxBuffer: 1024*1024+1, encoding: 'binary' };
     cli.docker(args, { execOpts: execOpts }, onDocker);
     function onDocker(err, stdout, stderr) {
