@@ -155,16 +155,3 @@ The use of affinity rules can mean the placement is impossible. For example:
   and container1 when those two are already on separate servers; or
 - a rule requiring that a new container land on a particular server, but that
   server does not have enough resources for the new container.
-
-A current limitation is that the error returned with `docker run` for the
-above cases is not differentiated from the general error of the data center
-being out of resources:
-
-```
-$ docker --tls run --name db1 -e 'affinity:container!=db0' alpine hostname
-docker: Error response from daemon: (DockerNoComputeResourcesError) No compute resources available. (cb792af0-08b4-11e6-9922-231469062e7b).
-See 'docker run --help'.
-```
-
-[This issue](https://smartos.org/bugview/DOCKER-815) is being used to track
-this limitation.
