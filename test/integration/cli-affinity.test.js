@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2016, Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 /*
@@ -45,8 +45,11 @@ test('affinities a la Swarm', function (tt) {
             + '*\' -d --name %s alpine sleep 3600', containerName);
         cli.run(t, {
             args: args,
-            expectedErr: 'Error response from daemon: (DockerNoCompute'
-                + 'ResourcesError) No compute resources available.'
+            expectedErr: 'Error response from daemon: '
+                + '(NoAllocatableServersError) problem creating container: '
+                + 'No compute resources available: no active containers '
+                + 'found matching "sdcdockertest_affinity_*" for affinity '
+                + '"container==sdcdockertest_affinity_*"'
         }, function (err) {
             t.end();
         });
@@ -77,8 +80,10 @@ test('affinities a la Swarm', function (tt) {
             containerName);
         cli.run(t, {
             args: args,
-            expectedErr: 'Error response from daemon: (DockerNoCompute'
-                + 'ResourcesError) No compute resources available.'
+            expectedErr: 'Error response from daemon: '
+                + '(NoAllocatableServersError) problem creating container: '
+                + 'No compute resources available: no active containers '
+                + 'found matching tag "foo=bar2" for affinity "foo==bar2"'
         }, function (err) {
             t.end();
         });
