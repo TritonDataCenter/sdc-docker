@@ -5,7 +5,7 @@
  */
 
 /*
- * Copyright 2017, Joyent, Inc.
+ * Copyright 2020 Joyent, Inc.
  */
 
 /*
@@ -130,6 +130,7 @@ test('renaming mounted volume', function (tt) {
                 'creating and starting mounting container should succeed');
             if (!err) {
                 mountingContainer = response.inspect;
+                mountingContainer.uuid = response.uuid;
                 t.equal(mountingContainer.State.ExitCode, expectedExitCode,
                     'exit code of mounting container should be: '
                         + expectedExitCode);
@@ -168,7 +169,7 @@ test('renaming mounted volume', function (tt) {
                 }, function onVolUpdated(volUpdateErr) {
                     var expectedErrCode = 'VolumeInUse';
                     var expectedErrMsg = 'Volume with name ' + testVolumeName
-                        + ' is used';
+                        + ' is used by vms: ' + mountingContainer.uuid;
 
                     t.ok(volUpdateErr, 'renaming mounting volume should fail');
                     t.equal(volUpdateErr.body.code, expectedErrCode,
