@@ -44,7 +44,7 @@ The Docker Engine for SDC is currently in alpha and under heavy development.
 The current focus is on stabilization and filling out support for *building* and
 *running* Docker containers.
 Please [report issues](https://github.com/joyent/sdc-docker/issues),
-give us feedback or discuss on [#joyent IRC on freenode.net](irc://freenode.net/#joyent).
+give us feedback or discuss on [#joyent IRC on libera.chat](irc://libera.chat/#joyent).
 
 ### 3. sdc-docker-setup.sh
 
