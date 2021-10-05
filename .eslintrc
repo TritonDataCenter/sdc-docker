@@ -1,0 +1,46 @@
+{
+    "plugins": [ "joyent" ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:joyent/style",
+        "plugin:joyent/lint"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "script",
+        "ecmaFeatures": {
+        }
+    },
+    "env": {
+        "node": true,
+        "es6": true
+    },
+    "rules": {
+        // Local rule configuration
+        "no-unused-vars": [
+            "error",
+            {
+                // Track all unused identifiers
+                "vars": "all",
+                "args": "all",
+                "caughtErrors": "all",
+                // Don't warn on args that start with _, res or req.
+                // Added stdout and stderr to the standard joyent set.
+                "argsIgnorePattern": "^(_|res|req|stdout|stderr)",
+                // Don't warn on catch or var identifiers that start with _
+                "caughtIgnorePattern": "^_",
+                "varsIgnorePattern": "^(_|res|req|stdout|stderr)"
+            }
+        ],
+        "max-len": [
+            "error",
+            80,
+            {
+                "tabWidth": 8,
+                "ignoreComments": false,
+                "ignoreTrailingComments": false,
+                "ignoreUrls": true
+            }
+        ],
+    }
+}
