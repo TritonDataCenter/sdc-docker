@@ -5,15 +5,15 @@
  */
 
 /*
- * Copyright 2020 Joyent, Inc.
+ * Copyright 2021 Joyent, Inc.
  */
 
-@Library('jenkins-joylib@v1.0.6') _
+@Library('jenkins-joylib@v1.0.8') _
 
 pipeline {
 
     agent {
-        label joyCommonLabels(image_ver: '15.4.1')
+        label joyCommonLabels(image_ver: '19.4.0')
     }
 
     options {
@@ -54,7 +54,7 @@ pipeline {
 
     post {
         always {
-            joyMattermostNotification(channel: 'jenkins')
+            joySlackNotifications(channel: 'jenkins')
         }
     }
 

@@ -1,6 +1,3 @@
-[submodule "deps/javascriptlint"]
-	path = deps/javascriptlint
-	url = https://github.com/joyent/javascriptlint.git
 [submodule "deps/jsstyle"]
 	path = deps/jsstyle
 	url = https://github.com/joyent/jsstyle.git
