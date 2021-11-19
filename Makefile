@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright (c) 2019, Joyent, Inc.
+# Copyright 2021 Joyent, Inc.
 #
 
 NAME:=docker
@@ -17,18 +17,16 @@ RESTDOWN_FLAGS   = --brand-dir=deps/restdown-brand-remora
 TAPE	:= ./node_modules/.bin/tape
 
 JS_FILES	:= $(shell find lib plugins test -name '*.js' | grep -v '/tmp/')
-JSL_CONF_NODE	 = tools/jsl.node.conf
-JSL_FILES_NODE	 = $(JS_FILES)
+ESLINT_FILES	 = $(JS_FILES)
 JSSTYLE_FILES	 = $(JS_FILES)
 JSSTYLE_FLAGS	 = -f tools/jsstyle.conf
 SMF_MANIFESTS_IN = smf/manifests/docker.xml.in
 CLEAN_FILES += ./node_modules
 
-NODE_PREBUILT_VERSION=v4.9.0
+NODE_PREBUILT_VERSION=v6.17.1
 ifeq ($(shell uname -s),SunOS)
-	NODE_PREBUILT_TAG=zone
-	# Allow building on other than image sdc-minimal-multiarch-lts@15.4.1.
-	NODE_PREBUILT_IMAGE=18b094b0-eb01-11e5-80c1-175dac7ddf02
+	NODE_PREBUILT_TAG=zone64
+	NODE_PREBUILT_IMAGE=5417ab20-3156-11ea-8b19-2b66f5e7a439
 endif
 
 ENGBLD_USE_BUILDIMAGE	= true
@@ -55,7 +53,8 @@ RELSTAGEDIR:=/tmp/$(NAME)-$(STAMP)
 
 COAL ?= 10.99.99.7
 
-BASE_IMAGE_UUID = 04a48d7d-6bb5-4e83-8c3b-e60a99e0f48f
+# triton-origin-x86_64-19.4.0
+BASE_IMAGE_UUID = 59ba2e5e-976f-4e09-8aac-a4a7ef0395f5
 BUILDIMAGE_NAME = $(NAME)
 BUILDIMAGE_DESC	= SDC Docker Engine
 AGENTS		= amon config registrar
