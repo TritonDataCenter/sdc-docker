@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "author": "Joyent (joyent.com)",
   "private": true,
   "dependencies": {
@@ -11,7 +11,7 @@
     "effluent-logger": "git+https://github.com/joshwilsdon/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "fwrule": "2.1.0",
     "imgmanifest": "3.0.0",
-    "keyapi": "git+https://github.com/joyent/keyapi.git#e14b3d5",
+    "keyapi": "git+https://github.com/joyent/keyapi.git#bedd6fe787a4f3f3942724b37baed19162c8f074",
     "libuuid": "0.2.1",
     "jsprim": "1.3.1",
     "lru-cache": "2.5.0",
@@ -21,7 +21,7 @@
     "once": "1.3.1",
     "openssl-wrapper": "0.2.1",
     "restify": "4.3.0",
-    "sdc-bunyan-serializers": "git+https://github.com/joyent/sdc-bunyan-serializers.git#a3e7780",    
+    "sdc-bunyan-serializers": "git+https://github.com/joyent/sdc-bunyan-serializers.git#8fdb844",
     "sdc-clients": "10.4.0",
     "sprintf": "0.1.5",
     "sshpk": "1.11.0",

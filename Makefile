@@ -5,7 +5,7 @@
 #
 
 #
-# Copyright 2021 Joyent, Inc.
+# Copyright 2022 Joyent, Inc.
 #
 
 NAME:=docker
@@ -26,13 +26,15 @@ CLEAN_FILES += ./node_modules
 NODE_PREBUILT_VERSION=v6.17.1
 ifeq ($(shell uname -s),SunOS)
 	NODE_PREBUILT_TAG=zone64
-	NODE_PREBUILT_IMAGE=5417ab20-3156-11ea-8b19-2b66f5e7a439
+	NODE_PREBUILT_IMAGE=a7199134-7e94-11ec-be67-db6f482136c2
 endif
 
 ENGBLD_USE_BUILDIMAGE	= true
 ENGBLD_REQUIRE		:= $(shell git submodule update --init deps/eng)
 include ./deps/eng/tools/mk/Makefile.defs
 TOP ?= $(error Unable to access eng.git submodule Makefiles.)
+
+BUILD_PLATFORM  = 20210826T002459Z
 
 ifeq ($(shell uname -s),SunOS)
 	include ./deps/eng/tools/mk/Makefile.node_prebuilt.defs
@@ -53,8 +55,8 @@ RELSTAGEDIR:=/tmp/$(NAME)-$(STAMP)
 
 COAL ?= 10.99.99.7
 
-# triton-origin-x86_64-19.4.0
-BASE_IMAGE_UUID = 59ba2e5e-976f-4e09-8aac-a4a7ef0395f5
+# triton-origin-x86_64-21.4.0
+BASE_IMAGE_UUID = 502eeef2-8267-489f-b19c-a206906f57ef
 BUILDIMAGE_NAME = $(NAME)
 BUILDIMAGE_DESC	= SDC Docker Engine
 AGENTS		= amon config registrar
