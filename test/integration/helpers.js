@@ -6,6 +6,7 @@
 
 /*
  * Copyright (c) 2018, Joyent, Inc.
+ * Copyright 2022 MNX Cloud, Inc.
  */
 
 /*
@@ -524,10 +525,10 @@ function _stepCreateClientZone(state_, cb) {
                     return next();
                 }
                 // Need to import this image into the DC.
-                p('# Importing image %s from images.joyent.com',
+                p('# Importing image %s from images.smartos.org',
                     payload.image_uuid);
                 state.imgapi.adminImportRemoteImageAndWait(
-                    payload.image_uuid, 'https://images.joyent.com',
+                    payload.image_uuid, 'https://images.smartos.org',
                     next);
             });
         },

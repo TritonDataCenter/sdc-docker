@@ -11,6 +11,7 @@ markdown2linkpatternsfile: link-patterns.txt
 
 <!--
     Copyright (c) 2014, Joyent, Inc.
+    Copyright 2022 MNX Cloud, Inc.
 -->
 
 # SDC Docker Images plan
@@ -270,7 +271,7 @@ Native docker format:
   "aufs to zfs-dataset" translation.
 - Pro: IMGAPI implementations are easier: don't require ability to use `zfs`.
   I'm not sure if that'll be relevant for, say, having native docker images
-  in IMGAPIs like images.joyent.com that don't live in an SDC.
+  in IMGAPIs like images.smartos.org that don't live in an SDC.
 - Pro: My *guess* is that storing Docker native format will help with
   "docker push".
 - Pro: Docker native format closer to the metal (where metal == imgadm here),
