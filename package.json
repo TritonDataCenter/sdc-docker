@@ -1,7 +1,7 @@
 {
   "name": "sdc-docker",
   "version": "0.7.6",
-  "author": "MNX Cloud (mnxsolutions.com)",
+  "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {
     "assert-plus": "1.0.0",
