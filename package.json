@@ -28,7 +28,7 @@
     "strsplit": "1.0.0",
     "tape": "^4.4.0",
     "trace-event": "1.2.0",
-    "triton-tags": "1.4.0",
+    "triton-tags": "git+https://github.com/Smithx10/node-triton-tags#ed3272116c846473c3fceee4c630dde1f40589f5",
     "ufds": "1.2.0",
     "vasync": "2.1.0",
     "verror": "1.9.0",
