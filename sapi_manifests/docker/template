@@ -68,6 +68,7 @@
     },
 {{/experimental_docker_nfs_shared_volumes}}
     "httpProxy": "{{{http_proxy}}}",
+    "noProxy": "{{{no_proxy}}}",
     "dockerRegistryInsecure": {{^docker_registry_insecure}}false{{/docker_registry_insecure}}{{#docker_registry_insecure}}{{{docker_registry_insecure}}}{{/docker_registry_insecure}},
 
     {{#DOCKER_USE_CONN_WATCHER}}
