@@ -17,7 +17,6 @@
     "lru-cache": "2.5.0",
     "lstream": "0.0.4",
     "moray": "2.0.0",
-    "nodemailer": "0.7.1",
     "once": "1.3.1",
     "openssl-wrapper": "0.2.1",
     "restify": "4.3.0",
