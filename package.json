@@ -6,7 +6,7 @@
   "dependencies": {
     "assert-plus": "1.0.0",
     "async": "0.9.0",
-    "docker-registry-client": "git+https://github.com/TritonDataCenter/node-docker-registry-client#02b6d952edee99ac0fb808ba8651136ad44c0eca",
+    "docker-registry-client": "git+https://github.com/TritonDataCenter/node-docker-registry-client#08d28f5f90b85ad7be04dafc547ca91e17880bf0",
     "bunyan": "1.8.8",
     "effluent-logger": "git+https://github.com/TritonDataCenter/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
     "fwrule": "2.1.0",
