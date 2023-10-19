@@ -85,7 +85,7 @@ That should output something like the following:
 
 ```bash
 Setting up Docker client for SDC using:
-        CloudAPI:        https://us-east-1.api.mnx.io
+        CloudAPI:        https://us-central-1.api.mnx.io
         Account:         jill
         Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
 
@@ -100,13 +100,13 @@ writing RSA key
 Wrote certificate files to /Users/localuser/.sdc/docker/jill
 
 Get Docker host endpoint from cloudapi.
-Docker service endpoint is: tcp://us-east-1.docker.mnx.io:2376
+Docker service endpoint is: tcp://us-central-1.docker.mnx.io:2376
 
 * * *
 Success. Set your environment as follows:
 
         export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-        export DOCKER_HOST=tcp://us-east-1.docker.mnx.io:2376
+        export DOCKER_HOST=tcp://us-central-1.docker.mnx.io:2376
         export DOCKER_CLIENT_TIMEOUT=300
         export COMPOSE_HTTP_TIMEOUT=300
         export DOCKER_TLS_VERIFY=1
@@ -130,7 +130,7 @@ Kernel Version: 3.12.0-1-amd64
 Operating System: SmartDataCenter
 CPUs: 0
 Total Memory: 0 B
-Name: us-east-1
+Name: us-central-1
 ID: 65698e31-2754-4e86-9d05-bfc881037812
 ```
 
