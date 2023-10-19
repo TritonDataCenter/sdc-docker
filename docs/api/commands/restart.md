@@ -8,8 +8,8 @@
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please file a ticket if you discover any.
 
 ## Related
 
-- [`sdc-rebootmachine`](https://apidocs.joyent.com/cloudapi/#RebootMachine) and `POST /my/machines/:id?action=reboot` in CloudAPI
+* [`sdc-rebootmachine`](https://apidocs.tritondatacenter.com/cloudapi/#RebootMachine) and `POST /my/machines/:id?action=reboot` in CloudAPI

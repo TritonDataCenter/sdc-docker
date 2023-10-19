@@ -14,4 +14,4 @@
 
 ## Related
 
-- [`sdc-startmachine`](https://apidocs.joyent.com/cloudapi/#StartMachine) and `POST /my/machines/:id?action=start` in CloudAPI
+* [`sdc-startmachine`](https://apidocs.tritondatacenter.com/cloudapi/#StartMachine) and `POST /my/machines/:id?action=start` in CloudAPI

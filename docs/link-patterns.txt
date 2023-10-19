@@ -1,1 +1,1 @@
-/([A-Z]+-\d+)/ https://devhub.joyent.com/jira/browse/\1
+/([A-Z]+-\d+)/ https://smartos.org/bugview/\1

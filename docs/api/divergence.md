@@ -1,13 +1,13 @@
 # Divergence
 
-Joyent's implementation of the Docker Remote API has some added features as well as omissions where the API conflicted with the needs of deploying containers across Triton data centers.
+Triton's implementation of the Docker Remote API has some added features as well as omissions where the API conflicted with the needs of deploying containers across Triton data centers.
 
 ## Features
 
-- [CPU and memory resource allocation](features/resources.md)
-- [Overlay networks](features/networks.md)
-- [Volumes](features/volumes.md)
-- [Private registries](features/repos.md)
+* [CPU and memory resource allocation](features/resources.md)
+* [Overlay networks](features/networks.md)
+* [Volumes](features/volumes.md)
+* [Private registries](features/repos.md)
 
 ## Container behavior and contents
 
@@ -47,22 +47,15 @@ emulation.
 #### objfs on /system/object
 
 This is the SmartOS kernel object filesystem. The contents of the filesystem
-are dynamic and reflect the current state of the system. See:
-
-http://illumos.org/man/7fs/objfs
-
-for more information.
+are dynamic and reflect the current state of the system. See
+<http://illumos.org/man/7fs/objfs> for more information.
 
 #### ctfs on /system/contract
 
 This is the SmartOS contract file system which is the interface to the SmartOS
 contract subsystem.
 
-See:
-
-http://illumos.org/man/4/contract
-
-for more information.
+See <http://illumos.org/man/4/contract> for more information.
 
 ### Exit Statuses
 
@@ -79,7 +72,7 @@ are working on, and intend to keep improving over time.
 
 ## Docker Remote API methods and Docker CLI commands
 
-In most cases Joyent has taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see [restart policies](./features/restart.md)). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
+In most cases Triton developers have taken great efforts to be [bug for bug compatible](http://en.wikipedia.org/wiki/Bug_compatibility) with Docker Inc's API implementation (see [restart policies](./features/restart.md)). Please see documentation for [specific methods](./commands/) for any known divergence and file bugs as needed.
 
 SDC Docker implements all the API methods necessary to build and deploy Docker
 containers in the cloud, though there are some missing docker API methods.
@@ -90,17 +83,18 @@ expect it to get shorter by the day:
 `docker network`, `docker node`, `docker pause`, `docker save`,
 `docker service`, `docker swarm`, `docker unpause`, `docker update`
 
-### Roadmap:
-- `docker network` is on our near-term roadmap, follow
+### Roadmap
+
+* `docker network` is on our near-term roadmap, follow
 [DOCKER-722](http://smartos.org/bugview/DOCKER-722), [DOCKER-723](http://smartos.org/bugview/DOCKER-723),
 [DOCKER-724](http://smartos.org/bugview/DOCKER-724), [DOCKER-725](http://smartos.org/bugview/DOCKER-725)
   for updates.
-- `docker events` will not be implemented in the near future. This causes a
+* `docker events` will not be implemented in the near future. This causes a
   trivial error when attempting to watch logs with `docker-compose`. Users who
   intend to use `docker events` for container orchestration purposes should
   look at [ContainerPilot](https://www.joyent.com/containerpilot)’s automatic
   service registration, health checking, and configuration.
-- There is no plan to implement `docker node` and `docker swarm` as Triton is
+* There is no plan to implement `docker node` and `docker swarm` as Triton is
   already working as a horizontally scalable cluster. There is no need for a
   set of compute node orchestration commands.
 
@@ -144,7 +138,6 @@ users access to all their logs.
 For the operator of SDC Docker these additional logs will require some cleanup
 process for long-lived containers when Manta support is not available.
 
-
 ## Container Labels
 
 Triton uses (and reserves) a number of custom container labels, to provide
@@ -162,14 +155,13 @@ names are currently defined:
 * `triton.network.public` (string): Set on a container, used to specify the
   external network name the instance will use.
 
-The `com.joyent.*` namespace is reserved for Joyent/Triton specific use cases,
+The `com.joyent.*` namespace is reserved for Triton specific use cases,
 these label names are currently defined:
 
 * `com.joyent.package` (string): Set on a container, used to choose a specific
   package for the container. The value can be a package name like
   `g4-standard-1G`, a UUID, or the first 8 characters of a UUID
   (short-UUID).
-
 
 ## Other Differences
 

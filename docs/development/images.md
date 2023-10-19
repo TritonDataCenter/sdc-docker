@@ -11,7 +11,7 @@ markdown2linkpatternsfile: link-patterns.txt
 
 <!--
     Copyright (c) 2014, Joyent, Inc.
-    Copyright 2022 MNX Cloud, Inc.
+    Copyright 2023 MNX Cloud, Inc.
 -->
 
 # SDC Docker Images plan
@@ -54,7 +54,6 @@ by sdc-docker. If we intend to change this design point, then beware that
 sdc-docker will be removing unused/abandoned docker images in the background
 (e.g. when last user does a 'docker rmi ID' for a given image ID).
 
-
 # Docker images on vanilla SmartOS
 
 First let's briefly discuss how Docker image handling on vanilla SmartOS could
@@ -89,7 +88,6 @@ imgadm somehow. Ancestry is handled via the `origin` image manifest field.
 
 The rest of this document is about supporting Docker images on *SDC*.
 
-
 # Docker images on SDC
 
 "Docker in SDC" at the time of writing means a SDC core "docker" service
@@ -103,12 +101,15 @@ a single Docker host for each user. That has some implications:
 
 There are three main relevant systems for handling docker images in SDC:
 
-1. the [docker SAPI service](https://github.com/joyent/sdc-docker), aka sdc-docker
-2. [IMGAPI](https://github.com/joyent/sdc-imgapi), and
-3. [`imgadm`](https://github.com/joyent/smartos-live/tree/master/src/img) on each node.
+1. the [docker SAPI service](https://github.com/TritonDataCenter/sdc/sdc-docker), aka sdc-docker
+2. [IMGAPI](https://github.com/TritonDataCenter/sdc/sdc-imgapi), and
+3. [`imgadm`](https://github.com/TritonDataCenter/sdc/smartos-live/tree/master/src/img) on each node.
+
+<!-- markdownlint-disable link-fragments -->
 
 See the [tl;dr](#tl-dr) section above for the basic plan.
 
+<!-- markdownlint-enable link-fragments -->
 
 # Use Cases
 
@@ -135,7 +136,7 @@ a whole.)
 - sdc-docker: hits Docker index and registry as appropriate to gather the
   *repository tags* and layer info
 - sdc-docker: calls IMGAPI
-  [AdminImportRemoteImage](https://mo.joyent.com/docs/imgapi/master/#AdminImportRemoteImage),
+  [AdminImportRemoteImage](https://github.com/TritonDataCenter/sdc-imgapi/blob/master/docs/index.md#adminimportremoteimage-post-imagesuuidactionimport-remote),
   or perhaps new AdminImportRemoteDockerImage endpoint
 - imgapi: creates a WF job to handle the import
 - sdc-docker: on import success, commit docker image tags and set of pulled
@@ -184,7 +185,6 @@ C. When the ref count on a docker image goes to zero, set a "can delete
 
 I like (C).
 
-
 ## Use Case 4: `docker images`
 
 - user: `docker images ...`
@@ -196,7 +196,6 @@ I like (C).
 Dev Note: Likely want a bulk endpoint on IMGAPI to be able to get information
 for a number of images in one request -- instead of hitting IMGAPI 100 times to
 list 100 docker images. Get IMGAPI caching correct to make that fast.
-
 
 ## Use Case 5: `docker history`
 
@@ -218,7 +217,6 @@ ListImageAncestry which takes an image UUID.
         ...
     ]
 
-
 ## Use Case 6: `docker pull https://my-private-repo.example.com/bob/mongo`
 
 TODO
@@ -227,22 +225,19 @@ TODO
 
 TODO
 
-
 # Milestones
 
 TODO: Integrate these with the full sdc-docker project plan. A potential
 ordering:
 
 - `docker pull|images|history|inspect`
-    - really need the IMGAPI local cache (see img-mgmt plan)
+  - really need the IMGAPI local cache (see img-mgmt plan)
 - `docker rmi`
-    -
 - `docker pull` support for repositories other than the default
 - speed: start tracking time to do all these endpoints
 - plan out `docker commit|build|push` et al
 - plan out billing story
 - plan out support for easy private docker image repos
-
 
 # Design Notes
 
@@ -260,13 +255,13 @@ of pulled docker images per user. These will be in moray. Buckets:
 2. `docker_image_ids`: Per-user set of pulled docker image ids.
    Columns:  `key` (unused), `owner_uuid`, `image_id`.
 
-
 ## Why store docker native format in IMGAPI?
 
 One question is whether to have IMGAPI store native docker layer file data,
 or have it store the data transformed into zone datasets.
 
 Native docker format:
+
 - Pro: We always have the original data in-case we need to fix a problem with
   "aufs to zfs-dataset" translation.
 - Pro: IMGAPI implementations are easier: don't require ability to use `zfs`.
@@ -278,6 +273,7 @@ Native docker format:
   should help with possible future support for "Docker on vanilla SmartOS".
 
 Zone datasets:
+
 - Pro: Would only need to do the "aufs to zfs-dataset" translation once,
   instead of independently on each node.
 - Con: Handling conversion failures would be a pain at this level. Basically
@@ -286,8 +282,6 @@ Zone datasets:
 - Pro: Updating the *docker service* for processing bugs is easier than
   having to update `imgadm` in a platform for processing bugs (modulo
   having some mini-platform upgrade story).
-
-
 
 # Open Questions
 

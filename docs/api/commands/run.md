@@ -332,23 +332,20 @@ By default, the container will be able to `read`, `write` and `mknod` these devi
 This can be overridden using a third `:rwm` set of options to each `--device`
 flag:
 
+    $ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
 
-```
-	$ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
+    Command (m for help): q
+    $ docker run --device=/dev/sda:/dev/xvdc:r --rm -it ubuntu fdisk  /dev/xvdc
+    You will not be able to write the partition table.
 
-	Command (m for help): q
-	$ docker run --device=/dev/sda:/dev/xvdc:r --rm -it ubuntu fdisk  /dev/xvdc
-	You will not be able to write the partition table.
+    Command (m for help): q
 
-	Command (m for help): q
+    $ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
 
-	$ docker run --device=/dev/sda:/dev/xvdc --rm -it ubuntu fdisk  /dev/xvdc
+    Command (m for help): q
 
-	Command (m for help): q
-
-	$ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
-	fdisk: unable to open /dev/xvdc: Operation not permitted
-```
+    $ docker run --device=/dev/sda:/dev/xvdc:m --rm -it ubuntu fdisk  /dev/xvdc
+    fdisk: unable to open /dev/xvdc: Operation not permitted
 
 > **Note:**
 > `--device` cannot be safely used with ephemeral devices. Block devices that
@@ -391,6 +388,8 @@ Use Docker's `--restart` to specify a container's *restart policy*. A restart
 policy controls whether the Docker daemon restarts a container after exit.
 Docker supports the following restart policies:
 
+<!-- markdownlint-disable no-inline-html -->
+
 <table>
   <thead>
     <tr>
@@ -429,6 +428,8 @@ Docker supports the following restart policies:
   </tbody>
 </table>
 
+<!-- markdownlint-enable no-inline-html -->
+
     $ docker run --restart=always redis
 
 This will run the `redis` container with a restart policy of **always**
@@ -443,7 +444,6 @@ of the Docker run reference page.
 You can add other hosts into a container's `/etc/hosts` file by using one or more
 `--add-host` flags. This example adds a static address for a host named `docker`:
 
-```
     $ docker run --add-host=docker:10.180.0.1 --rm -it debian
     $$ ping docker
     PING docker (10.180.0.1): 48 data bytes
@@ -452,7 +452,6 @@ You can add other hosts into a container's `/etc/hosts` file by using one or mor
     ^C--- docker ping statistics ---
     2 packets transmitted, 2 packets received, 0% packet loss
     round-trip min/avg/max/stddev = 7.600/19.152/30.705/11.553 ms
-```
 
 Sometimes you need to connect to the Docker host from within your
 container.  To enable this, pass the Docker host's IP address to
@@ -477,17 +476,17 @@ available in the default container, you can set these using the `--ulimit` flag.
 `--ulimit` is specified with a soft and hard limit as such:
 `<type>=<soft limit>[:<hard limit>]`, for example:
 
-```
     $ docker run --ulimit nofile=1024:1024 --rm debian ulimit -n
     1024
-```
 
 >**Note:**
+>
 > If you do not provide a `hard limit`, the `soft limit` will be used for both
 values. If no `ulimits` are set, they will be inherited from the default `ulimits`
 set on the daemon.
 > `as` option is disabled now. In other words, the following script is not supported:
->   `$ docker run -it --ulimit as=1024 fedora /bin/bash`
+>
+>     $ docker run -it --ulimit as=1024 fedora /bin/bash
 
 ## Divergence
 
@@ -545,15 +544,14 @@ Windows-based images and the associated parameters are not supported on Triton.
   NFS volume feature.
 
 Docker Swarm's affinity filters  (also called "locality hints" in Triton, see
-the [cloudapi CreateMachine notes](https://apidocs.joyent.com/cloudapi/
-#CreateMachine)) for controlling on which server a container is provisioned are 
-supported. See the [placement feature documentation](../features/placement.md) 
+the [cloudapi CreateMachine notes](https://apidocs.tritondatacenter.com/cloudapi/#CreateMachine))
+for controlling on which server a container is provisioned are
+supported. See the [placement feature documentation](../features/placement.md)
 for details.
-
 
 ## Related
 
-- [`docker ps`](../commands/ps.md)
-- [`networks`](../features/networks.md) for external and overlay networking
-- [`CPU, memory and disk resource allocation`](../features/resources.md)
-- [`sdc-createmachine`](https://apidocs.joyent.com/cloudapi/#CreateMachine) and `POST /my/machines` in CloudAPI
+* [`docker ps`](../commands/ps.md)
+* [`networks`](../features/networks.md) for external and overlay networking
+* [`CPU, memory and disk resource allocation`](../features/resources.md)
+* [`sdc-createmachine`](https://apidocs.tritondatacenter.com/cloudapi/#CreateMachine) and `POST /my/machines` in CloudAPI

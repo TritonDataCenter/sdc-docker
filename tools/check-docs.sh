@@ -7,6 +7,7 @@
 
 #
 # Copyright (c) 2017, Joyent, Inc.
+# Copyright 2023 MNX Cloud, Inc.
 #
 
 #
@@ -18,7 +19,7 @@
 # Checks:
 #
 # 1. Ensure files end with a newline, else the import into
-#    apidocs.joyent.com.git gets grumpy.
+#    apidocs.tritondatacenter.com.git gets grumpy.
 #
 #
 
@@ -42,7 +43,7 @@ while read -d $'\0' -r file; do
     # Map the newline character into a space, and spaces into
     # an underscore, since bash likes to trim trailing newlines
     # from command outputs.
-    if [[ `tail -1c "$file" | tr ' \n' '_ '` != ' ' ]]; then
+    if [[ $(tail -1c "$file" | tr ' \n' '_ ') != ' ' ]]; then
         echo "$file: does not end with a newline" >&2
         hits=1
     fi

@@ -274,7 +274,6 @@ like `ENV` values do.
 For detailed information on using `ARG` and `ENV` instructions, see the
 [Dockerfile reference](../builder.md).
 
-
 ## Divergence
 
 Triton's secure, multi-tenant, container-native environment imposes some
@@ -284,7 +283,7 @@ manage CPU allocation, or networking, are more effective because of features
 unique to Triton.
 
 * `--cgroup-parent` is ignored. See [security](../features/security.md).
-* `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md). Joyent is working with the Docker community to improve how CPU resources are specified in the API.
+* `--cpu-shares` and `-c` are ignored, though CPU resources can be specified in conjunction with RAM. See [resource allocation](../features/resources.md).
 * `--cap-add` and `--cap-drop` (Linux capabilities) are ignored. See [security](../features/security.md).
 * `--cpuset-cpus` and `--cpuset-mems` (controls which CPUs and memory nodes to run on) are ignored. See [resource allocation](../features/resources.md).
 * `--cpu-period` and `--cpu-quota` (limit the CPU CFS settings) are ignored. See [resource allocation](../features/resources.md).
@@ -294,7 +293,7 @@ unique to Triton.
 * `--shm-size` is ignored.
 * `--ulimit` (ulimit options) is unsupported.
 
-### Docker build step divergence:
+### Docker build step divergence
 
 * `ADD` with remote URL is unimplemented.
 * the build container is reused for each build step (instead of creating a new
@@ -302,6 +301,6 @@ unique to Triton.
 
 ## Related
 
-- [`docker commit`](../commands/commit.md)
-- [`docker images`](../commands/images.md)
-- [`docker push`](../commands/push.md)
+* [`docker commit`](../commands/commit.md)
+* [`docker images`](../commands/images.md)
+* [`docker push`](../commands/push.md)

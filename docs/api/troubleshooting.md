@@ -40,7 +40,6 @@ You get a "TLS-enabled daemon without TLS" error:
     $ docker info
     FATA[0000] Get http:///var/run/docker.sock/v1.17/info: dial unix /var/run/docker.sock: no such file or directory. Are you trying to connect to a TLS-enabled daemon without TLS
 
-
 One possibility is that after running sdc-docker-setup.sh, did you run
 the `export` and `alias` commands in your shell.
 

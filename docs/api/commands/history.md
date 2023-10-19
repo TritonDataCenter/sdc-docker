@@ -31,7 +31,7 @@ To see how the `docker:apache` image was added to a container's base image:
 ## Divergence
 
 There is no known divergence between the Triton SDC Docker and Docker Inc.
-implementations of this method. Please contact Joyent support or file a ticket
+implementations of this method. Please file a ticket
 if you discover any.
 
 ## Related
