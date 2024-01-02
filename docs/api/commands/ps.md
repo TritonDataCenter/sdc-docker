@@ -29,10 +29,11 @@ is more than one filter, then pass multiple flags (e.g. `--filter "foo=bar"
 --filter "bif=baz"`)
 
 Current filters:
- * id (container's id)
- * name (container's name)
- * exited (int - the code of exited containers. Only useful with '--all')
- * status (restarting|running|paused|exited)
+
+* id (container's id)
+* name (container's name)
+* exited (int - the code of exited containers. Only useful with '--all')
+* status (restarting|running|paused|exited)
 
 ## Examples
 
@@ -64,14 +65,14 @@ This shows all the containers that have exited with status of '0'
 This command does not support the *Size* field. All sizes will be returned as 0.
 See [DOCKER-285](http://smartos.org/bugview/DOCKER-285) to follow this issue.
 
-Please contact Joyent support or file a ticket if you discover any additional
+Please file a ticket if you discover any additional
 divergence.
 
 ## Related
 
-- [`docker inspect`](../commands/inspect.md) as in
+* [`docker inspect`](../commands/inspect.md) as in
   `docker inspect $(docker ps -l -q)`
-- [`docker rm`](../commands/rm.md) as in `docker rm $(docker ps -a -q)`
-- [`sdc-listmachines`](https://apidocs.joyent.com/cloudapi/#ListMachines)
+* [`docker rm`](../commands/rm.md) as in `docker rm $(docker ps -a -q)`
+* [`sdc-listmachines`](https://apidocs.tritondatacenter.com/cloudapi/#ListMachines)
   and `GET /my/machines` in CloudAPI
-- [`vmadm list`](https://smartos.org/man/1m/vmadm) in SDC private API
+* [`vmadm list`](https://smartos.org/man/1m/vmadm) in SDC private API

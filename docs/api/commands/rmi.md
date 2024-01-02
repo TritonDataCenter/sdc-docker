@@ -70,8 +70,8 @@ SDC Docker does not support the following arguments for this command:
 
 * `--no-prune`
 
-Please contact Joyent support or file a ticket if you discover any other variance.
+Please file a ticket if you discover any other variance.
 
 ## Related
 
-- [`docker images`](../commands/images.md)
+* [`docker images`](../commands/images.md)

@@ -1,3 +1,5 @@
+<!-- markdownlint-disable code-block-style -->
+
 # Docker Remote API implementation for Triton
 
 This document explains how to set up your Docker client tools to manage the
@@ -15,7 +17,9 @@ have to interact with a single API endpoint for a given SDC implementation.
 
 Docker client applications, including the Docker CLI and Docker Compose, can connect to the SDC Docker remote API endpoint to launch and control Docker containers across an entire Triton data center.
 
-Connecting to the API requires an account on the Triton data center, SSH key, and the CloudAPI URL for that data center, as well as the Docker CLI or some other Docker client. Joyent provides a helper script to configure a Docker client, including the Docker CLI.
+Connecting to the API requires an account on the Triton data center, SSH key, and the CloudAPI URL for that data center, as well as the Docker CLI or some other Docker client. If you have your `triton` cli client configured, run:
+
+    eval "$(triton env -d)"
 
 ### Docker version
 
@@ -32,18 +36,15 @@ Please [install or upgrade](https://docs.docker.com/installation/#installation) 
 
 ### API endpoint
 
-Each data center is a single Docker API endpoint. [CloudAPI](https://apidocs.joyent.com/cloudapi/) is used as a helper to configure the client to connect to the Docker Remote API. Determining the correct CloudAPI URL depends on which data center you're connecting to.
+Each data center is a single Docker API endpoint. [CloudAPI](https://apidocs.tritondatacenter.com/cloudapi/) is used as a helper to configure the client to connect to the Docker Remote API. Determining the correct CloudAPI URL depends on which data center you're connecting to.
 
-Joyent operates a number of data centers around the world, each has its own CloudAPI endpoint. Please consult the Joyent Elastic Container Service documentation for the correct URL for that service.
-
-Private cloud implementations will offer different CloudAPI URLs, please consult the private cloud operator for the correct URL.
+See your cloud provider's documentation or operator(s) for the CloudAPI endpoint.
 
 ### User accounts, authentication, and security
 
 User accounts in Triton require one or more SSH keys. The keys are used to identify and secure SSH access to containers and other resources in Triton.
 
 SDC Docker uses Docker's TLS authentication scheme both to identify the requesting user and secure the API endpoint. The SDC Docker helper script will generates a TLS certificate using your SSH key and write it to a directory in your user account.
-
 
 ### The helper script
 
@@ -52,7 +53,7 @@ The 'sdc-docker-setup.sh' script will help pull everything together and configur
 Download the script:
 
 ```bash
-curl -O https://raw.githubusercontent.com/joyent/sdc-docker/master/tools/sdc-docker-setup.sh
+curl -O https://raw.githubusercontent.com/TritonDataCenter/sdc-docker/master/tools/sdc-docker-setup.sh
 ```
 
 Now execute the script, substituting the correct values:
@@ -61,34 +62,32 @@ Now execute the script, substituting the correct values:
 bash sdc-docker-setup.sh <CLOUDAPI_URL> <ACCOUNT_USERNAME> ~/.ssh/<PRIVATE_KEY_FILE>
 ```
 
-Possible values for `<CLOUDAPI_URL>` include any of Joyent's data centers
+Possible values for `<CLOUDAPI_URL>` include MNX's data centers
 which are hosting Triton or another CloudAPI, e.g. one running in a [Cloud on a
-Laptop (CoaL)](https://github.com/joyent/sdc#cloud-on-a-laptop-coal) development
+Laptop (CoaL)](https://github.com/TritonDataCenter/triton#cloud-on-a-laptop-coal) development
 VMware VM.
 
 | CLOUDAPI_URL | Description |
 | ------------ | ----------- |
-| https://us-east-1.api.joyent.com | Joyent's us-east-1 data center. |
-| https://us-sw-1.api.joyent.com | Joyent's us-sw-1 data center. |
-| https://eu-ams-1.api.joyent.com | Joyent's eu-ams-1 (Amsterdam) data center. |
+| `https://us-central-1.api.mnx.io` | MNX us-central-1 data center. |
 | coal | Special name to indicate the CloudAPI in a development CoaL VMware VM |
 
-
-For example, if you created an account on [Joyent's hosted Triton
-service](https://www.joyent.com/triton), with the username "jill", SSH key file
-"~/.ssh/sdc-docker.id_rsa", and connecting to the US East-1 data center:
+For example, if you created an account on
+[MNX's hosted Triton service](https://my.mnx.io), with the
+username "jill", SSH key file `~/.ssh/sdc-docker.id_rsa`, and connecting to the
+US-Central-1 data center:
 
 ```bash
-bash sdc-docker-setup.sh https://us-east-1.api.joyent.com jill ~/.ssh/sdc-docker.id_rsa
+bash sdc-docker-setup.sh https://us-central-1.api.mnx.io jill ~/.ssh/sdc-docker.id_rsa
 ```
 
 That should output something like the following:
 
 ```bash
 Setting up Docker client for SDC using:
-	CloudAPI:        https://us-east-1.api.joyent.com
-	Account:         jill
-	Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
+        CloudAPI:        https://us-central-1.api.mnx.io
+        Account:         jill
+        Key:             /Users/localuser/.ssh/sdc-docker.id_rsa
 
 If you have a pass phrase on your key, the openssl command will
 prompt you for your pass phrase now and again later.
@@ -101,16 +100,16 @@ writing RSA key
 Wrote certificate files to /Users/localuser/.sdc/docker/jill
 
 Get Docker host endpoint from cloudapi.
-Docker service endpoint is: tcp://us-east-1.docker.joyent.com:2376
+Docker service endpoint is: tcp://us-central-1.docker.mnx.io:2376
 
 * * *
 Success. Set your environment as follows:
 
-	export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
-	export DOCKER_HOST=tcp://us-east-1.docker.joyent.com:2376
-	export DOCKER_CLIENT_TIMEOUT=300
+        export DOCKER_CERT_PATH=/Users/localuser/.sdc/docker/jill
+        export DOCKER_HOST=tcp://us-central-1.docker.mnx.io:2376
+        export DOCKER_CLIENT_TIMEOUT=300
         export COMPOSE_HTTP_TIMEOUT=300
-	export DOCKER_TLS_VERIFY=1
+        export DOCKER_TLS_VERIFY=1
 ```
 
 Then you should be able to run 'docker info' and see your account
@@ -131,9 +130,10 @@ Kernel Version: 3.12.0-1-amd64
 Operating System: SmartDataCenter
 CPUs: 0
 Total Memory: 0 B
-Name: us-east-1
+Name: us-central-1
 ID: 65698e31-2754-4e86-9d05-bfc881037812
 ```
+
 ## Troubleshooting API connection problems
 
 See our [guide to common API connection problems](./troubleshooting.md).

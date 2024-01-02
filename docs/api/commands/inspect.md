@@ -86,9 +86,9 @@ Read more about container [security on Triton](features/security.md) and see [no
 
 The `-s` and `--size` options are currently unsupported.
 
-Please contact Joyent support or file a ticket if you discover any additional divergence.
+Please file a ticket if you discover any additional divergence.
 
 ## Related
 
 - [`docker port`](../commands/port.md) as in `docker port $(docker ps -l -q)`
-- [`sdc-getmachine`](https://apidocs.joyent.com/cloudapi/#GetMachine) and `GET /my/machines/:id` in CloudAPI
+- [`sdc-getmachine`](https://apidocs.tritondatacenter.com/cloudapi/#GetMachine) and `GET /my/machines/:id` in CloudAPI

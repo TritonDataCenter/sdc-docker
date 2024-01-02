@@ -51,7 +51,7 @@ ensure we know how your setup is configured.
 * SDCAccount will show you the name of the SDC account you're authenticated as
 * Name will show you the datacenter name
 
-Please contact Joyent support or file a ticket if you discover any additional divergence.
+Please file a ticket if you discover any additional divergence.
 
 ## Related
 

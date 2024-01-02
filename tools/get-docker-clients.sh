@@ -7,6 +7,7 @@
 
 #
 # Copyright 2016, Joyent, Inc.
+# Copyright 2023 MNX Cloud, Inc.
 #
 
 #
@@ -42,7 +43,7 @@ set -o nounset
 # ---- globals
 
 # Note: Should keep this in sync with "DOCKER_AVAILABLE_CLI_VERIONS"
-# https://github.com/joyent/sdc-docker/blob/master/test/runtest.common#L54
+# https://github.com/TritonDataCenter/sdc/sdc-docker/blob/master/test/runtest.common#L54
 DEFAULT_VERS="1.12.2 1.11.1 1.10.3 1.9.1 1.8.3"
 
 WRKDIR=/var/tmp/tmp.get-docker-clients

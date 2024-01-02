@@ -10,7 +10,6 @@ services and avoiding single points of failure (SPOF).
 This document explains how Triton places new containers on servers and what
 facilities are exposed for controlling placement.
 
-
 ## Default placement
 
 By default, Triton makes a reasonable attempt to spread all containers (and
@@ -19,7 +18,7 @@ physical servers.
 
 Within a Docker container the physical server on which a container is running
 is exposed via the [`sdc:server_uuid` metadata
-key](http://eng.joyent.com/mdata/datadict.html):
+key](http://eng.tritondatacenter.com/mdata/datadict.html):
 
     $ docker run -ti --rm alpine /bin/sh
     / # hostname
@@ -38,7 +37,7 @@ By running another container we can see this default spread behavior (the
 
 Outside the containers, the physical server on which a container is running
 is exposed via the `compute_node` field using the [Triton
-CLI](https://github.com/joyent/node-triton):
+CLI](https://github.com/TritonDataCenter/sdc/node-triton):
 
     $ triton insts -o shortid,name,age,compute_node
     SHORTID   NAME             AGE  COMPUTE_NODE
@@ -46,9 +45,8 @@ CLI](https://github.com/joyent/node-triton):
     98d5a22a  goofy_engelbart  2m   44454c4c-4400-1054-8052-b5c04f383432
 
 Note that [there are many factors in placement
-decisions](https://github.com/joyent/sdc-designation/blob/master/docs/index.md),
+decisions](https://github.com/TritonDataCenter/sdc/sdc-designation/blob/master/docs/index.md),
 including DC operator-controlled spread policies, so results may vary.
-
 
 ## Swarm affinity
 
@@ -66,11 +64,11 @@ where node selection is described in terms of existing containers. For example:
     #                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     # Run a mysql instance that is NOT on the same node as container 'db0'.
 
-For the same reasons, node selection can matter on Triton. Triton's Docker 
-implements the same affinity filters as documented for Docker Swarm, with the 
-difference that you don't need to setup a Swarm cluster. Affinity Filters are 
+For the same reasons, node selection can matter on Triton. Triton's Docker
+implements the same affinity filters as documented for Docker Swarm, with the
+difference that you don't need to setup a Swarm cluster. Affinity Filters are
 also called "locality hints" in Triton (see the [cloudapi CreateMachine notes](
-https://apidocs.joyent.com/cloudapi/#CreateMachine)).
+https://apidocs.tritondatacenter.com/cloudapi/#CreateMachine)).
 
 ### Affinity filter syntax
 
@@ -84,7 +82,6 @@ Swarm [code](https://github.com/docker/swarm/blob/d9beef7/cluster/config.go#L83-
 but not [documented](https://docs.docker.com/swarm/scheduler/filter/).)
 
     docker run --label 'com.docker.swarm.affinities=["<filter>",...]' ...
-
 
 A `<filter>` is one of the following. (Note: Swarm defines "image filters"
 which don't apply for Triton because any image in the datacenter is available
@@ -133,7 +130,6 @@ Note: At the time of writing the label syntax is in Docker Swarm
 [code](https://github.com/docker/swarm/blob/d9beef7/cluster/config.go#L83-L86),
 but not [documented](https://docs.docker.com/swarm/scheduler/filter/).
 
-
 ### Affinity in the Triton CLI
 
 For users of both Docker and non-Docker containers (and VMs) on Triton, the
@@ -145,7 +141,6 @@ syntax:
 
     # Run on a different node to 'db0':
     triton create -a 'container!=db0' ...
-
 
 ## Placement failure
 

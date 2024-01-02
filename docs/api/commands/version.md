@@ -33,7 +33,7 @@ Known differences:
 - Server version reflects the sdc-docker version, which will vary from the Docker Inc. daemon version.
 - Go version on the server is actually a node.js version.
 
-Please contact Joyent support or file a ticket if you discover any additional differences.
+Please file a ticket if you discover any additional differences.
 
 ## Related
 

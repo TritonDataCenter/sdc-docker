@@ -16,10 +16,8 @@ network, it affects only the newly provisioned containers. You may specify
 a different fabric network during provisioning by passing the `--network`
 argument in `docker run` and `docker create`, e.g.
 
-```
-   docker run --network=dev-net-123 busybox
-   docker run --network=d8f607e4 -P -d nginx
-```
+    docker run --network=dev-net-123 busybox
+    docker run --network=d8f607e4 -P -d nginx
 
 The work to support `docker network` commands is in progress. Follow
 [DOCKER-722](http://smartos.org/bugview/DOCKER-722),
@@ -30,13 +28,13 @@ The work to support `docker network` commands is in progress. Follow
 All docker containers owned by a user have firewalls enabled by default, and
 their default policy is to block all incoming traffic and allow all outbound
 traffic. All docker VMs have a
-[Cloud Firewall](https://www.joyent.com/developers/firewall/) rule
-automatically created that allows them to communicate with each other on all
-ports.
+[Cloud Firewall](https://docs.tritondatacenter.com/public-cloud/network/firewall)
+rule automatically created that allows them to communicate with each other on
+all ports.
 
 If you specify the -p or -P options to `docker run` or `docker create`, the
 container will receive an external IP address that is reachable over the public
-internet, and [Cloud Firewall](https://www.joyent.com/developers/firewall/)
+internet, and [Cloud Firewall](https://docs.tritondatacenter.com/public-cloud/network/firewall)
 rules are automatically created that allow incoming traffic to the appropriate
 ports from any IP address. For `-P`, this means all ports that the VM's image
 exposes. For `-p`, this means all ports specified as arguments. Port remapping
@@ -49,17 +47,14 @@ a nic on the 'external' network by default.
 The external network used by a container can be changed by setting the
 `triton.network.public` label to the name of the desired external network, e.g.
 
-```
-docker run --label triton.network.public=external2
-```
+    docker run --label triton.network.public=external2
 
 Note that this this only overrides the default public network selection. This
 means that when fabric networks are enabled you will still need to specify one
 of `-p` or `-P` to get the public NIC.
 
-
 ## Related
 
-- [`sdc-fabric vlan`](https://apidocs.joyent.com/cloudapi/#CreateFabricVLAN) and `POST /my/fabrics/default/vlans` in CloudAPI
-- [`sdc-fabric network`](https://apidocs.joyent.com/cloudapi/#CreateFabricNetwork) and `POST /my/fabrics/default/vlans/:id/networks` in CloudAPI
-- [`sdc-fabric network set-default`](https://apidocs.joyent.com/cloudapi/#UpdateConfig) and `PUT /my/config` in CloudAPI
+* [`sdc-fabric vlan`](https://apidocs.tritondatacenter.com/cloudapi/#CreateFabricVLAN) and `POST /my/fabrics/default/vlans` in CloudAPI
+* [`sdc-fabric network`](https://apidocs.tritondatacenter.com/cloudapi/#CreateFabricNetwork) and `POST /my/fabrics/default/vlans/:id/networks` in CloudAPI
+* [`sdc-fabric network set-default`](https://apidocs.tritondatacenter.com/cloudapi/#UpdateConfig) and `PUT /my/config` in CloudAPI

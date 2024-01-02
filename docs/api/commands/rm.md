@@ -42,8 +42,8 @@ The SDC Docker implementation does not support the following arguments:
 * `--link` does nothing
 * `--volumes` does nothing
 
-Please contact Joyent support or file a ticket if you discover any additional divergence.
+Please file a ticket if you discover any additional divergence.
 
 ## Related
 
-- [`sdc-deletemachine`](https://apidocs.joyent.com/cloudapi/#DeleteMachine) and `DELETE /my/machines/:id` in CloudAPI
+* [`sdc-deletemachine`](https://apidocs.tritondatacenter.com/cloudapi/#DeleteMachine) and `DELETE /my/machines/:id` in CloudAPI

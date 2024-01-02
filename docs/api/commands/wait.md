@@ -6,7 +6,7 @@
 
 ## Divergence
 
-There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please contact Joyent support or file a ticket if you discover any.
+There is no known divergence between the Triton SDC Docker and Docker Inc. implementations of this method. Please file a ticket if you discover any.
 
 See also [notes about exit statuses](../divergence.md).
 

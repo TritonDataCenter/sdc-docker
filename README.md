@@ -6,27 +6,26 @@
 
 <!--
     Copyright 2019 Joyent, Inc.
+    Copyright 2023 MNX Cloud, Inc.
 -->
 
 # sdc-docker
 
-This repository is part of the Joyent Triton project. See the [contribution
-guidelines](https://github.com/joyent/triton/blob/master/CONTRIBUTING.md)
+This repository is part of the Triton Data Center project. See the
+[contribution guidelines](https://github.com/TritonDataCenter/triton/blob/master/CONTRIBUTING.md)
 and general documentation at the main
-[Triton project](https://github.com/joyent/triton) page.
+[Triton project](https://github.com/TritonDataCenter/triton) page.
 
-SDC Docker is the Docker Engine for Triton, where the data center is exposed
+`sdc-docker` is the Docker Engine for Triton, where the data center is exposed
 as a single Docker host. The Docker remote API is served from a "docker" core
-SDC zone built from this repo.
-
+Triton zone built from this repo.
 
 # User Guide
 
-For users of the Triton service in Joyent's public cloud, or those using
-a private SDC Docker stand-up, but not administering it, please see the
+For users of the Triton service in a public cloud, or those using
+a private Triton Docker stand-up, but not administering it, please see the
 [User Guide](./docs/api/README.md).  The rest of this README is targeted at
 *development* of sdc-docker.
-
 
 # Docker Version
 
@@ -52,7 +51,6 @@ be sure to update the following:
 2. update the docker cli test client version in
    globe-theatre/bin/nightly-test-docker-integration-cli
 
-
 # Current State
 
 Many commands are currently at least partially implemented. See
@@ -61,11 +59,10 @@ diverges from Docker Inc's docker.  This software is under active development
 to provide parity to the newer Docker features that are relevant to SDC, as
 well as to integrate with other new Triton features .
 
-
 # Installation
 
 Note: Examples in this section are for
-[CoaL](https://github.com/joyent/sdc#cloud-on-a-laptop-coal), i.e. some
+[CoaL](https://github.com/TritonDataCenter/triton#cloud-on-a-laptop-coal), i.e. some
 setup will not be appropriate for a production DC.
 
 1. Installing sdc-docker and supporting services:
@@ -83,14 +80,14 @@ setup will not be appropriate for a production DC.
         #    sdcadm post-setup fabrics ...
         #    <reboot>
 
-For compute nodes added after the first-time setup, you will need to install
-the dockerlogger on them by executing:
+    For compute nodes added after the first-time setup, you will need to install
+    the dockerlogger on them by executing:
 
         sdcadm experimental update dockerlogger --servers ${CN1},${CN2},...
 
-SDC Docker uses (as of [DOCKER-312](https://smartos.org/bugview/DOCKER-312))
-TLS by default. That means you need to setup a user (or use the 'admin' user)
-and add an SSH key for access.
+    SDC Docker uses (as of [DOCKER-312](https://smartos.org/bugview/DOCKER-312))
+    TLS by default. That means you need to setup a user (or use the 'admin' user)
+    and add an SSH key for access.
 
 2. Create a test user (we'll use "jill"):
 
@@ -152,7 +149,7 @@ will need to re-run the ./tools/sdc-docker-setup.sh script.
 The public APIs to an SDC -- sdc-docker and cloudapi -- can be configured to
 be in invite-only mode where only explicitly allowed accounts are given
 authorized. This mode is configured via the `account_allowed_dcs`
-[SDC Application config var](https://github.com/joyent/sdc/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration).
+[SDC Application config var](https://github.com/TritonDataCenter/triton/blob/master/docs/operator-guide/configuration.md#sdc-application-configuration).
 
     sdc-sapi /applications/$(sdc-sapi /applications?name=sdc | json -H 0.uuid) \
         -X PUT -d '{"metadata": {"account_allowed_dcs": true}}'
@@ -189,7 +186,6 @@ Limitation: Currently adding access can take a minute or two to take effect
 (caching) and removing access **requires the sdc-docker server to be
 restarted (DOCKER-233).**
 
-
 # Adding packages
 
 By default the size of the container (ram, disk, cpu shares) uses the package in
@@ -204,7 +200,6 @@ to use them:
     /opt/smartdc/bin/sapiadm update \
        $(/opt/smartdc/bin/sdc-sapi /services?name=docker | json -H 0.uuid) \
        metadata.PACKAGE_PREFIX="sample-"
-
 
 # Configurations
 
@@ -224,7 +219,6 @@ Here is an example of modifying the service configurations with SAPI,
     docker_svc=$(sdc-sapi /services?name=docker | json -Ha uuid)
     sdc-sapi /services/$docker_svc -X PUT -d '{ "metadata": { "USE_TLS": true } }'
 
-
 # Development hooks
 
 Before commiting be sure to:
@@ -236,7 +230,6 @@ A good way to do that is to install the stock pre-commit hook in your
 clone via:
 
     make git-hooks
-
 
 # Testing
 
@@ -265,7 +258,6 @@ run from your Mac dev tree, e.g.:
 
     ./test/runtest ./test/integration/cli-info.test.js
 
-
 By default all "cli" integration tests ("test/integration/cli-\*.test.js") are
 run against the latest Docker CLI version (see the
 `DOCKER_AVAILABLE_CLI_VERSIONS` variable in "test/runtest.common"). To run
@@ -276,8 +268,6 @@ against against other versions, or all supported versions, set the
     make test-integration-in-coal DOCKER_CLI_VERSIONS="1.11.1 1.10.3"
     DOCKER_CLI_VERSIONS=1.11.1 /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-info
     DOCKER_CLI_VERSIONS=latest /zones/$(vmadm lookup -1 alias=docker0)/root/opt/smartdc/docker/test/runtests -f cli-labels
-
-
 
 # Testing locally
 
@@ -319,7 +309,6 @@ docker binary and go (golang) installed, then do the following:
     # Run all tests - this will take forever... a specific test will be faster.
     go test -v
 
-
 # Development from your Mac
 
 1. Add a 'coal' entry to your '~/.ssh/config'. Not required, but we'll use this
@@ -335,7 +324,7 @@ docker binary and go (golang) installed, then do the following:
 
 2. Get a clone on your Mac:
 
-        git clone git@github.com:joyent/sdc-docker.git
+        git clone git@github.com:TritonDataCenter/sdc-docker.git
         cd sdc-docker
 
 3. Make changes in your local clone:
@@ -351,13 +340,11 @@ docker binary and go (golang) installed, then do the following:
    sdcnode version, or added binary node modules) and restart the docker
    SMF service.
 
-
 For testing I tend to have a shell open tailing the docker service's log file:
 
     ssh coal
     sdc-login docker
     tail -f `svcs -L docker` | bunyan
-
 
 # Coding style
 
@@ -376,7 +363,6 @@ for this repo:
 
         var ImageTag = require('.../models/image-tag');
         var Link = require('.../models/link');
-
 
 ## Naming
 
