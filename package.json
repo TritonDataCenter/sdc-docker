@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.7.9",
+  "version": "0.7.10",
   "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {

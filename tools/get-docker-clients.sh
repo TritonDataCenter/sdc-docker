@@ -7,7 +7,7 @@
 
 #
 # Copyright 2016, Joyent, Inc.
-# Copyright 2023 MNX Cloud, Inc.
+# Copyright 2024 MNX Cloud, Inc.
 #
 
 #
@@ -109,7 +109,7 @@ function get_docker_debug_client
     local name=docker-$ver-debug
     local mdir=/Joyent_Dev/public/docker/docker_debug
     local mpath=$mdir/docker-$ver-$OS-$ARCH-debug
-    local murl=https://us-east.manta.joyent.com$mpath
+    local murl=https://us-central.manta.mnx.io$mpath
 
     if [[ -f $DSTDIR/$name ]]; then
         echo "# Already have $name"
