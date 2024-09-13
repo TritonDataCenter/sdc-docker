@@ -1,6 +1,6 @@
 {
   "name": "sdc-docker",
-  "version": "0.7.10",
+  "version": "0.7.11",
   "author": "MNX Cloud (mnx.io)",
   "private": true,
   "dependencies": {
@@ -9,7 +9,7 @@
     "docker-registry-client": "^3.4.0",
     "bunyan": "1.8.8",
     "effluent-logger": "git+https://github.com/TritonDataCenter/effluent-logger.git#d662f161a07f94045ad2afb45442931511c40e51",
-    "fwrule": "2.1.0",
+    "fwrule": "2.1.1",
     "imgmanifest": "3.0.0",
     "keyapi": "git+https://github.com/TritonDataCenter/keyapi.git#bedd6fe787a4f3f3942724b37baed19162c8f074",
     "libuuid": "0.2.1",
