@@ -516,7 +516,16 @@ csrPath=$certDir/csr.pem
 caPath=$certDir/ca.pem
 
 mkdir -p $(dirname $keyPath)
-openssl rsa -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
+# 
+# Check to see if the given private key is ECDSA or RSA
+#
+keyType=$(ssh-keygen -lf $sshPrivKeyPath | grep ECDSA)
+if [[ -z "$keyType" ]]; then
+    openssl rsa -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
+else
+    openssl ec -in $sshPrivKeyPath -outform pem >$keyPath 2>/dev/null
+fi
+
 
 certSubject=
 if [[ -n "$(which uname 2>/dev/null)" && "$(uname)" == MINGW* ]]; then
