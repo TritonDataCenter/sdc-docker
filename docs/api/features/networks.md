@@ -53,6 +53,11 @@ Note that this this only overrides the default public network selection. This
 means that when fabric networks are enabled you will still need to specify one
 of `-p` or `-P` to get the public NIC.
 
+The external network ipv4 address used by a container can be changed by setting
+the `triton.network.public_ipv4` label to the desired ipv4 address that is
+available in the `triton.network.public` network.  The account must
+be set as an owner on the `triton.network.public` network.
+
 ## Related
 
 * [`sdc-fabric vlan`](https://apidocs.tritondatacenter.com/cloudapi/#CreateFabricVLAN) and `POST /my/fabrics/default/vlans` in CloudAPI

@@ -154,6 +154,8 @@ names are currently defined:
   Used by the CNS service.
 * `triton.network.public` (string): Set on a container, used to specify the
   external network name the instance will use.
+* `triton.network.public_ipv4` (string): Set on a container, used to specify the
+  external network ip address the instance will use.
 
 The `com.joyent.*` namespace is reserved for Triton specific use cases,
 these label names are currently defined:
